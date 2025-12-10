@@ -17,7 +17,11 @@ export class SuppliersService {
     return this.prisma.client.supplier.findMany({
       orderBy: [{ sortOrder: 'asc' }, { code: 'asc' }],
       include: {
-        items: true,
+        supplierItems: {
+          include: {
+            item: true,
+          },
+        },
       },
     });
   }
@@ -26,11 +30,14 @@ export class SuppliersService {
     const supplier = await this.prisma.client.supplier.findUnique({
       where: { id },
       include: {
-        items: {
+        supplierItems: {
           include: {
             item: true,
-            fromUOM: true,
-            toUOM: true,
+            packagings: {
+              include: {
+                uom: true,
+              },
+            },
           },
         },
       },

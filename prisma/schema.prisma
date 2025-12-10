@@ -78,7 +78,7 @@ model Item {
   revisions   ItemRevision[] 
   material    Material? @relation(fields: [materialId], references: [id], onDelete: SetNull)
   uom         UOM? @relation(fields: [uomId], references: [id], onDelete: SetNull)
-  suppliers   ItemSupplierUOM[]
+  supplierItems SupplierItem[]
 }
 
 model ItemRevision {
@@ -220,10 +220,8 @@ model UOM {
 
   fromConversions UOMConversion[] @relation("FromUOM")
   toConversions   UOMConversion[] @relation("ToUOM")
-
   items           Item[]
-  fromSuppliers   ItemSupplierUOM[] @relation("SupplierFromUOM")
-  toSuppliers     ItemSupplierUOM[] @relation("SupplierToUOM")
+  supplierItemPackages SupplierItemPackaging[]
 }
 
 model UOMConversion {
@@ -240,33 +238,6 @@ model UOMConversion {
 
   fromUOM    UOM @relation("FromUOM", fields: [fromUOMId], references: [id])
   toUOM      UOM @relation("ToUOM", fields: [toUOMId], references: [id])
-}
-
-model ItemSupplierUOM {
-  id             Int       @id @default(autoincrement())
-
-  itemId         Int
-  supplierId     Int
-  code           String
-
-  fromUOMId      Int
-  toUOMId        Int
-  conversionQty  Float
-
-  isDefault      Boolean   @default(false)
-  isActive       Boolean   @default(true)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  createdBy      String?
-  sortOrder      Int       @default(0)
-
-  item           Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  supplier       Supplier  @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  fromUOM        UOM       @relation("SupplierFromUOM", fields: [fromUOMId], references: [id], onDelete: Restrict)
-  toUOM          UOM       @relation("SupplierToUOM", fields: [toUOMId], references: [id], onDelete: Restrict)
-
-  @@unique([itemId, supplierId, fromUOMId])
 }
 
 model Supplier {
@@ -302,6 +273,60 @@ model Supplier {
   createdBy       String?
   sortOrder       Int                @default(0)
 
-  items           ItemSupplierUOM[]
+  supplierItems SupplierItem[]
 }
+
+model SupplierItem {
+  id             Int      @id @default(autoincrement())
+
+  supplierId     Int
+  itemId         Int
+
+  supplierItemCode String?        // Mã hàng theo NCC (nếu có)
+  currency        String?         // VND, USD,...
+  unitPrice       Decimal?        // Giá theo đơn vị base hoặc theo 1 cấp đóng gói nào đó
+
+  leadTimeDays    Int?            // Thời gian giao hàng dự kiến
+  isActive        Boolean @default(true)
+
+  supplier        Supplier @relation(fields: [supplierId], references: [id])
+  item            Item     @relation(fields: [itemId], references: [id])
+
+  packagings      SupplierItemPackaging[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([supplierId, itemId])  // 1 NCC – 1 Item: 1 dòng
+}
+
+model SupplierItemPackaging {
+  id             Int      @id @default(autoincrement())
+
+  supplierItemId Int
+  level          Int      // 1 = cấp nhỏ hơn base hoặc cấp gần base nhất
+                         // 2 = cấp lớn hơn level 1 (outer pack)
+                         // 3 = lớn hơn nữa,... (CTN,...)
+
+  uomId          Int      // BAG / BOX / CTN,...
+  uom            UOM      @relation(fields: [uomId], references: [id])
+
+  /// Số lượng "cấp ngay trước" nằm trong 1 đơn vị packaging này.
+  /// - Nếu level = 1: qtyPerPrevLevel = số EA trong 1 đơn vị này (vì "prev" = base UOM).
+  /// - Nếu level = 2: qtyPerPrevLevel = số cấp 1 trong 1 đơn vị level 2.
+  /// - Nếu level = 3: qtyPerPrevLevel = số cấp 2 trong 1 đơn vị level 3, v.v.
+  qtyPerPrevLevel Int
+
+  /// Giá trị pre-calculated: số EA trong 1 đơn vị packaging này
+  /// (có thể compute bằng code rồi lưu, hoặc để null và tính runtime).
+  qtyToBase       Int?
+
+  supplierItem    SupplierItem @relation(fields: [supplierItemId], references: [id])
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([supplierItemId, level]) // 1 NCC–Item, mỗi level chỉ 1 dòng
+}
+
 
