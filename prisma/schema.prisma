@@ -1,0 +1,307 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("user") // user, admin, manager
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ItemCategory {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  items Item[]
+}
+
+model ItemType {
+  id          Int       @id @default(autoincrement())
+  code        String?
+  name        String
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  items Item[]
+}
+
+model Item {
+  id          Int             @id @default(autoincrement())
+  name        String
+  categoryId  Int
+  itemTypeId  Int
+  materialId  Int?        // chất liệu
+  model       String?         // model sản phẩm
+  uomId       Int?            // đơn vị tính
+  costPrice   Float?          // đơn giá mua
+  sellingPrice Float?         // đơn giá bán
+
+  // Dimension (chỉ dùng nếu hasSku = false)
+  lengthCm    Float?
+  widthCm     Float?
+  heightCm    Float?
+  weightG     Float?
+
+  notes       String?
+  status      String?         // Active / Inactive / Draft
+  hasSku      Boolean         @default(false)
+  isPurchasable Boolean @default(false)
+  isSellable Boolean @default(false)
+  isManufactured Boolean @default(false)
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  category    ItemCategory    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  itemType    ItemType        @relation(fields: [itemTypeId], references: [id], onDelete: Restrict)
+  revisions   ItemRevision[] 
+  material    Material? @relation(fields: [materialId], references: [id], onDelete: SetNull)
+  uom         UOM? @relation(fields: [uomId], references: [id], onDelete: SetNull)
+  suppliers   ItemSupplierUOM[]
+}
+
+model ItemRevision {
+  id          Int       @id @default(autoincrement())
+  itemId      Int
+  revision    String
+  name        String?
+  notes       String?
+  status      String?     // Draft / Pending / Approved
+  effectiveAt DateTime?   // Ngày hiệu lực phiên bản BOM
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  item        Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  skus        ItemSKU[]
+}
+
+model ItemSKU {
+  id          Int        @id @default(autoincrement())
+  skuCode     String     @unique
+  revisionId  Int
+
+  // Variant attributes
+  colorId     Int
+  genderId    Int     // Men/Women/Unisex – vì ảnh hưởng BOM
+  sizeId      Int
+  pattern     String?
+
+  costPrice   Float?  @default(0)        // đơn giá mua
+  sellingPrice Float?  @default(0)       // đơn giá bán
+
+  // Dimensions (áp dụng cho SKU của sản phẩm có SKU)
+  lengthCm    Float?
+  widthCm     Float?
+  heightCm    Float?
+  weightG     Float?
+
+  notes       String?
+  status      String?     // Active/Inactive
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  revision    ItemRevision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  color       Color @relation(fields: [colorId], references: [id], onDelete: Restrict)
+  gender      Gender @relation(fields: [genderId], references: [id], onDelete: Restrict)
+  size        Size @relation(fields: [sizeId], references: [id], onDelete: Restrict)
+}
+
+model Color {
+  id         Int        @id @default(autoincrement())
+  code       String     @unique @db.VarChar(20)     // BLK, RED, BLUE…
+  desc       String     @db.VarChar(100)
+  hexValue   String?    @db.Char(7)                 // optional: #FFFFFF
+  status     Boolean    @default(true)
+  sortOrder  Int?       
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  createdBy  String?    @db.VarChar(50)
+
+  itemSKU    ItemSKU[]
+}
+
+
+model Gender {
+  id         Int        @id @default(autoincrement())
+  code       String     @unique @db.VarChar(20)     // M, F, UNISEX…
+  desc       String     @db.VarChar(100)
+  status     Boolean    @default(true)
+  sortOrder  Int?       
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  createdBy  String?    @db.VarChar(50)
+
+  itemSKU    ItemSKU[]
+}
+
+
+model Size {
+  id         Int        @id @default(autoincrement())
+  code       String     @unique @db.VarChar(20)     // XS, S, M, L, XL…
+  desc       String     @db.VarChar(100)
+  status     Boolean    @default(true)
+  sortOrder  Int?       
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  createdBy  String?    @db.VarChar(50)
+
+  itemSKU    ItemSKU[]
+}
+
+model Material {
+  id         Int        @id @default(autoincrement())
+  code       String     @unique @db.VarChar(20)  
+  desc       String     @db.VarChar(100)
+  status     Boolean    @default(true)
+  sortOrder  Int?       
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  createdBy  String?    @db.VarChar(50)
+
+  item    Item[]
+}
+
+model UOMClass {
+  id         Int      @id @default(autoincrement())
+  code       String   @unique
+  name       String
+  description String?
+  sortOrder  Int      @default(0)
+  isActive   Boolean  @default(true)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  createdBy  String?
+
+  uoms       UOM[]
+}
+
+model UOM {
+  id         Int      @id @default(autoincrement())
+  code       String   @unique
+  name       String
+  description String?
+  sortOrder  Int      @default(0)
+  isActive   Boolean  @default(true)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  createdBy  String?
+
+  classId    Int
+  uomClass   UOMClass @relation(fields: [classId], references: [id])
+
+  fromConversions UOMConversion[] @relation("FromUOM")
+  toConversions   UOMConversion[] @relation("ToUOM")
+
+  items           Item[]
+  fromSuppliers   ItemSupplierUOM[] @relation("SupplierFromUOM")
+  toSuppliers     ItemSupplierUOM[] @relation("SupplierToUOM")
+}
+
+model UOMConversion {
+  id         Int      @id @default(autoincrement())
+  
+  fromUOMId  Int
+  toUOMId    Int
+  factor     Float     // ví dụ: 1 M = 100 CM → factor = 100
+
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  createdBy  String?
+
+  fromUOM    UOM @relation("FromUOM", fields: [fromUOMId], references: [id])
+  toUOM      UOM @relation("ToUOM", fields: [toUOMId], references: [id])
+}
+
+model ItemSupplierUOM {
+  id             Int       @id @default(autoincrement())
+
+  itemId         Int
+  supplierId     Int
+  code           String
+
+  fromUOMId      Int
+  toUOMId        Int
+  conversionQty  Float
+
+  isDefault      Boolean   @default(false)
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  createdBy      String?
+  sortOrder      Int       @default(0)
+
+  item           Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  supplier       Supplier  @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  fromUOM        UOM       @relation("SupplierFromUOM", fields: [fromUOMId], references: [id], onDelete: Restrict)
+  toUOM          UOM       @relation("SupplierToUOM", fields: [toUOMId], references: [id], onDelete: Restrict)
+
+  @@unique([itemId, supplierId, fromUOMId])
+}
+
+model Supplier {
+  id              Int                @id @default(autoincrement())
+  code            String             @unique
+  name            String
+  
+  // Thông tin liên hệ
+  phone           String?
+  email           String?
+  website         String?
+  
+  // Địa chỉ
+  address         String?
+  city            String?
+  province        String?
+  country         String?
+  postalCode      String?
+  
+  // Thông tin kinh doanh
+  taxId           String?            // Mã số thuế
+  contactPerson   String?            // Người liên hệ
+  paymentTerms    String?            // Điều khoản thanh toán (e.g., "NET30", "NET60")
+  
+  // Trạng thái & phân loại
+  status          String?            // Active / Inactive / Blacklist
+  category        String?            // e.g., "Fabric", "Accessories", "Packaging"
+  rating          Float?             // Đánh giá (0-5)
+  
+  isActive        Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  createdBy       String?
+  sortOrder       Int                @default(0)
+
+  items           ItemSupplierUOM[]
+}
+

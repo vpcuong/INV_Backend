@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma generate:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(move srcproduct-categories srcitem-categories)",
+      "Bash(cmd /c:*)",
+      "Bash(powershell -Command \"Rename-Item -Path ''src\\product-categories'' -NewName ''item-categories''\")",
+      "Bash(npx prisma db push:*)",
+      "Bash(npx nest generate:*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma studio)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
