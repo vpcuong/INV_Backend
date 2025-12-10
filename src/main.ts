@@ -37,6 +37,7 @@ async function bootstrap() {
     .addTag('genders', 'Gender management')
     .addTag('sizes', 'Size management')
     .addTag('suppliers', 'Supplier management')
+    .addTag('supplier-item-packagings', 'Supplier item packaging management')
     .addTag('auth', 'Authentication')
     .addBearerAuth()
     .build();

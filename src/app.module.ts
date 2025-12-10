@@ -17,6 +17,7 @@ import { UomClassesModule } from './uom-classes/uom-classes.module';
 import { UomsModule } from './uoms/uoms.module';
 import { UomConversionsModule } from './uom-conversions/uom-conversions.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
+import { SupplierItemPackagingsModule } from './supplier-item-packagings/supplier-item-packagings.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { SuppliersModule } from './suppliers/suppliers.module';
     UomsModule,
     UomConversionsModule,
     SuppliersModule,
+    SupplierItemPackagingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
