@@ -38,6 +38,8 @@ async function bootstrap() {
     .addTag('sizes', 'Size management')
     .addTag('suppliers', 'Supplier management')
     .addTag('supplier-item-packagings', 'Supplier item packaging management')
+    .addTag('customers', 'Customer management')
+    .addTag('customer-addresses', 'Customer address management')
     .addTag('auth', 'Authentication')
     .addBearerAuth()
     .build();

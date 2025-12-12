@@ -18,6 +18,8 @@ import { UomsModule } from './uoms/uoms.module';
 import { UomConversionsModule } from './uom-conversions/uom-conversions.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
 import { SupplierItemPackagingsModule } from './supplier-item-packagings/supplier-item-packagings.module';
+import { CustomersModule } from './customers/customers.module';
+import { CustomerAddressesModule } from './customer-addresses/customer-addresses.module';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { SupplierItemPackagingsModule } from './supplier-item-packagings/supplie
     UomConversionsModule,
     SuppliersModule,
     SupplierItemPackagingsModule,
+    CustomersModule,
+    CustomerAddressesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
