@@ -1,0 +1,58 @@
+// Item attributes (Color, Gender, Size, Material)
+
+model Color {
+  id         Int        @id @default(autoincrement())
+  code       String     @unique @db.VarChar(20)     // BLK, RED, BLUE…
+  desc       String     @db.VarChar(100)
+  hexValue   String?    @db.Char(7)                 // optional: #FFFFFF
+  status     Boolean    @default(true)
+  sortOrder  Int?
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  createdBy  String?    @db.VarChar(50)
+
+  itemSKU    ItemSKU[]
+}
+
+model Gender {
+  id         Int        @id @default(autoincrement())
+  code       String     @unique @db.VarChar(20)     // M, F, UNISEX…
+  desc       String     @db.VarChar(100)
+  status     Boolean    @default(true)
+  sortOrder  Int?
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  createdBy  String?    @db.VarChar(50)
+
+  itemSKU    ItemSKU[]
+}
+
+model Size {
+  id         Int        @id @default(autoincrement())
+  code       String     @unique @db.VarChar(20)     // XS, S, M, L, XL…
+  desc       String     @db.VarChar(100)
+  status     Boolean    @default(true)
+  sortOrder  Int?
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  createdBy  String?    @db.VarChar(50)
+
+  itemSKU    ItemSKU[]
+}
+
+model Material {
+  id         Int        @id @default(autoincrement())
+  code       String     @unique @db.VarChar(20)
+  desc       String     @db.VarChar(100)
+  status     Boolean    @default(true)
+  sortOrder  Int?
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  createdBy  String?    @db.VarChar(50)
+
+  item    Item[]
+}

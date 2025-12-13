@@ -1,0 +1,90 @@
+// Supplier management models
+
+model Supplier {
+  id              Int                @id @default(autoincrement())
+  code            String             @unique
+  name            String
+
+  // Thông tin liên hệ
+  phone           String?
+  email           String?
+  website         String?
+
+  // Địa chỉ
+  address         String?
+  city            String?
+  province        String?
+  country         String?
+  postalCode      String?
+
+  // Thông tin kinh doanh
+  taxId           String?            // Mã số thuế
+  contactPerson   String?            // Người liên hệ
+  paymentTerms    String?            // Điều khoản thanh toán (e.g., "NET30", "NET60")
+
+  // Trạng thái & phân loại
+  status          String?            // Active / Inactive / Blacklist
+  category        String?            // e.g., "Fabric", "Accessories", "Packaging"
+  rating          Float?             // Đánh giá (0-5)
+
+  isActive        Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  createdBy       String?
+  sortOrder       Int                @default(0)
+
+  supplierItems SupplierItem[]
+}
+
+model SupplierItem {
+  id             Int      @id @default(autoincrement())
+
+  supplierId     Int
+  itemId         Int
+
+  supplierItemCode String?        // Mã hàng theo NCC (nếu có)
+  currency        String?         // VND, USD,...
+  unitPrice       Decimal?        // Giá theo đơn vị base hoặc theo 1 cấp đóng gói nào đó
+
+  leadTimeDays    Int?            // Thời gian giao hàng dự kiến
+  isActive        Boolean @default(true)
+
+  supplier        Supplier @relation(fields: [supplierId], references: [id])
+  item            Item     @relation(fields: [itemId], references: [id])
+
+  packagings      SupplierItemPackaging[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([supplierId, itemId])  // 1 NCC – 1 Item: 1 dòng
+}
+
+model SupplierItemPackaging {
+  id             Int      @id @default(autoincrement())
+
+  supplierItemId Int
+  level          Int      // 1 = cấp nhỏ hơn base hoặc cấp gần base nhất
+                         // 2 = cấp lớn hơn level 1 (outer pack)
+                         // 3 = lớn hơn nữa,... (CTN,...)
+
+  uomId          Int      // BAG / BOX / CTN,...
+  uom            UOM      @relation(fields: [uomId], references: [id])
+
+  /// Số lượng "cấp ngay trước" nằm trong 1 đơn vị packaging này.
+  /// - Nếu level = 1: qtyPerPrevLevel = số EA trong 1 đơn vị này (vì "prev" = base UOM).
+  /// - Nếu level = 2: qtyPerPrevLevel = số cấp 1 trong 1 đơn vị level 2.
+  /// - Nếu level = 3: qtyPerPrevLevel = số cấp 2 trong 1 đơn vị level 3, v.v.
+  qtyPerPrevLevel Int
+
+  /// Giá trị pre-calculated: số EA trong 1 đơn vị packaging này
+  /// (có thể compute bằng code rồi lưu, hoặc để null và tính runtime).
+  qtyToBase       Int?
+
+  supplierItem    SupplierItem @relation(fields: [supplierItemId], references: [id])
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([supplierItemId, level]) // 1 NCC–Item, mỗi level chỉ 1 dòng
+}
