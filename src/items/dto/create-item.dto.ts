@@ -1,22 +1,26 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNumber, IsBoolean, IsOptional, IsEnum, Min } from 'class-validator';
 
 export class CreateItemDto {
   @ApiProperty({
     description: 'Item name',
     example: 'Classic T-Shirt',
   })
+  @IsString()
   name!: string;
 
   @ApiProperty({
     description: 'Item category ID',
     example: 1,
   })
+  @IsNumber()
   categoryId!: number;
 
   @ApiProperty({
     description: 'Item type ID',
     example: 1,
   })
+  @IsNumber()
   itemTypeId!: number;
 
   @ApiProperty({
@@ -24,6 +28,8 @@ export class CreateItemDto {
     example: 1,
     required: false,
   })
+  @IsOptional()
+  @IsNumber()
   materialId?: number;
 
   @ApiProperty({
@@ -31,20 +37,27 @@ export class CreateItemDto {
     example: 'CT-2024-001',
     required: false,
   })
+  @IsOptional()
+  @IsString()
   model?: string;
 
   @ApiProperty({
-    description: 'Unit of Measure ID',
-    example: 1,
+    description: 'Unit of Measure code',
+    example: 'PCS',
     required: false,
   })
-  uomId?: number;
+  @IsOptional()
+  @IsString()
+  uomCode?: string;
 
   @ApiProperty({
     description: 'Cost price (purchase price)',
     example: 15.50,
     required: false,
   })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
   costPrice?: number;
 
   @ApiProperty({
@@ -52,6 +65,9 @@ export class CreateItemDto {
     example: 25.99,
     required: false,
   })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
   sellingPrice?: number;
 
   @ApiProperty({
@@ -59,6 +75,8 @@ export class CreateItemDto {
     example: 50.5,
     required: false,
   })
+  @IsOptional()
+  @IsNumber()
   lengthCm?: number;
 
   @ApiProperty({
@@ -66,6 +84,8 @@ export class CreateItemDto {
     example: 30.0,
     required: false,
   })
+  @IsOptional()
+  @IsNumber()
   widthCm?: number;
 
   @ApiProperty({
@@ -73,6 +93,8 @@ export class CreateItemDto {
     example: 2.5,
     required: false,
   })
+  @IsOptional()
+  @IsNumber()
   heightCm?: number;
 
   @ApiProperty({
@@ -80,6 +102,8 @@ export class CreateItemDto {
     example: 250.0,
     required: false,
   })
+  @IsOptional()
+  @IsNumber()
   weightG?: number;
 
   @ApiProperty({
@@ -87,6 +111,8 @@ export class CreateItemDto {
     example: 'Premium quality cotton',
     required: false,
   })
+  @IsOptional()
+  @IsString()
   notes?: string;
 
   @ApiProperty({
@@ -95,6 +121,8 @@ export class CreateItemDto {
     enum: ['Active', 'Inactive', 'Draft'],
     required: false,
   })
+  @IsOptional()
+  @IsEnum(['Active', 'Inactive', 'Draft'])
   status?: string;
 
   @ApiProperty({
@@ -103,6 +131,8 @@ export class CreateItemDto {
     default: false,
     required: false,
   })
+  @IsOptional()
+  @IsBoolean()
   hasSku?: boolean;
 
   @ApiProperty({
@@ -111,6 +141,8 @@ export class CreateItemDto {
     default: false,
     required: false,
   })
+  @IsOptional()
+  @IsBoolean()
   isPurchasable?: boolean;
 
   @ApiProperty({
@@ -119,6 +151,8 @@ export class CreateItemDto {
     default: false,
     required: false,
   })
+  @IsOptional()
+  @IsBoolean()
   isSellable?: boolean;
 
   @ApiProperty({
@@ -127,5 +161,7 @@ export class CreateItemDto {
     default: false,
     required: false,
   })
+  @IsOptional()
+  @IsBoolean()
   isManufactured?: boolean;
 }

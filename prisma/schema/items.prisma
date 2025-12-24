@@ -1,61 +1,54 @@
-// Item management models
-
 model ItemCategory {
-  id          Int       @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
   description String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  items Item[]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  items       Item[]
 }
 
 model ItemType {
-  id          Int       @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   code        String?
   name        String
   description String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  items Item[]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  items       Item[]
 }
 
 model Item {
-  id          Int             @id @default(autoincrement())
-  name        String
-  categoryId  Int
-  itemTypeId  Int
-  materialId  Int?        // chất liệu
-  model       String?         // model sản phẩm
-  uomId       Int?            // đơn vị tính
-  costPrice   Float?          // đơn giá mua
-  sellingPrice Float?         // đơn giá bán
-
-  // Dimension (chỉ dùng nếu hasSku = false)
-  lengthCm    Float?
-  widthCm     Float?
-  heightCm    Float?
-  weightG     Float?
-
-  notes       String?
-  status      String?         // Active / Inactive / Draft
-  hasSku      Boolean         @default(false)
-  isPurchasable Boolean @default(false)
-  isSellable Boolean @default(false)
-  isManufactured Boolean @default(false)
-
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-
-  category    ItemCategory    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  itemType    ItemType        @relation(fields: [itemTypeId], references: [id], onDelete: Restrict)
-  revisions   ItemRevision[]
-  material    Material? @relation(fields: [materialId], references: [id], onDelete: SetNull)
-  uom         UOM? @relation(fields: [uomId], references: [id], onDelete: SetNull)
-  suppliers   SupplierItem[]
+  id             Int            @id @default(autoincrement())
+  name           String
+  categoryId     Int
+  itemTypeId     Int
+  materialId     Int?
+  model          String?
+  lengthCm       Float?
+  widthCm        Float?
+  heightCm       Float?
+  weightG        Float?
+  notes          String?
+  status         String?
+  hasSku         Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  costPrice      Float?
+  isManufactured Boolean        @default(false)
+  isPurchasable  Boolean        @default(false)
+  isSellable     Boolean        @default(false)
+  sellingPrice   Float?
+  uomCode        String?
+  category       ItemCategory   @relation(fields: [categoryId], references: [id])
+  itemType       ItemType       @relation(fields: [itemTypeId], references: [id])
+  material       Material?      @relation(fields: [materialId], references: [id])
+  uom            UOM?           @relation(fields: [uomCode], references: [code])
+  revisions      ItemRevision[]
+  itemUoms       ItemUOM[]
+  soDetails      SODetail[]
+  suppliers      SupplierItem[]
 }
 
 model ItemRevision {
@@ -64,44 +57,83 @@ model ItemRevision {
   revision    String
   name        String?
   notes       String?
-  status      String?     // Draft / Pending / Approved
-  effectiveAt DateTime?   // Ngày hiệu lực phiên bản BOM
-
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  item        Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  status      String?
+  effectiveAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  item        Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
   skus        ItemSKU[]
 }
 
 model ItemSKU {
-  id          Int        @id @default(autoincrement())
-  skuCode     String     @unique
-  revisionId  Int
+  id           Int          @id @default(autoincrement())
+  skuCode      String       @unique
+  revisionId   Int
+  colorId      Int
+  genderId     Int
+  sizeId       Int
+  pattern      String?
+  lengthCm     Float?
+  widthCm      Float?
+  heightCm     Float?
+  weightG      Float?
+  notes        String?
+  status       String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  costPrice    Float?       @default(0)
+  sellingPrice Float?       @default(0)
+  uomCode      String?
+  color        Color        @relation(fields: [colorId], references: [id])
+  gender       Gender       @relation(fields: [genderId], references: [id])
+  revision     ItemRevision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  size         Size         @relation(fields: [sizeId], references: [id])
+  uom          UOM?         @relation(fields: [uomCode], references: [code])
+  skuUoms      SKUUOM[]
+  soDetails    SODetail[]
+}
 
-  // Variant attributes
-  colorId     Int
-  genderId    Int     // Men/Women/Unisex – vì ảnh hưởng BOM
-  sizeId      Int
-  pattern     String?
+model ItemUOM {
+  itemId             Int
+  uomCode            String
+  toBaseFactor       Decimal  @db.Decimal(18, 6)
+  roundingPrecision  Int?     @default(2)
+  isDefaultTransUom  Boolean  @default(false)
+  isPurchasingUom    Boolean  @default(false)
+  isSalesUom         Boolean  @default(false)
+  isManufacturingUom Boolean  @default(false)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  desc               String   @default("")
+  uom                UOM      @relation("ItemUOMs", fields: [uomCode], references: [code])
+  item               Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
-  costPrice   Float?  @default(0)        // đơn giá mua
-  sellingPrice Float?  @default(0)       // đơn giá bán
+  @@id([itemId, uomCode])
+  @@index([itemId], map: "ix_itemuom_item")
+  @@index([uomCode], map: "ix_itemuom_uom")
+  @@map("ItemUOM")
+}
 
-  // Dimensions (áp dụng cho SKU của sản phẩm có SKU)
-  lengthCm    Float?
-  widthCm     Float?
-  heightCm    Float?
-  weightG     Float?
+model SKUUOM {
+  id                 Int      @id @default(autoincrement())
+  skuId              Int
+  toBaseFactor       Decimal  @db.Decimal(18, 6)
+  roundingPrecision  Int?     @default(2)
+  isDefaultTransUom  Boolean  @default(false)
+  isPurchasingUom    Boolean  @default(false)
+  isSalesUom         Boolean  @default(false)
+  isManufacturingUom Boolean  @default(false)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  desc               String   @default("")
+  uomCode            String
+  sku                ItemSKU  @relation(fields: [skuId], references: [id], onDelete: Cascade)
+  uom                UOM      @relation("SKUUOMs", fields: [uomCode], references: [code])
 
-  notes       String?
-  status      String?     // Active/Inactive
-
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  revision    ItemRevision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
-  color       Color @relation(fields: [colorId], references: [id], onDelete: Restrict)
-  gender      Gender @relation(fields: [genderId], references: [id], onDelete: Restrict)
-  size        Size @relation(fields: [sizeId], references: [id], onDelete: Restrict)
+  @@unique([skuId, uomCode], name: "ux_sku_uom_once")
+  @@index([skuId], map: "ix_skuuom_sku")
+  @@index([uomCode], map: "ix_skuuom_uom")
+  @@map("SKUUOM")
 }

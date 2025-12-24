@@ -1,130 +1,151 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString, IsNumber, IsBoolean, IsEnum, Min } from 'class-validator';
 
 export class UpdateItemDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Item name',
     example: 'Classic T-Shirt',
-    required: false,
   })
+  @IsOptional()
+  @IsString()
   name?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Item category ID',
     example: 1,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
   categoryId?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Item type ID',
     example: 1,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
   itemTypeId?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Material ID',
     example: 1,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
   materialId?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Model/style code',
     example: 'CT-2024-001',
-    required: false,
   })
+  @IsOptional()
+  @IsString()
   model?: string;
 
-  @ApiProperty({
-    description: 'Unit of Measure ID',
-    example: 1,
-    required: false,
+  @ApiPropertyOptional({
+    description: 'Unit of Measure code',
+    example: 'PCS',
   })
-  uomId?: number;
+  @IsOptional()
+  @IsString()
+  uomCode?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Cost price (purchase price)',
     example: 15.50,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
   costPrice?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Selling price',
     example: 25.99,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
   sellingPrice?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Length in centimeters',
     example: 50.5,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
   lengthCm?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Width in centimeters',
     example: 30.0,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
   widthCm?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Height in centimeters',
     example: 2.5,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
   heightCm?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Weight in grams',
     example: 250.0,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
   weightG?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Additional notes',
     example: 'Premium quality cotton',
-    required: false,
   })
+  @IsOptional()
+  @IsString()
   notes?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Item status',
     example: 'Active',
     enum: ['Active', 'Inactive', 'Draft'],
-    required: false,
   })
+  @IsOptional()
+  @IsEnum(['Active', 'Inactive', 'Draft'])
   status?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Whether item has SKU variants',
     example: true,
-    required: false,
   })
+  @IsOptional()
+  @IsBoolean()
   hasSku?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Whether item is purchasable',
     example: true,
-    required: false,
   })
+  @IsOptional()
+  @IsBoolean()
   isPurchasable?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Whether item is sellable',
     example: true,
-    required: false,
   })
+  @IsOptional()
+  @IsBoolean()
   isSellable?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Whether item is manufactured',
     example: false,
-    required: false,
   })
+  @IsOptional()
+  @IsBoolean()
   isManufactured?: boolean;
 }

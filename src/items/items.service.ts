@@ -28,7 +28,7 @@ export class ItemsService {
         category: { connect: { id: createItemDto.categoryId } },
         itemType: { connect: { id: createItemDto.itemTypeId } },
         ...(createItemDto.materialId && { material: { connect: { id: createItemDto.materialId } } }),
-        ...(createItemDto.uomId && { uom: { connect: { id: createItemDto.uomId } } }),
+        ...(createItemDto.uomCode && { uom: { connect: { code: createItemDto.uomCode } } }),
       },
       include: {
         category: true,
@@ -105,8 +105,8 @@ export class ItemsService {
     if (updateItemDto.materialId !== undefined) {
       updateData.material = { connect: { id: updateItemDto.materialId } };
     }
-    if (updateItemDto.uomId !== undefined) {
-      updateData.uom = { connect: { id: updateItemDto.uomId } };
+    if (updateItemDto.uomCode !== undefined) {
+      updateData.uom = { connect: { code: updateItemDto.uomCode } };
     }
 
     return this.prisma.client.item.update({

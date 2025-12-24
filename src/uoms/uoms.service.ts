@@ -19,11 +19,11 @@ export class UomsService {
 
     // Check if UOM class exists
     const uomClass = await this.prisma.client.uOMClass.findUnique({
-      where: { id: createUomDto.classId },
+      where: { code: createUomDto.classCode },
     });
 
     if (!uomClass) {
-      throw new NotFoundException(`UOM class with ID ${createUomDto.classId} not found`);
+      throw new NotFoundException(`UOM class with code '${createUomDto.classCode}' not found`);
     }
 
     return this.prisma.client.uOM.create({
@@ -45,61 +45,42 @@ export class UomsService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(code: string) {
     const uom = await this.prisma.client.uOM.findUnique({
-      where: { id },
+      where: { code },
       include: {
         uomClass: true,
-        fromConversions: {
+        uomConvs: {
           include: {
-            toUOM: true,
-          },
-        },
-        toConversions: {
-          include: {
-            fromUOM: true,
+            uomClass: true,
           },
         },
       },
     });
 
     if (!uom) {
-      throw new NotFoundException(`UOM with ID ${id} not found`);
+      throw new NotFoundException(`UOM with code '${code}' not found`);
     }
 
     return uom;
   }
 
-  async update(id: number, updateUomDto: UpdateUomDto) {
-    await this.findOne(id);
-
-    // Check if code already exists (if being changed)
-    if (updateUomDto.code) {
-      const existingUom = await this.prisma.client.uOM.findFirst({
-        where: {
-          code: updateUomDto.code,
-          NOT: { id },
-        },
-      });
-
-      if (existingUom) {
-        throw new ConflictException(`UOM with code '${updateUomDto.code}' already exists`);
-      }
-    }
+  async update(code: string, updateUomDto: UpdateUomDto) {
+    await this.findOne(code);
 
     // Check if UOM class exists (if being changed)
-    if (updateUomDto.classId) {
+    if (updateUomDto.classCode) {
       const uomClass = await this.prisma.client.uOMClass.findUnique({
-        where: { id: updateUomDto.classId },
+        where: { code: updateUomDto.classCode },
       });
 
       if (!uomClass) {
-        throw new NotFoundException(`UOM class with ID ${updateUomDto.classId} not found`);
+        throw new NotFoundException(`UOM class with code '${updateUomDto.classCode}' not found`);
       }
     }
 
     return this.prisma.client.uOM.update({
-      where: { id },
+      where: { code },
       data: updateUomDto,
       include: {
         uomClass: true,
@@ -107,20 +88,19 @@ export class UomsService {
     });
   }
 
-  async remove(id: number) {
-    await this.findOne(id);
+  async remove(code: string) {
+    await this.findOne(code);
 
     // Check if UOM has conversions or is used by items
     const uom = await this.prisma.client.uOM.findUnique({
-      where: { id },
+      where: { code },
       include: {
-        fromConversions: true,
-        toConversions: true,
+        uomConvs: true,
         items: true,
       },
     });
 
-    if (uom && (uom.fromConversions.length > 0 || uom.toConversions.length > 0)) {
+    if (uom && uom.uomConvs.length > 0) {
       throw new ConflictException(`Cannot delete UOM that has conversions`);
     }
 
@@ -129,24 +109,24 @@ export class UomsService {
     }
 
     return this.prisma.client.uOM.delete({
-      where: { id },
+      where: { code },
     });
   }
 
-  async activate(id: number) {
-    await this.findOne(id);
+  async activate(code: string) {
+    await this.findOne(code);
 
     return this.prisma.client.uOM.update({
-      where: { id },
+      where: { code },
       data: { isActive: true },
     });
   }
 
-  async deactivate(id: number) {
-    await this.findOne(id);
+  async deactivate(code: string) {
+    await this.findOne(code);
 
     return this.prisma.client.uOM.update({
-      where: { id },
+      where: { code },
       data: { isActive: false },
     });
   }

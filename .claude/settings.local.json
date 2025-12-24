@@ -10,7 +10,14 @@
       "Bash(npx nest generate:*)",
       "Bash(npm install:*)",
       "Bash(npx prisma studio)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(npx prisma migrate deploy)",
+      "Bash(rm:*)",
+      "Bash(psql:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

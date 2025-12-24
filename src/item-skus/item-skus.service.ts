@@ -22,6 +22,9 @@ export class ItemSkusService {
         genderId: createItemSkuDto.genderId,
         sizeId: createItemSkuDto.sizeId,
         pattern: createItemSkuDto.pattern,
+        uomCode: createItemSkuDto.uomCode,
+        costPrice: createItemSkuDto.costPrice,
+        sellingPrice: createItemSkuDto.sellingPrice,
         lengthCm: createItemSkuDto.lengthCm,
         widthCm: createItemSkuDto.widthCm,
         heightCm: createItemSkuDto.heightCm,
@@ -38,6 +41,7 @@ export class ItemSkusService {
         color: true,
         gender: true,
         size: true,
+        uom: true,
       },
     });
   }
@@ -53,6 +57,7 @@ export class ItemSkusService {
         color: true,
         gender: true,
         size: true,
+        uom: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -72,6 +77,7 @@ export class ItemSkusService {
         color: true,
         gender: true,
         size: true,
+        uom: true,
       },
     });
 
@@ -98,6 +104,7 @@ export class ItemSkusService {
         color: true,
         gender: true,
         size: true,
+        uom: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -117,6 +124,7 @@ export class ItemSkusService {
         color: true,
         gender: true,
         size: true,
+        uom: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -141,6 +149,7 @@ export class ItemSkusService {
         color: true,
         gender: true,
         size: true,
+        uom: true,
       },
     });
   }
@@ -160,6 +169,7 @@ export class ItemSkusService {
         color: true,
         gender: true,
         size: true,
+        uom: true,
       },
     });
   }
@@ -179,6 +189,7 @@ export class ItemSkusService {
         color: true,
         gender: true,
         size: true,
+        uom: true,
       },
     });
   }

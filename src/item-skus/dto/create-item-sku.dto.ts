@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNumber, IsOptional, IsEnum, Min } from 'class-validator';
 
 export class CreateItemSkuDto {
   @ApiProperty({
@@ -6,30 +7,44 @@ export class CreateItemSkuDto {
     example: 'GRE-UNI-M',
     required: false,
   })
+  @IsOptional()
+  @IsString()
   skuCode?: string;
+
+  @ApiProperty({
+    description: 'UOM code',
+    example: 'EA',
+  })
+  @IsOptional()
+  @IsString()
+  uomCode?: string;
 
   @ApiProperty({
     description: 'Item revision ID',
     example: 1,
   })
+  @IsNumber()
   revisionId!: number;
 
   @ApiProperty({
     description: 'Color ID',
     example: 1,
   })
+  @IsNumber()
   colorId!: number;
 
   @ApiProperty({
     description: 'Gender ID',
     example: 2,
   })
+  @IsNumber()
   genderId!: number;
 
   @ApiProperty({
     description: 'Size ID',
     example: 3,
   })
+  @IsNumber()
   sizeId!: number;
 
   @ApiProperty({
@@ -37,6 +52,8 @@ export class CreateItemSkuDto {
     example: 'Striped',
     required: false,
   })
+  @IsOptional()
+  @IsString()
   pattern?: string;
 
   @ApiProperty({
@@ -45,6 +62,9 @@ export class CreateItemSkuDto {
     required: false,
     default: 0,
   })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
   costPrice?: number;
 
   @ApiProperty({
@@ -53,6 +73,9 @@ export class CreateItemSkuDto {
     required: false,
     default: 0,
   })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
   sellingPrice?: number;
 
   @ApiProperty({
@@ -60,6 +83,8 @@ export class CreateItemSkuDto {
     example: 50.5,
     required: false,
   })
+  @IsOptional()
+  @IsNumber()
   lengthCm?: number;
 
   @ApiProperty({
@@ -67,6 +92,8 @@ export class CreateItemSkuDto {
     example: 30.0,
     required: false,
   })
+  @IsOptional()
+  @IsNumber()
   widthCm?: number;
 
   @ApiProperty({
@@ -74,6 +101,8 @@ export class CreateItemSkuDto {
     example: 2.5,
     required: false,
   })
+  @IsOptional()
+  @IsNumber()
   heightCm?: number;
 
   @ApiProperty({
@@ -81,6 +110,8 @@ export class CreateItemSkuDto {
     example: 250.0,
     required: false,
   })
+  @IsOptional()
+  @IsNumber()
   weightG?: number;
 
   @ApiProperty({
@@ -88,6 +119,8 @@ export class CreateItemSkuDto {
     example: 'Special handling required',
     required: false,
   })
+  @IsOptional()
+  @IsString()
   notes?: string;
 
   @ApiProperty({
@@ -97,5 +130,7 @@ export class CreateItemSkuDto {
     required: false,
     default: 'Active',
   })
+  @IsOptional()
+  @IsEnum(['Active', 'Inactive'])
   status?: string;
 }

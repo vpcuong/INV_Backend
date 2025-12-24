@@ -1,21 +1,27 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNumber, Min } from 'class-validator';
 
 export class CreateUomConversionDto {
   @ApiProperty({
-    description: 'From UOM ID',
-    example: 1,
+    description: 'UOM Class Code',
+    example: 'LENGTH',
   })
-  fromUOMId!: number;
+  @IsString()
+  uomClassCode!: string;
 
   @ApiProperty({
-    description: 'To UOM ID',
-    example: 2,
+    description: 'UOM Code',
+    example: 'CM',
   })
-  toUOMId!: number;
+  @IsString()
+  uomCode!: string;
 
   @ApiProperty({
-    description: 'Conversion factor (e.g., 1 M = 100 CM, factor = 100)',
+    description: 'Conversion factor to base UOM (e.g., 1 M = 100 CM, factor = 100)',
     example: 100,
   })
-  factor!: number;
+  @IsNumber()
+  @Min(0)
+  toBaseFactor!: number;
 }
+

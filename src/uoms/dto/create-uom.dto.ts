@@ -1,4 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsNumber, IsOptional, MaxLength, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateUomDto {
   @ApiProperty({
@@ -6,32 +8,40 @@ export class CreateUomDto {
     example: 'M',
     maxLength: 50,
   })
+  @IsString()
+  @MaxLength(50)
   code!: string;
 
   @ApiProperty({
     description: 'UOM name',
     example: 'Meter',
   })
+  @IsString()
   name!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Description',
     example: 'Standard unit for measuring length',
-    required: false,
   })
+  @IsOptional()
+  @IsString()
   description?: string;
 
   @ApiProperty({
-    description: 'UOM class ID',
-    example: 1,
+    description: 'UOM class code',
+    example: 'LENGTH',
   })
-  classId!: number;
+  @IsString()
+  classCode!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Sort order',
     example: 1,
     default: 0,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
   sortOrder?: number;
 }

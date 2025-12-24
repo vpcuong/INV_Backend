@@ -36,6 +36,7 @@ export class ItemsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateItemDto: UpdateItemDto
   ) {
+    console.log(updateItemDto);
     return this.itemsService.update(id, updateItemDto);
   }
 

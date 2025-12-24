@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  ParseIntPipe,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -37,47 +36,60 @@ export class UomConversionsController {
     return this.uomConversionsService.findAll();
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get UOM conversion by ID' })
+  @Get(':uomClassCode/:uomCode')
+  @ApiOperation({ summary: 'Get UOM conversion by UOM Class Code and UOM Code' })
   @ApiResponse({ status: 200, description: 'Returns the UOM conversion' })
   @ApiResponse({ status: 404, description: 'UOM conversion not found' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.uomConversionsService.findOne(id);
+  findOne(
+    @Param('uomClassCode') uomClassCode: string,
+    @Param('uomCode') uomCode: string,
+  ) {
+    return this.uomConversionsService.findOne(uomClassCode, uomCode);
   }
 
-  @Patch(':id')
+  @Patch(':uomClassCode/:uomCode')
   @ApiOperation({ summary: 'Update UOM conversion' })
   @ApiResponse({ status: 200, description: 'UOM conversion updated successfully' })
   @ApiResponse({ status: 404, description: 'UOM conversion or UOM not found' })
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('uomClassCode') uomClassCode: string,
+    @Param('uomCode') uomCode: string,
     @Body() updateUomConversionDto: UpdateUomConversionDto,
   ) {
-    return this.uomConversionsService.update(id, updateUomConversionDto);
+    return this.uomConversionsService.update(uomClassCode, uomCode, updateUomConversionDto);
   }
 
-  @Delete(':id')
+  @Delete(':uomClassCode/:uomCode')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete UOM conversion' })
   @ApiResponse({ status: 204, description: 'UOM conversion deleted' })
   @ApiResponse({ status: 404, description: 'UOM conversion not found' })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.uomConversionsService.remove(id);
+  remove(
+    @Param('uomClassCode') uomClassCode: string,
+    @Param('uomCode') uomCode: string,
+  ) {
+    return this.uomConversionsService.remove(uomClassCode, uomCode);
   }
 
-  @Patch(':id/activate')
+  @Patch(':uomClassCode/:uomCode/activate')
   @ApiOperation({ summary: 'Activate UOM conversion' })
   @ApiResponse({ status: 200, description: 'UOM conversion activated' })
   @ApiResponse({ status: 404, description: 'UOM conversion not found' })
-  activate(@Param('id', ParseIntPipe) id: number) {
-    return this.uomConversionsService.activate(id);
+  activate(
+    @Param('uomClassCode') uomClassCode: string,
+    @Param('uomCode') uomCode: string,
+  ) {
+    return this.uomConversionsService.activate(uomClassCode, uomCode);
   }
 
-  @Patch(':id/deactivate')
+  @Patch(':uomClassCode/:uomCode/deactivate')
   @ApiOperation({ summary: 'Deactivate UOM conversion' })
   @ApiResponse({ status: 200, description: 'UOM conversion deactivated' })
   @ApiResponse({ status: 404, description: 'UOM conversion not found' })
-  deactivate(@Param('id', ParseIntPipe) id: number) {
-    return this.uomConversionsService.deactivate(id);
+  deactivate(
+    @Param('uomClassCode') uomClassCode: string,
+    @Param('uomCode') uomCode: string,
+  ) {
+    return this.uomConversionsService.deactivate(uomClassCode, uomCode);
   }
 }

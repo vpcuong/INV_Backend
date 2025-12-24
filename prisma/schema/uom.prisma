@@ -1,53 +1,49 @@
-// UOM (Unit of Measure) management
-
 model UOMClass {
-  id         Int      @id @default(autoincrement())
-  code       String   @unique
-  name       String
+  code        String          @id @unique
+  name        String
   description String?
-  sortOrder  Int      @default(0)
-  isActive   Boolean  @default(true)
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  createdBy  String?
-
-  uoms       UOM[]
+  baseUOMCode String?
+  sortOrder   Int             @default(0)
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  createdBy   String?
+  baseUOM     UOM?            @relation("BaseUOM", fields: [baseUOMCode], references: [code])
+  uoms        UOM[]           @relation("ClassUOMs")
+  uomConvs    UOMConversion[]
 }
 
 model UOM {
-  id         Int      @id @default(autoincrement())
-  code       String   @unique
-  name       String
-  description String?
-  sortOrder  Int      @default(0)
-  isActive   Boolean  @default(true)
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  createdBy  String?
-
-  classId    Int
-  uomClass   UOMClass @relation(fields: [classId], references: [id])
-
-  fromConversions UOMConversion[] @relation("FromUOM")
-  toConversions   UOMConversion[] @relation("ToUOM")
-  items           Item[]
+  code                 String                  @id @unique
+  name                 String
+  description          String?
+  sortOrder            Int                     @default(0)
+  isActive             Boolean                 @default(true)
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  createdBy            String?
+  classCode            String
+  items                Item[]
+  itemSkus             ItemSKU[]
+  itemUoms             ItemUOM[]               @relation("ItemUOMs")
+  skuUoms              SKUUOM[]                @relation("SKUUOMs")
+  soDetails            SODetail[]
   supplierItemPackages SupplierItemPackaging[]
+  uomClass             UOMClass                @relation("ClassUOMs", fields: [classCode], references: [code])
+  uomConvs             UOMConversion[]
+  baseUOMClasses       UOMClass[]              @relation("BaseUOM")
 }
 
 model UOMConversion {
-  id         Int      @id @default(autoincrement())
+  uomClassCode String
+  uomCode      String
+  toBaseFactor Float
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  createdBy    String?
+  uomClass     UOMClass @relation(fields: [uomClassCode], references: [code])
+  uom          UOM      @relation(fields: [uomCode], references: [code])
 
-  fromUOMId  Int
-  toUOMId    Int
-  factor     Float     // ví dụ: 1 M = 100 CM → factor = 100
-
-  isActive   Boolean   @default(true)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  createdBy  String?
-
-  fromUOM    UOM @relation("FromUOM", fields: [fromUOMId], references: [id])
-  toUOM      UOM @relation("ToUOM", fields: [toUOMId], references: [id])
+  @@id([uomClassCode, uomCode])
 }

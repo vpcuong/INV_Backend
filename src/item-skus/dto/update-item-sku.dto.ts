@@ -1,95 +1,127 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString, IsNumber, IsEnum, Min } from 'class-validator';
 
 export class UpdateItemSkuDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'SKU code',
     example: 'GRE-UNI-M',
-    required: false,
   })
+  @IsOptional()
+  @IsString()
   skuCode?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
+    description: 'UOM code',
+    example: 'EA',
+  })
+  @IsOptional()
+  @IsString()
+  uomCode?: string;
+
+  @ApiPropertyOptional({
     description: 'Color ID',
     example: 1,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
   colorId?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Gender ID',
     example: 2,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
   genderId?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Size ID',
     example: 3,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
   sizeId?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Pattern description',
     example: 'Striped',
-    required: false,
   })
+  @IsOptional()
+  @IsString()
   pattern?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
+    description: 'Unit of Measure ID',
+    example: 1,
+  })
+  @IsOptional()
+  @IsNumber()
+  uomId?: number;
+
+  @ApiPropertyOptional({
     description: 'Cost price (purchase price)',
     example: 12.50,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
   costPrice?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Selling price',
     example: 24.99,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
   sellingPrice?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Length in centimeters',
     example: 50.5,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
   lengthCm?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Width in centimeters',
     example: 30.0,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
   widthCm?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Height in centimeters',
     example: 2.5,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
   heightCm?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Weight in grams',
     example: 250.0,
-    required: false,
   })
+  @IsOptional()
+  @IsNumber()
   weightG?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Additional notes',
     example: 'Special handling required',
-    required: false,
   })
+  @IsOptional()
+  @IsString()
   notes?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Status',
     example: 'Active',
     enum: ['Active', 'Inactive'],
-    required: false,
   })
+  @IsOptional()
+  @IsEnum(['Active', 'Inactive'])
   status?: string;
 }

@@ -35,11 +35,11 @@ export class SupplierItemPackagingsService {
 
     // Verify UOM exists
     const uom = await this.prisma.client.uOM.findUnique({
-      where: { id: createDto.uomId },
+      where: { code: createDto.uomCode },
     });
 
     if (!uom) {
-      throw new NotFoundException(`UOM with ID ${createDto.uomId} not found`);
+      throw new NotFoundException(`UOM with code '${createDto.uomCode}' not found`);
     }
 
     // Calculate qtyToBase if not provided
@@ -56,7 +56,7 @@ export class SupplierItemPackagingsService {
       data: {
         supplierItemId: createDto.supplierItemId,
         level: createDto.level,
-        uomId: createDto.uomId,
+        uomCode: createDto.uomCode,
         qtyPerPrevLevel: createDto.qtyPerPrevLevel,
         qtyToBase,
       },

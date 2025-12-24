@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { IsInt, IsOptional, Min, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateSupplierItemPackagingDto {
@@ -19,11 +19,11 @@ export class CreateSupplierItemPackagingDto {
   level!: number;
 
   @ApiProperty({
-    description: 'UOM ID for this packaging level',
-    example: 2
+    description: 'UOM code for this packaging level',
+    example: 'BOX'
   })
-  @IsInt()
-  uomId!: number;
+  @IsString()
+  uomCode!: string;
 
   @ApiProperty({
     description: 'Quantity of previous level in this packaging level. For level 1, this is qty of base units (EA)',

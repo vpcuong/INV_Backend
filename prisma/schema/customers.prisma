@@ -1,72 +1,43 @@
-// Customer management models
-
-enum CustomerStatus {
-  ACTIVE
-  INACTIVE
-  BLACKLIST
-}
-
-enum AddressType {
-  HQ
-  BILLING
-  SHIPPING
-  FACTORY
-}
-
-enum PaymentTermCode {
-  COD           // Cash on Delivery
-  PREPAID       // Thanh toán trước
-  NET7          // 7 ngày
-  NET15         // 15 ngày
-  NET30         // 30 ngày
-  NET45         // 45 ngày
-  NET60         // 60 ngày
-  NET90         // 90 ngày
-  EOM           // End of Month
-  CUSTOM        // Custom terms
-}
-
 model Customer {
-  id           Int            @id @default(autoincrement())
-  customerCode String         @unique @db.VarChar(50)
-  customerName String         @db.VarChar(200)
-  shortName    String?        @db.VarChar(50)
-  taxCode      String?        @db.VarChar(50)
-  country      String?        @db.VarChar(100)
-  status       CustomerStatus @default(ACTIVE)
-  note         String?        @db.Text
-
-  isActive     Boolean        @default(true)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  createdBy    String?        @db.VarChar(50)
-  sortOrder    Int            @default(0)
-
+  id           Int                   @id @default(autoincrement())
+  customerCode String                @unique @db.VarChar(50)
+  customerName String                @db.VarChar(200)
+  shortName    String?               @db.VarChar(50)
+  taxCode      String?               @db.VarChar(50)
+  country      String?               @db.VarChar(100)
+  status       CustomerStatus        @default(ACTIVE)
+  note         String?
+  isActive     Boolean               @default(true)
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  createdBy    String?               @db.VarChar(50)
+  sortOrder    Int                   @default(0)
   addresses    CustomerAddress[]
   contacts     CustomerContact[]
   paymentTerms CustomerPaymentTerm[]
+  salesOrders  SOHeader[]
 
   @@index([customerCode])
   @@index([status])
 }
 
 model CustomerAddress {
-  id          Int         @id @default(autoincrement())
-  customerId  Int
-  addressType AddressType
-  addressLine String      @db.VarChar(500)
-  ward        String?     @db.VarChar(100)
-  district    String?     @db.VarChar(100)
-  city        String      @db.VarChar(100)
-  province    String?     @db.VarChar(100)
-  country     String      @db.VarChar(100)
-  postalCode  String?     @db.VarChar(20)
-  isDefault   Boolean     @default(false)
-
-  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id               Int         @id @default(autoincrement())
+  customerId       Int
+  addressType      AddressType
+  addressLine      String      @db.VarChar(500)
+  ward             String?     @db.VarChar(100)
+  district         String?     @db.VarChar(100)
+  city             String      @db.VarChar(100)
+  province         String?     @db.VarChar(100)
+  country          String      @db.VarChar(100)
+  postalCode       String?     @db.VarChar(20)
+  isDefault        Boolean     @default(false)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  customer         Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  soBillingOrders  SOHeader[]  @relation("SOBillingAddress")
+  soShippingOrders SOHeader[]  @relation("SOShippingAddress")
 
   @@index([customerId])
   @@index([addressType])
@@ -84,32 +55,54 @@ model CustomerContact {
   wechat     String?  @db.VarChar(50)
   isPrimary  Boolean  @default(false)
   isActive   Boolean  @default(true)
-
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@index([customerId])
   @@index([email])
 }
 
 model CustomerPaymentTerm {
-  id             Int             @id @default(autoincrement())
-  customerId     Int
-  paymentTerm    PaymentTermCode
-  creditLimit    Decimal?        @db.Decimal(18,2)
-  currency       String          @default("VND") @db.VarChar(10)
-  effectiveFrom  DateTime
-  effectiveTo    DateTime?
-  isActive       Boolean         @default(true)
-
-  customer       Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  createdBy      String?         @db.VarChar(50)
+  id            Int             @id @default(autoincrement())
+  customerId    Int
+  paymentTerm   PaymentTermCode
+  creditLimit   Decimal?        @db.Decimal(18, 2)
+  currency      String          @default("VND") @db.VarChar(10)
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  createdBy     String?         @db.VarChar(50)
+  customer      Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@index([customerId])
   @@index([effectiveFrom, effectiveTo])
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+  BLACKLIST
+}
+
+enum AddressType {
+  HQ
+  BILLING
+  SHIPPING
+  FACTORY
+}
+
+enum PaymentTermCode {
+  COD
+  PREPAID
+  NET7
+  NET15
+  NET30
+  NET45
+  NET60
+  NET90
+  EOM
+  CUSTOM
 }

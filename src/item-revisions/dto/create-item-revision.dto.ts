@@ -1,8 +1,52 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNumber, IsString, IsOptional, IsDateString } from 'class-validator';
+import { Type } from 'class-transformer';
+
 export class CreateItemRevisionDto {
+  @ApiProperty({
+    description: 'Item ID',
+    example: 1,
+  })
+  @IsNumber()
+  @Type(() => Number)
   itemId!: number;
+
+  @ApiProperty({
+    description: 'Revision number/code',
+    example: 'R001',
+  })
+  @IsString()
   revision!: string;
+
+  @ApiPropertyOptional({
+    description: 'Revision name',
+    example: 'Initial revision',
+  })
+  @IsOptional()
+  @IsString()
   name?: string;
+
+  @ApiPropertyOptional({
+    description: 'Notes about this revision',
+    example: 'First version of the product',
+  })
+  @IsOptional()
+  @IsString()
   notes?: string;
+
+  @ApiPropertyOptional({
+    description: 'Revision status',
+    example: 'Draft',
+  })
+  @IsOptional()
+  @IsString()
   status?: string;
-  effectiveAt?: Date;
+
+  @ApiPropertyOptional({
+    description: 'Effective date (ISO 8601 format)',
+    example: '2024-01-01T00:00:00.000Z',
+  })
+  @IsOptional()
+  @IsDateString()
+  effectiveAt?: string;
 }

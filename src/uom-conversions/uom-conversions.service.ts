@@ -9,42 +9,50 @@ export class UomConversionsService {
 
   async create(createUomConversionDto: CreateUomConversionDto) {
     // Check if both UOMs exist
-    const [fromUOM, toUOM] = await Promise.all([
-      this.prisma.client.uOM.findUnique({
-        where: { id: createUomConversionDto.fromUOMId },
+    const [classUOMCode, uomCode] = await Promise.all([
+      this.prisma.client.uOMClass.findUnique({
+        where: { 
+          code: createUomConversionDto.uomClassCode,
+        },
       }),
       this.prisma.client.uOM.findUnique({
-        where: { id: createUomConversionDto.toUOMId },
+        where: { 
+          code: createUomConversionDto.uomCode
+        },
       }),
     ]);
 
-    if (!fromUOM) {
-      throw new NotFoundException(`From UOM with ID ${createUomConversionDto.fromUOMId} not found`);
+    if (!classUOMCode) {
+      throw new NotFoundException(`From UOM Class with Code ${createUomConversionDto.uomClassCode} not found`);
     }
 
-    if (!toUOM) {
-      throw new NotFoundException(`To UOM with ID ${createUomConversionDto.toUOMId} not found`);
+    if (!uomCode) {
+      throw new NotFoundException(`To UOM with Code ${createUomConversionDto.uomCode} not found`);
     }
 
     // Check if conversion already exists
     const existingConversion = await this.prisma.client.uOMConversion.findFirst({
       where: {
-        fromUOMId: createUomConversionDto.fromUOMId,
-        toUOMId: createUomConversionDto.toUOMId,
+        uomClassCode: createUomConversionDto.uomClassCode,
+        uomCode: createUomConversionDto.uomCode,
       },
     });
 
     if (existingConversion) {
       throw new ConflictException(
-        `Conversion from ${fromUOM.code} to ${toUOM.code} already exists`,
+        `Conversion UOM Class ${classUOMCode}, UOM Code ${uomCode} already exists`,
       );
     }
 
     return this.prisma.client.uOMConversion.create({
-      data: createUomConversionDto,
+      data: {
+        uomClassCode: createUomConversionDto.uomClassCode,
+        uomCode: createUomConversionDto.uomCode,
+        toBaseFactor: createUomConversionDto.toBaseFactor,
+      },
       include: {
-        fromUOM: true,
-        toUOM: true,
+        uomClass: true,
+        uom: true,
       },
     });
   }
@@ -52,87 +60,125 @@ export class UomConversionsService {
   async findAll() {
     return this.prisma.client.uOMConversion.findMany({
       include: {
-        fromUOM: true,
-        toUOM: true,
+        uomClass: true,
+        uom: true,
       },
       orderBy: {
-        id: 'asc',
+        uomClassCode: 'asc',
       },
     });
   }
 
-  async findOne(id: number) {
+  async findOne(uomClassCode: string, uomCodeString: string) {
     const conversion = await this.prisma.client.uOMConversion.findUnique({
-      where: { id },
+      where: { 
+        uomClassCode_uomCode: {
+          uomClassCode,
+          uomCode: uomCodeString
+        }
+      },
       include: {
-        fromUOM: true,
-        toUOM: true,
+        uomClass: true,
+        uom: true,
       },
     });
 
     if (!conversion) {
-      throw new NotFoundException(`UOM conversion with ID ${id} not found`);
+      throw new NotFoundException(`UOM conversion for class '${uomClassCode}' and UOM '${uomCodeString}' not found`);
     }
 
     return conversion;
   }
 
-  async update(id: number, updateUomConversionDto: UpdateUomConversionDto) {
-    await this.findOne(id);
+  async update(uomClassCode: string, uomCode: string, updateUomConversionDto: UpdateUomConversionDto) {
+    await this.findOne(uomClassCode, uomCode);
 
     // Check if UOMs exist (if being changed)
-    if (updateUomConversionDto.fromUOMId) {
-      const fromUOM = await this.prisma.client.uOM.findUnique({
-        where: { id: updateUomConversionDto.fromUOMId },
+    if (updateUomConversionDto.uomCode) {
+      const uomCode = await this.prisma.client.uOM.findUnique({
+        where: { code: updateUomConversionDto.uomCode },
       });
 
-      if (!fromUOM) {
-        throw new NotFoundException(`From UOM with ID ${updateUomConversionDto.fromUOMId} not found`);
+      if (!uomCode) {
+        throw new NotFoundException(`UOM with code: ${updateUomConversionDto.uomCode} not found`);
       }
     }
 
-    if (updateUomConversionDto.toUOMId) {
-      const toUOM = await this.prisma.client.uOM.findUnique({
-        where: { id: updateUomConversionDto.toUOMId },
-      });
-
-      if (!toUOM) {
-        throw new NotFoundException(`To UOM with ID ${updateUomConversionDto.toUOMId} not found`);
-      }
+    const updateData: any = {};
+    if (updateUomConversionDto.uomClassCode !== undefined) {
+      updateData.uomClassCode = updateUomConversionDto.uomClassCode;
+    }
+    if (updateUomConversionDto.uomCode !== undefined) {
+      updateData.uomCode = updateUomConversionDto.uomCode;
+    }
+    if (updateUomConversionDto.toBaseFactor !== undefined) {
+      updateData.toBaseFactor = updateUomConversionDto.toBaseFactor;
     }
 
     return this.prisma.client.uOMConversion.update({
-      where: { id },
-      data: updateUomConversionDto,
+      where: {
+        uomClassCode_uomCode: {
+          uomClassCode,
+          uomCode
+        }
+       },
+      data: updateData,
       include: {
-        fromUOM: true,
-        toUOM: true,
+        uomClass: true,
+        uom: true,
       },
     });
   }
 
-  async remove(id: number) {
-    await this.findOne(id);
+  async remove(uomClassCode: string, uomCode: string) {
+    const conversion = await this.findOne(uomClassCode, uomCode);
+
+    if (!conversion) {
+      throw new NotFoundException(`UOM conversion with ID ${uomClassCode} not found`);
+    }
 
     return this.prisma.client.uOMConversion.delete({
-      where: { id },
+      where: { 
+        uomClassCode_uomCode: {
+          uomClassCode,
+          uomCode
+       }
+      },
     });
   }
 
-  async activate(id: number) {
-    await this.findOne(id);
+  async activate(uomClassCode: string, uomCode: string) {
+    const conversion = await this.findOne(uomClassCode, uomCode);
+
+    if (!conversion) {
+      throw new NotFoundException(`UOM conversion with ID ${uomClassCode} not found`);
+    }
 
     return this.prisma.client.uOMConversion.update({
-      where: { id },
-      data: { isActive: true },
+      where: { 
+        uomClassCode_uomCode: {
+          uomClassCode,
+          uomCode
+        }
+      },
+      data: { isActive: true }
     });
   }
 
-  async deactivate(id: number) {
-    await this.findOne(id);
+  async deactivate(uomClassCode: string, uomCode: string) {
+    const conversion = await this.findOne(uomClassCode, uomCode);
+
+    if (!conversion) {
+      throw new NotFoundException(`UOM conversion with ID ${uomClassCode} not found`);
+    }
 
     return this.prisma.client.uOMConversion.update({
-      where: { id },
+      where: { 
+        uomClassCode_uomCode: {
+          uomClassCode,
+          uomCode
+        }
+      },
       data: { isActive: false },
     });
   }
