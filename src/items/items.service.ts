@@ -161,4 +161,50 @@ export class ItemsService {
       },
     });
   }
+
+  /**
+   * Search items by searchTerm
+   * Searches through name, model, and notes fields
+   */
+  async search(searchTerm: string) {
+    if (!searchTerm || searchTerm.trim() === '') {
+      return [];
+    }
+
+    const trimmedSearch = searchTerm.trim();
+
+    return this.prisma.client.item.findMany({
+      where: {
+        OR: [
+          {
+            name: {
+              contains: trimmedSearch,
+              mode: 'insensitive',
+            },
+          },
+          {
+            model: {
+              contains: trimmedSearch,
+              mode: 'insensitive',
+            },
+          },
+          {
+            notes: {
+              contains: trimmedSearch,
+              mode: 'insensitive',
+            },
+          },
+        ],
+      },
+      // include: {
+      //   category: true,
+      //   itemType: true,
+      //   material: true,
+      //   uom: true,
+      // },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
 }

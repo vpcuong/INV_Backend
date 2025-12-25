@@ -46,6 +46,14 @@ export class UpdateSOLineDto {
   orderQty?: number;
 
   @ApiPropertyOptional({
+    description: 'Unit of Measure code',
+    example: 'PCS',
+  })
+  @IsOptional()
+  @IsString()
+  uomCode?: string;
+
+  @ApiPropertyOptional({
     description: 'Unit of Measure ID',
     example: 1,
   })

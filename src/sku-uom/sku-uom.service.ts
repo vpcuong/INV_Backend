@@ -277,6 +277,161 @@ export class SkuUomService {
     });
   }
 
+  /**
+   * Get all available UOM codes for a SKU
+   *
+   * Business Logic:
+   * - TH1: If Item.uomCode === SKU.uomCode
+   *        => Return ItemUOMs (not overridden) + SKUUOMs (overridden or new)
+   * - TH2: If Item.uomCode ≠ SKU.uomCode
+   *        => Return only SKUUOMs (Item UOMs don't apply)
+   */
+  async getAvailableUomsForSku(skuId: number) {
+    // Get SKU with its Item information
+    const sku = await this.prisma.client.itemSKU.findUnique({
+      where: { id: skuId },
+      include: {
+        revision: {
+          include: {
+            item: {
+              include: {
+                uom: true,
+                itemUoms: {
+                  where: { isActive: true },
+                  include: {
+                    uom: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        uom: true,
+        skuUoms: {
+          where: { isActive: true },
+          include: {
+            uom: true,
+          },
+        },
+      },
+    });
+
+    if (!sku) {
+      throw new NotFoundException(`SKU with ID ${skuId} not found`);
+    }
+
+    const item = sku.revision.item;
+    const itemUomCode = item.uomCode;
+    const skuUomCode = sku.uomCode;
+
+    // Get SKUUOM codes (these override ItemUOMs)
+    const skuUomCodes = new Set(sku.skuUoms.map(su => su.uomCode));
+
+    let availableUoms: any[] = [];
+
+    // TH1: Item và SKU có cùng base UOM
+    if (itemUomCode === skuUomCode) {
+      // Add base UOM
+      if (sku.uom) {
+        availableUoms.push({
+          uomCode: sku.uom.code,
+          uomName: sku.uom.name,
+          source: 'BASE',
+          toBaseFactor: 1,
+          roundingPrecision: 2,
+          isDefaultTransUom: false,
+          isPurchasingUom: false,
+          isSalesUom: false,
+          isManufacturingUom: false,
+        });
+      }
+
+      // Add ItemUOMs that are NOT overridden by SKUUOMs
+      const nonOverriddenItemUoms = item.itemUoms
+        .filter(itemUom => !skuUomCodes.has(itemUom.uomCode))
+        .map(itemUom => ({
+          uomCode: itemUom.uomCode,
+          uomName: itemUom.uom.name,
+          source: 'ITEM',
+          toBaseFactor: Number(itemUom.toBaseFactor),
+          roundingPrecision: itemUom.roundingPrecision,
+          isDefaultTransUom: itemUom.isDefaultTransUom,
+          isPurchasingUom: itemUom.isPurchasingUom,
+          isSalesUom: itemUom.isSalesUom,
+          isManufacturingUom: itemUom.isManufacturingUom,
+          desc: itemUom.desc,
+        }));
+
+      availableUoms = [...availableUoms, ...nonOverriddenItemUoms];
+
+      // Add all SKUUOMs (overridden or new)
+      const skuUoms = sku.skuUoms.map(skuUom => ({
+        uomCode: skuUom.uomCode,
+        uomName: skuUom.uom.name,
+        source: skuUomCodes.has(skuUom.uomCode) &&
+                item.itemUoms.some(iu => iu.uomCode === skuUom.uomCode)
+                ? 'SKU_OVERRIDE'
+                : 'SKU',
+        toBaseFactor: Number(skuUom.toBaseFactor),
+        roundingPrecision: skuUom.roundingPrecision,
+        isDefaultTransUom: skuUom.isDefaultTransUom,
+        isPurchasingUom: skuUom.isPurchasingUom,
+        isSalesUom: skuUom.isSalesUom,
+        isManufacturingUom: skuUom.isManufacturingUom,
+        desc: skuUom.desc,
+      }));
+
+      availableUoms = [...availableUoms, ...skuUoms];
+    }
+    // TH2: Item và SKU có base UOM khác nhau
+    else {
+      // Add SKU base UOM
+      if (sku.uom) {
+        availableUoms.push({
+          uomCode: sku.uom.code,
+          uomName: sku.uom.name,
+          source: 'BASE',
+          toBaseFactor: 1,
+          roundingPrecision: 2,
+          isDefaultTransUom: false,
+          isPurchasingUom: false,
+          isSalesUom: false,
+          isManufacturingUom: false,
+        });
+      }
+
+      // Only add SKUUOMs (ItemUOMs don't apply)
+      const skuUoms = sku.skuUoms.map(skuUom => ({
+        uomCode: skuUom.uomCode,
+        uomName: skuUom.uom.name,
+        source: 'SKU',
+        toBaseFactor: Number(skuUom.toBaseFactor),
+        roundingPrecision: skuUom.roundingPrecision,
+        isDefaultTransUom: skuUom.isDefaultTransUom,
+        isPurchasingUom: skuUom.isPurchasingUom,
+        isSalesUom: skuUom.isSalesUom,
+        isManufacturingUom: skuUom.isManufacturingUom,
+        desc: skuUom.desc,
+      }));
+
+      availableUoms = [...availableUoms, ...skuUoms];
+    }
+
+    // Sort by toBaseFactor
+    availableUoms.sort((a, b) => a.toBaseFactor - b.toBaseFactor);
+
+    return {
+      skuId,
+      skuCode: sku.skuCode,
+      itemId: item.id,
+      itemName: item.name,
+      itemUomCode,
+      skuUomCode,
+      sameBaseUom: itemUomCode === skuUomCode,
+      availableUoms,
+    };
+  }
+
   // Utility method to convert quantity between UOMs
   async convertQuantity(
     skuId: number,

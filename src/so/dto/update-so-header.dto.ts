@@ -4,6 +4,7 @@ import {
   IsString,
   IsNumber,
   IsEnum,
+  IsDateString,
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -38,6 +39,7 @@ export class UpdateSOHeaderDto {
     example: '2024-12-15T00:00:00.000Z',
   })
   @IsOptional()
+  @IsDateString()
   orderDate?: Date;
 
   @ApiPropertyOptional({
@@ -45,6 +47,7 @@ export class UpdateSOHeaderDto {
     example: '2024-12-20T00:00:00.000Z',
   })
   @IsOptional()
+  @IsDateString()
   requestDate?: Date;
 
   @ApiPropertyOptional({
@@ -52,6 +55,7 @@ export class UpdateSOHeaderDto {
     example: '2024-12-31T00:00:00.000Z',
   })
   @IsOptional()
+  @IsDateString()
   needByDate?: Date;
 
   @ApiPropertyOptional({
@@ -225,4 +229,12 @@ export class UpdateSOHeaderDto {
   @IsOptional()
   @IsString()
   internalNote?: string;
+
+  @ApiPropertyOptional({
+    description: 'Created by user',
+    example: 'admin@example.com',
+  })
+  @IsOptional()
+  @IsString()
+  createdBy?: string;
 }

@@ -78,6 +78,58 @@ export class SkuUomController {
     return this.skuUomService.findBySkuId(skuId);
   }
 
+  @Get('sku/:skuId/available-uoms')
+  @ApiOperation({
+    summary: 'Get all available UOMs for a SKU (with Item UOMs inheritance logic)',
+    description: `
+      Returns available UOMs based on business rules:
+      - If Item.uomCode === SKU.uomCode: Return ItemUOMs (not overridden) + SKUUOMs
+      - If Item.uomCode ≠ SKU.uomCode: Return only SKUUOMs
+    `,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Return all available UOMs with source information',
+    schema: {
+      example: {
+        skuId: 1,
+        skuCode: 'SKU-001',
+        itemId: 10,
+        itemName: 'T-Shirt',
+        itemUomCode: 'PCS',
+        skuUomCode: 'PCS',
+        sameBaseUom: true,
+        availableUoms: [
+          {
+            uomCode: 'PCS',
+            uomName: 'Pieces',
+            source: 'BASE',
+            toBaseFactor: 1,
+            roundingPrecision: 2,
+          },
+          {
+            uomCode: 'DOZ',
+            uomName: 'Dozen',
+            source: 'ITEM',
+            toBaseFactor: 12,
+            roundingPrecision: 2,
+          },
+          {
+            uomCode: 'CTN',
+            uomName: 'Carton',
+            source: 'SKU_OVERRIDE',
+            toBaseFactor: 144,
+            roundingPrecision: 0,
+          },
+        ],
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'SKU not found' })
+  getAvailableUomsForSku(@Param('skuId', ParseIntPipe) skuId: number) {
+    return this.skuUomService.getAvailableUomsForSku(skuId);
+  }
+
   @Get('sku/:skuId/uom/:uomCode')
   @ApiOperation({ summary: 'Get SKUUOM by SKU ID and UOM code' })
   @ApiResponse({ status: 200, description: 'Return the SKUUOM' })

@@ -2,9 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSOHeaderDto } from './dto/create-so-header.dto';
 import { UpdateSOHeaderDto } from './dto/update-so-header.dto';
+import { UpdateSOWithLinesDto } from './dto/update-so-with-lines.dto';
 
 @Injectable()
-export class SoHeadersService {
+export class SoService {
   constructor(private prisma: PrismaService) {}
 
   async create(createDto: CreateSOHeaderDto) {
@@ -299,6 +300,125 @@ export class SoHeadersService {
 
     return this.prisma.client.sOHeader.delete({
       where: { id },
+    });
+  }
+
+  async updateWithLines(id: number, dto: UpdateSOWithLinesDto) {
+    return this.prisma.client.$transaction(async (tx) => {
+      // 1. Verify SO exists
+      let soHeader = await tx.sOHeader.findUnique({
+        where: { id },
+        include: {
+          lines: true,
+        },
+      });
+
+      if (!soHeader) {
+        throw new NotFoundException(`Sales Order with ID ${id} not found`);
+      }
+
+      // 2. Update header if provided
+      if (dto.header) {
+        await tx.sOHeader.update({
+          where: { id },
+          data: {
+            ...dto.header,
+            orderStatus: dto.header.orderStatus as any,
+            paymentTermCode: dto.header.paymentTermCode as any,
+          },
+        });
+      }
+
+      // 3. Delete lines if specified
+      if (dto.linesToDelete && dto.linesToDelete.length > 0) {
+        await tx.sODetail.deleteMany({
+          where: {
+            id: { in: dto.linesToDelete },
+            soHeaderId: id,
+          },
+        });
+      }
+
+      // 4. Update or create lines
+      if (dto.lines && dto.lines.length > 0) {
+        for (const line of dto.lines) {
+          if (line.id) {
+            // Update existing line
+            const { id: lineId, ...lineData } = line;
+            await tx.sODetail.update({
+              where: { id: lineId },
+              data: {
+                ...lineData,
+                lineStatus: lineData.lineStatus as any,
+              },
+            });
+          } else {
+            // Create new line - need to get the next line number
+            const maxLineNum = await tx.sODetail.aggregate({
+              where: { soHeaderId: id },
+              _max: { lineNum: true },
+            });
+
+            const nextLineNum = (maxLineNum._max.lineNum || 0) + 1;
+
+            // Validate required fields for new line
+            if (!line.itemCode) {
+              throw new Error('itemCode is required for new lines');
+            }
+
+            await tx.sODetail.create({
+              data: {
+                soHeaderId: id,
+                lineNum: nextLineNum,
+                itemId: line.itemId || null,
+                itemSkuId: line.itemSkuId || null,
+                itemCode: line.itemCode,
+                description: line.description || null,
+                orderQty: line.orderQty || 0,
+                uomCode: line.uomCode || 'PCS',
+                unitPrice: line.unitPrice || 0,
+                lineDiscountPercent: line.lineDiscountPercent || 0,
+                lineDiscountAmount: line.lineDiscountAmount || 0,
+                lineTaxPercent: line.lineTaxPercent || 0,
+                lineTaxAmount: line.lineTaxAmount || 0,
+                lineTotal: line.lineTotal || 0,
+                needByDate: line.needByDate || null,
+                lineStatus: (line.lineStatus || 'OPEN') as any,
+                openQty: line.openQty || line.orderQty || 0,
+                shippedQty: line.shippedQty || 0,
+                warehouseCode: line.warehouseCode || null,
+                lineNote: line.lineNote || null,
+              },
+            });
+          }
+        }
+      }
+
+      // 5. Return updated SO with all lines
+      return tx.sOHeader.findUnique({
+        where: { id },
+        include: {
+          customer: true,
+          billingAddress: true,
+          shippingAddress: true,
+          lines: {
+            include: {
+              item: true,
+              itemSku: {
+                include: {
+                  color: true,
+                  gender: true,
+                  size: true,
+                },
+              },
+              uom: true,
+            },
+            orderBy: {
+              lineNum: 'asc',
+            },
+          },
+        },
+      });
     });
   }
 

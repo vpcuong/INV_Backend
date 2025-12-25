@@ -20,7 +20,7 @@ import { SuppliersModule } from './suppliers/suppliers.module';
 import { SupplierItemPackagingsModule } from './supplier-item-packagings/supplier-item-packagings.module';
 import { CustomersModule } from './customers/customers.module';
 import { CustomerAddressesModule } from './customer-addresses/customer-addresses.module';
-import { SoHeadersModule } from './so-headers/so-headers.module';
+import { SoModule } from './so/so.module';
 import { ItemUomModule } from './item-uom/item-uom.module';
 import { SkuUomModule } from './sku-uom/sku-uom.module';
 
@@ -47,7 +47,7 @@ import { SkuUomModule } from './sku-uom/sku-uom.module';
     SupplierItemPackagingsModule,
     CustomersModule,
     CustomerAddressesModule,
-    SoHeadersModule,
+    SoModule,
     ItemUomModule,
     SkuUomModule,
   ],
