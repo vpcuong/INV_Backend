@@ -91,6 +91,7 @@ model ItemSKU {
   uom          UOM?         @relation(fields: [uomCode], references: [code])
   skuUoms      SKUUOM[]
   soDetails    SODetail[]
+  poDetails    PODetail[]
 }
 
 model ItemUOM {

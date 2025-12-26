@@ -22,6 +22,7 @@ model Supplier {
   createdBy     String?
   sortOrder     Int            @default(0)
   supplierItems SupplierItem[]
+  poHeader      POHeader[]
 }
 
 model SupplierItem {

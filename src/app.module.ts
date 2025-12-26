@@ -23,6 +23,7 @@ import { CustomerAddressesModule } from './customer-addresses/customer-addresses
 import { SoModule } from './so/so.module';
 import { ItemUomModule } from './item-uom/item-uom.module';
 import { SkuUomModule } from './sku-uom/sku-uom.module';
+import { PoModule } from './po/po.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { SkuUomModule } from './sku-uom/sku-uom.module';
     SoModule,
     ItemUomModule,
     SkuUomModule,
+    PoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -32,6 +32,7 @@ model UOM {
   uomClass             UOMClass                @relation("ClassUOMs", fields: [classCode], references: [code])
   uomConvs             UOMConversion[]
   baseUOMClasses       UOMClass[]              @relation("BaseUOM")
+  poDetails            PODetail[]
 }
 
 model UOMConversion {
