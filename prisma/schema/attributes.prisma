@@ -1,5 +1,5 @@
 model Color {
-  id        Int       @id @default(autoincrement())
+  id        Int       @id @default(autoincrement()) 
   code      String    @unique @db.VarChar(20)
   desc      String    @db.VarChar(100)
   hexValue  String?   @db.Char(7)
@@ -8,6 +8,7 @@ model Color {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   createdBy String?   @db.VarChar(50)
+
   itemSKU   ItemSKU[]
 }
 

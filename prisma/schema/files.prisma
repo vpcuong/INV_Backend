@@ -1,0 +1,42 @@
+// File Management Schema
+
+model File {
+  id           Int       @id @default(autoincrement())
+
+  // File information
+  filename     String    // Original filename
+  storedName   String    // Stored filename (unique)
+  path         String    // Relative path from upload root
+  url          String    // Full URL to access file
+  size         Int       // File size in bytes
+  mimetype     String    // MIME type (image/jpeg, etc.)
+  extension    String    // File extension
+
+  // Context mapping - Polymorphic relationship
+  contextType  String    // 'theme', 'product', 'user', 'document', etc.
+  contextId    Int       // ID of the related entity
+  contextKey   String?   // Optional key: 'thumbnail', 'gallery', 'banner', 'avatar'
+
+  // Metadata
+  category     String?   // 'image', 'document', 'video', etc.
+  displayOrder Int       @default(0)  // For sorting (gallery order)
+  isPrimary    Boolean   @default(false)  // Primary/featured image
+  alt          String?   // Alt text for images (SEO)
+  title        String?   // Title/caption
+  description  String?   // Description
+
+  // Storage info
+  storageType  String    @default("local")  // 'local', 's3', 'azure', etc.
+  bucket       String?   // S3 bucket name, Azure container, etc.
+
+  // Audit fields
+  uploadedBy   String?   // User who uploaded
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime? // Soft delete
+
+  @@index([contextType, contextId])
+  @@index([contextType, contextId, contextKey])
+  @@index([deletedAt])
+  @@map("File")
+}

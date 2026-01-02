@@ -79,25 +79,8 @@ export class CreateSupplierDto {
   @IsString()
   category?: string;
 
-  @ApiPropertyOptional({ description: 'Supplier rating (0-5)', example: 4.5, minimum: 0, maximum: 5 })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Max(5)
-  rating?: number;
-
   @ApiPropertyOptional({ description: 'Is supplier active', example: true, default: true })
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
-
-  @ApiPropertyOptional({ description: 'Created by user', example: 'admin' })
-  @IsOptional()
-  @IsString()
-  createdBy?: string;
-
-  @ApiPropertyOptional({ description: 'Sort order', example: 0, default: 0 })
-  @IsOptional()
-  @IsNumber()
-  sortOrder?: number;
 }

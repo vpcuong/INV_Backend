@@ -4,6 +4,6 @@ import { ItemSkusController } from './item-skus.controller';
 
 @Module({
   providers: [ItemSkusService],
-  controllers: [ItemSkusController]
+  controllers: [ItemSkusController],
 })
 export class ItemSkusModule {}

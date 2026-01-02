@@ -97,13 +97,6 @@ export class CreatePOHeaderDto {
   note?: string;
 
   @ApiProperty({
-    description: 'Created by username',
-    example: 'admin',
-  })
-  @IsString()
-  createdBy!: string;
-
-  @ApiProperty({
     description: 'PO lines',
     type: [CreatePOLineDto],
     required: false,

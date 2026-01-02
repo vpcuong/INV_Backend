@@ -1,0 +1,13 @@
+model Theme{
+  id Int @id @default(autoincrement())
+  code String @db.VarChar(10)
+  desc String @db.VarChar(100)
+  supplierId Int
+  colorCode String
+  price Decimal @db.Decimal(18, 4)
+  uom String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+  imgUrls String
+}

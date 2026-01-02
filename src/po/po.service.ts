@@ -10,7 +10,7 @@ export class PoService {
 
   async create(createDto: CreatePOHeaderDto) {
     // Auto-generate PO number if not provided
-    const poNum = createDto.poNum || await this.generatePONumber();
+    const poNum = await this.generatePONumber();
 
     return this.prisma.client.pOHeader.create({
       data: {
@@ -23,7 +23,7 @@ export class PoService {
         exchangeRate: createDto.exchangeRate || 1,
         totalAmount: createDto.totalAmount,
         note: createDto.note,
-        createdBy: createDto.createdBy,
+        createdBy: 'test user',
         lines: createDto.lines ? {
           create: createDto.lines.map(line => ({
             lineNum: line.lineNum,
@@ -42,27 +42,7 @@ export class PoService {
         } : undefined,
       },
       include: {
-        supplier: true,
-        lines: {
-          include: {
-            sku: {
-              include: {
-                color: true,
-                gender: true,
-                size: true,
-                revision: {
-                  include: {
-                    item: true,
-                  },
-                },
-              }
-            },
-            uom: true,
-          },
-          orderBy: {
-            lineNum: 'asc',
-          },
-        },
+        lines: true,
       },
     });
   }
@@ -91,13 +71,6 @@ export class PoService {
           },
         },
         lines: {
-          select: {
-            id: true,
-            lineNum: true,
-            orderQty: true,
-            lineAmount: true,
-            status: true,
-          },
           orderBy: {
             lineNum: 'asc',
           },
@@ -216,6 +189,7 @@ export class PoService {
       // 4. Update or create lines
       if (dto.lines && dto.lines.length > 0) {
         for (const line of dto.lines) {
+          console.log('line', line.id);
           if (line.id) {
             // Update existing line
             const { id: lineId, ...lineData } = line;
@@ -241,7 +215,7 @@ export class PoService {
                 lineNum: nextLineNum,
                 skuId: line.skuId!,
                 description: line.description,
-                uomCode: line.uomCode || 'PCS',
+                uomCode: line.uomCode || '',
                 orderQty: line.orderQty!,
                 unitPrice: line.unitPrice!,
                 lineAmount: line.lineAmount!,

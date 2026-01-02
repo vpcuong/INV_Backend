@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
+import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 import { ItemCategoriesModule } from './item-categories/item-categories.module';
 import { ItemsModule } from './items/items.module';
 import { ItemRevisionsModule } from './item-revisions/item-revisions.module';
@@ -24,6 +26,8 @@ import { SoModule } from './so/so.module';
 import { ItemUomModule } from './item-uom/item-uom.module';
 import { SkuUomModule } from './sku-uom/sku-uom.module';
 import { PoModule } from './po/po.module';
+import { ThemeModule } from './themes/theme.module';
+import { FilteringModule } from './common/filtering';
 
 @Module({
   imports: [
@@ -31,6 +35,7 @@ import { PoModule } from './po/po.module';
       isGlobal: true,
     }),
     PrismaModule,
+    FilteringModule,
     ItemCategoriesModule,
     ItemsModule,
     ItemRevisionsModule,
@@ -52,8 +57,15 @@ import { PoModule } from './po/po.module';
     ItemUomModule,
     SkuUomModule,
     PoModule,
+    ThemeModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_FILTER,
+      useClass: DomainExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}

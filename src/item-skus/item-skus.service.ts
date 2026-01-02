@@ -89,6 +89,7 @@ export class ItemSkusService {
   }
 
   async findByItemId(itemId: number) {
+    console.log(itemId);
     return this.prisma.client.itemSKU.findMany({
       where: {
         revision: {
