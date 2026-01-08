@@ -1,65 +1,95 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsOptional, IsEnum, Min } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsNumber, IsOptional, IsEnum, Min, IsInt } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateItemSkuDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'SKU code (auto-generated if not provided)',
     example: 'GRE-UNI-M',
-    required: false,
   })
   @IsOptional()
   @IsString()
   skuCode?: string;
 
-  @ApiProperty({
-    description: 'UOM code',
-    example: 'EA',
-  })
-  @IsOptional()
-  @IsString()
-  uomCode?: string;
-
-  @ApiProperty({
-    description: 'Item revision ID',
+  @ApiPropertyOptional({
+    description: 'Item ID',
     example: 1,
   })
-  @IsNumber()
-  revisionId!: number;
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  itemId?: number;
+
+  @ApiPropertyOptional({
+    description: 'Item Model ID',
+    example: 1,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  modelId?: number;
 
   @ApiProperty({
     description: 'Color ID',
     example: 1,
   })
-  @IsNumber()
+  @Type(() => Number)
+  @IsInt()
   colorId!: number;
 
   @ApiProperty({
     description: 'Gender ID',
     example: 2,
   })
-  @IsNumber()
+  @Type(() => Number)
+  @IsInt()
   genderId!: number;
 
   @ApiProperty({
     description: 'Size ID',
     example: 3,
   })
-  @IsNumber()
+  @Type(() => Number)
+  @IsInt()
   sizeId!: number;
 
   @ApiProperty({
+    description: 'Theme ID',
+    example: 1,
+  })
+  @Type(() => Number)
+  @IsInt()
+  themeId!: number;
+
+  @ApiPropertyOptional({
+    description: 'Supplier ID',
+    example: 1,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  supplierId?: number;
+
+  @ApiPropertyOptional({
+    description: 'Customer ID',
+    example: 1,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  customerId?: number;
+
+  @ApiPropertyOptional({
     description: 'Pattern description',
     example: 'Striped',
-    required: false,
   })
   @IsOptional()
   @IsString()
   pattern?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Cost price (purchase price)',
     example: 12.50,
-    required: false,
     default: 0,
   })
   @IsOptional()
@@ -67,10 +97,9 @@ export class CreateItemSkuDto {
   @Min(0)
   costPrice?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Selling price',
     example: 24.99,
-    required: false,
     default: 0,
   })
   @IsOptional()
@@ -78,59 +107,61 @@ export class CreateItemSkuDto {
   @Min(0)
   sellingPrice?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Length in centimeters',
     example: 50.5,
-    required: false,
   })
   @IsOptional()
   @IsNumber()
   lengthCm?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Width in centimeters',
     example: 30.0,
-    required: false,
   })
   @IsOptional()
   @IsNumber()
   widthCm?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Height in centimeters',
     example: 2.5,
-    required: false,
   })
   @IsOptional()
   @IsNumber()
   heightCm?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Weight in grams',
     example: 250.0,
-    required: false,
   })
   @IsOptional()
   @IsNumber()
   weightG?: number;
 
-  @ApiProperty({
-    description: 'Additional notes',
-    example: 'Special handling required',
-    required: false,
+  @ApiPropertyOptional({
+    description: 'Description',
+    example: 'Premium quality item',
   })
   @IsOptional()
   @IsString()
-  notes?: string;
+  desc?: string;
 
-  @ApiProperty({
-    description: 'Status',
-    example: 'Active',
-    enum: ['Active', 'Inactive'],
-    required: false,
-    default: 'Active',
+  @ApiPropertyOptional({
+    description: 'UOM code',
+    example: 'EA',
   })
   @IsOptional()
-  @IsEnum(['Active', 'Inactive'])
+  @IsString()
+  uomCode?: string;
+
+  @ApiPropertyOptional({
+    description: 'Status',
+    example: 'active',
+    enum: ['active', 'inactive'],
+    default: 'active',
+  })
+  @IsOptional()
+  @IsEnum(['active', 'inactive'])
   status?: string;
 }

@@ -11,14 +11,14 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { ItemTypesService } from './item-types.service';
+import { ItemTypeService } from './application/item-type.service';
 import { CreateItemTypeDto } from './dto/create-item-type.dto';
 import { UpdateItemTypeDto } from './dto/update-item-type.dto';
 
 @ApiTags('item-types')
 @Controller('item-types')
 export class ItemTypesController {
-  constructor(private readonly itemTypesService: ItemTypesService) {}
+  constructor(private readonly itemTypesService: ItemTypeService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)

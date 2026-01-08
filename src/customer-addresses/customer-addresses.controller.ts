@@ -9,14 +9,14 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { CustomerAddressesService } from './customer-addresses.service';
+import { CustomerAddressService } from './application/customer-address.service';
 import { CreateCustomerAddressDto } from './dto/create-customer-address.dto';
 import { UpdateCustomerAddressDto } from './dto/update-customer-address.dto';
 
 @ApiTags('customer-addresses')
 @Controller('customer-addresses')
 export class CustomerAddressesController {
-  constructor(private readonly service: CustomerAddressesService) {}
+  constructor(private readonly service: CustomerAddressService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new customer address' })

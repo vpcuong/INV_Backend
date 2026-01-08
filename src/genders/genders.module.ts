@@ -1,11 +1,20 @@
 import { Module } from '@nestjs/common';
-import { GendersService } from './genders.service';
 import { GendersController } from './genders.controller';
+import { GenderService } from './application/gender.service';
+import { GenderRepository } from './infrastructure/gender.repository';
+import { GENDER_REPOSITORY } from './constant/gender.token';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
-  providers: [GendersService],
   controllers: [GendersController],
+  providers: [
+    GenderService,
+    {
+      provide: GENDER_REPOSITORY,
+      useClass: GenderRepository,
+    },
+  ],
+  exports: [GenderService],
 })
 export class GendersModule {}

@@ -109,19 +109,19 @@ export class UpdateItemSkuDto {
   weightG?: number;
 
   @ApiPropertyOptional({
-    description: 'Additional notes',
-    example: 'Special handling required',
+    description: 'Description',
+    example: 'Premium quality item',
   })
   @IsOptional()
   @IsString()
-  notes?: string;
+  desc?: string;
 
   @ApiPropertyOptional({
     description: 'Status',
-    example: 'Active',
-    enum: ['Active', 'Inactive'],
+    example: 'active',
+    enum: ['active', 'inactive'],
   })
   @IsOptional()
-  @IsEnum(['Active', 'Inactive'])
+  @IsEnum(['active', 'inactive'])
   status?: string;
 }

@@ -3,12 +3,12 @@ import { IsOptional, IsString, IsNumber, IsBoolean, IsEnum, Min } from 'class-va
 
 export class UpdateItemDto {
   @ApiPropertyOptional({
-    description: 'Item name',
-    example: 'Classic T-Shirt',
+    description: 'Item code (unique)',
+    example: 'ITEM001',
   })
   @IsOptional()
   @IsString()
-  name?: string;
+  code?: string;
 
   @ApiPropertyOptional({
     description: 'Item category ID',
@@ -35,14 +35,6 @@ export class UpdateItemDto {
   materialId?: number;
 
   @ApiPropertyOptional({
-    description: 'Model/style code',
-    example: 'CT-2024-001',
-  })
-  @IsOptional()
-  @IsString()
-  model?: string;
-
-  @ApiPropertyOptional({
     description: 'Unit of Measure code',
     example: 'PCS',
   })
@@ -51,13 +43,13 @@ export class UpdateItemDto {
   uomCode?: string;
 
   @ApiPropertyOptional({
-    description: 'Cost price (purchase price)',
+    description: 'Purchasing price',
     example: 15.50,
   })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  costPrice?: number;
+  purchasingPrice?: number;
 
   @ApiPropertyOptional({
     description: 'Selling price',
@@ -101,29 +93,21 @@ export class UpdateItemDto {
   weightG?: number;
 
   @ApiPropertyOptional({
-    description: 'Additional notes',
+    description: 'Description',
     example: 'Premium quality cotton',
   })
   @IsOptional()
   @IsString()
-  notes?: string;
+  desc?: string;
 
   @ApiPropertyOptional({
     description: 'Item status',
-    example: 'Active',
-    enum: ['Active', 'Inactive', 'Draft'],
+    example: 'active',
+    enum: ['active', 'inactive'],
   })
   @IsOptional()
-  @IsEnum(['Active', 'Inactive', 'Draft'])
+  @IsEnum(['active', 'inactive'])
   status?: string;
-
-  @ApiPropertyOptional({
-    description: 'Whether item has SKU variants',
-    example: true,
-  })
-  @IsOptional()
-  @IsBoolean()
-  hasSku?: boolean;
 
   @ApiPropertyOptional({
     description: 'Whether item is purchasable',

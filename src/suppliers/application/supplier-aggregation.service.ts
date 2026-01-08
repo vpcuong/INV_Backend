@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { QueryBuilderService } from '@/common/filtering';
 import {
   SupplierAggregationRequestDto,
@@ -459,11 +459,6 @@ export class SupplierAggregationService {
 
     const where: any = { AND: [] };
 
-    // Apply quick filters
-    if (filterDto.status) {
-      where.AND.push({ status: filterDto.status });
-    }
-
     if (filterDto.category) {
       where.AND.push({ category: filterDto.category });
     }
@@ -482,14 +477,6 @@ export class SupplierAggregationService {
 
     if (filterDto.country) {
       where.AND.push({ country: { contains: filterDto.country, mode: 'insensitive' } });
-    }
-
-    if (filterDto.minRating !== undefined) {
-      where.AND.push({ rating: { gte: filterDto.minRating } });
-    }
-
-    if (filterDto.maxRating !== undefined) {
-      where.AND.push({ rating: { lte: filterDto.maxRating } });
     }
 
     if (filterDto.code) {

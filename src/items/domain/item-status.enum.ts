@@ -1,6 +1,6 @@
 export enum ItemStatus {
-  DRAFT = 'DRAFT',
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-  DISCONTINUED = 'DISCONTINUED',
+  DRAFT = 'draft',
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  DISCONTINUED = 'discontinued',
 }

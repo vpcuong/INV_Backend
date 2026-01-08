@@ -66,7 +66,7 @@ export class ItemUomService {
         item: {
           select: {
             id: true,
-            name: true,
+            code: true,
             uomCode: true,
           },
         },
@@ -108,7 +108,7 @@ export class ItemUomService {
         item: {
           select: {
             id: true,
-            name: true,
+            code: true,
             uomCode: true,
           },
         },
@@ -138,7 +138,7 @@ export class ItemUomService {
         item: {
           select: {
             id: true,
-            name: true,
+            code: true,
             uomCode: true,
             uom: {
               select: {
@@ -201,7 +201,7 @@ export class ItemUomService {
         item: {
           select: {
             id: true,
-            name: true,
+            code: true,
             uomCode: true,
           },
         },
@@ -268,7 +268,7 @@ export class ItemUomService {
         item: {
           select: {
             id: true,
-            name: true,
+            code: true,
             uomCode: true,
           },
         },

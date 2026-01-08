@@ -10,7 +10,7 @@ import { PrismaModule } from '../prisma/prisma.module';
   imports: [PrismaModule],
   controllers: [
     ItemsController, // Original controller
-    ItemsOOPController, // OOP-based controller (demo)
+    // ItemsOOPController, // OOP-based controller (demo)
   ],
   providers: [
     // Keep old service for backward compatibility

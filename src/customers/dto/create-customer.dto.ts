@@ -1,5 +1,6 @@
 import { IsString, IsOptional, IsEnum, IsBoolean, IsInt, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type, Transform } from 'class-transformer';
 import { CustomerStatus } from '../enums/customer-status.enum';
 
 export class CreateCustomerDto {
@@ -22,18 +23,21 @@ export class CreateCustomerDto {
   customerName!: string;
 
   @ApiPropertyOptional({
-    description: 'Customer short name',
-    example: 'ABC Ltd.',
-    maxLength: 50
+    description: 'Phone number'
   })
   @IsOptional()
   @IsString()
-  @MaxLength(50)
-  shortName?: string;
+  phone?: string;
+
+  @ApiPropertyOptional({
+    description: 'Email address'
+  })
+  @IsOptional()
+  @IsString()
+  email?: string;
 
   @ApiPropertyOptional({
     description: 'Tax identification number',
-    example: '0123456789',
     maxLength: 50
   })
   @IsOptional()
@@ -73,6 +77,7 @@ export class CreateCustomerDto {
     default: true
   })
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   isActive?: boolean;
 
@@ -91,6 +96,7 @@ export class CreateCustomerDto {
     default: 0
   })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   sortOrder?: number;
 }

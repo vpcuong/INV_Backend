@@ -1,105 +1,105 @@
-import { ItemStatus } from './item-status.enum';
 import { ItemUOM } from './item-uom.value-object';
 
 export interface ItemConstructorData {
   id: number;
-  name: string;
+  code: string;
   categoryId: number;
   itemTypeId: number;
   materialId?: number | null;
-  model?: string | null;
   lengthCm?: number | null;
   widthCm?: number | null;
   heightCm?: number | null;
   weightG?: number | null;
-  notes?: string | null;
+  desc?: string | null;
   status?: string | null;
-  hasSku?: boolean;
-  costPrice?: number | null;
+  purchasingPrice?: number | null;
   isManufactured?: boolean;
   isPurchasable?: boolean;
   isSellable?: boolean;
   sellingPrice?: number | null;
   uomCode?: string | null;
   itemUoms?: ItemUOM[];
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export class Item {
   private id: number;
-  private name: string;
+  private code: string;
   private categoryId: number;
   private itemTypeId: number;
   private materialId?: number | null;
-  private model?: string | null;
   private lengthCm?: number | null;
   private widthCm?: number | null;
   private heightCm?: number | null;
   private weightG?: number | null;
-  private notes?: string | null;
+  private desc?: string | null;
   private status: string | null;
-  private hasSku: boolean;
-  private costPrice?: number | null;
+  private purchasingPrice?: number | null;
   private isManufactured: boolean;
   private isPurchasable: boolean;
   private isSellable: boolean;
   private sellingPrice?: number | null;
   private uomCode?: string | null;
   private itemUoms: ItemUOM[] = [];
+  private createdAt?: Date;
+  private updatedAt?: Date;
 
   constructor(data: ItemConstructorData) {
     this.id = data.id;
-    this.name = data.name;
+    this.code = data.code;
     this.categoryId = data.categoryId;
     this.itemTypeId = data.itemTypeId;
     this.materialId = data.materialId;
-    this.model = data.model;
     this.lengthCm = data.lengthCm;
     this.widthCm = data.widthCm;
     this.heightCm = data.heightCm;
     this.weightG = data.weightG;
-    this.notes = data.notes;
-    this.status = data.status ?? null;
-    this.hasSku = data.hasSku ?? false;
-    this.costPrice = data.costPrice;
+    this.desc = data.desc;
+    this.status = data.status ?? 'active';
+    this.purchasingPrice = data.purchasingPrice;
     this.isManufactured = data.isManufactured ?? false;
     this.isPurchasable = data.isPurchasable ?? false;
     this.isSellable = data.isSellable ?? false;
     this.sellingPrice = data.sellingPrice;
     this.uomCode = data.uomCode;
     this.itemUoms = data.itemUoms ?? [];
+    this.createdAt = data.createdAt;
+    this.updatedAt = data.updatedAt;
   }
 
   /**
    * Business rule: Check if item can be deleted
    */
   public canBeDeleted(): boolean {
-    return this.itemUoms.length === 0 && !this.hasSku;
+    return this.itemUoms.length === 0;
   }
 
   /**
    * Business rule: Update item prices with validation
    */
-  public updatePrice(costPrice?: number | null, sellingPrice?: number | null): void {
-    if (costPrice !== undefined && costPrice !== null && costPrice < 0) {
-      throw new Error('Cost price cannot be negative');
+  public updatePrice(purchasingPrice?: number | null, sellingPrice?: number | null): void {
+    if (purchasingPrice !== undefined && purchasingPrice !== null && purchasingPrice < 0) {
+      throw new Error('Purchasing price cannot be negative');
     }
     if (sellingPrice !== undefined && sellingPrice !== null && sellingPrice < 0) {
       throw new Error('Selling price cannot be negative');
     }
     if (
-      costPrice &&
+      purchasingPrice &&
       sellingPrice &&
-      sellingPrice < costPrice
+      sellingPrice < purchasingPrice
     ) {
-      console.warn(`Warning: Selling price (${sellingPrice}) is less than cost price (${costPrice})`);
+      console.warn(`Warning: Selling price (${sellingPrice}) is less than purchasing price (${purchasingPrice})`);
     }
 
-    if (costPrice !== undefined) {
-      this.costPrice = costPrice;
+    if (purchasingPrice !== undefined) {
+      this.purchasingPrice = purchasingPrice;
     }
     if (sellingPrice !== undefined) {
       this.sellingPrice = sellingPrice;
     }
+    this.updatedAt = new Date();
   }
 
   /**
@@ -171,7 +171,7 @@ export class Item {
    */
   private isValid(): boolean {
     return !!(
-      this.name &&
+      this.code &&
       this.categoryId &&
       this.itemTypeId &&
       this.uomCode
@@ -180,20 +180,25 @@ export class Item {
 
   // Getters
   public getId(): number { return this.id; }
-  public getName(): string { return this.name; }
+  public getCode(): string { return this.code; }
   public getCategoryId(): number { return this.categoryId; }
   public getItemTypeId(): number { return this.itemTypeId; }
   public getMaterialId(): number | null | undefined { return this.materialId; }
-  public getModel(): string | null | undefined { return this.model; }
+  public getLengthCm(): number | null | undefined { return this.lengthCm; }
+  public getWidthCm(): number | null | undefined { return this.widthCm; }
+  public getHeightCm(): number | null | undefined { return this.heightCm; }
+  public getWeightG(): number | null | undefined { return this.weightG; }
+  public getDesc(): string | null | undefined { return this.desc; }
   public getStatus(): string | null { return this.status; }
   public getUomCode(): string | null | undefined { return this.uomCode; }
-  public getCostPrice(): number | null | undefined { return this.costPrice; }
+  public getPurchasingPrice(): number | null | undefined { return this.purchasingPrice; }
   public getSellingPrice(): number | null | undefined { return this.sellingPrice; }
   public getIsPurchasable(): boolean { return this.isPurchasable; }
   public getIsSellable(): boolean { return this.isSellable; }
   public getIsManufactured(): boolean { return this.isManufactured; }
-  public getHasSku(): boolean { return this.hasSku; }
   public getItemUOMs(): ItemUOM[] { return [...this.itemUoms]; }
+  public getCreatedAt(): Date | undefined { return this.createdAt; }
+  public getUpdatedAt(): Date | undefined { return this.updatedAt; }
 
   /**
    * Convert to persistence model (for Prisma)
@@ -201,24 +206,24 @@ export class Item {
   public toPersistence(): any {
     return {
       id: this.id,
-      name: this.name,
+      code: this.code,
       categoryId: this.categoryId,
       itemTypeId: this.itemTypeId,
       materialId: this.materialId,
-      model: this.model,
       lengthCm: this.lengthCm,
       widthCm: this.widthCm,
       heightCm: this.heightCm,
       weightG: this.weightG,
-      notes: this.notes,
+      desc: this.desc,
       status: this.status,
-      hasSku: this.hasSku,
-      costPrice: this.costPrice,
+      purchasingPrice: this.purchasingPrice,
       isManufactured: this.isManufactured,
       isPurchasable: this.isPurchasable,
       isSellable: this.isSellable,
       sellingPrice: this.sellingPrice,
       uomCode: this.uomCode,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
     };
   }
 
@@ -228,25 +233,25 @@ export class Item {
   public static fromPersistence(data: any): Item {
     return new Item({
       id: data.id,
-      name: data.name,
+      code: data.code,
       categoryId: data.categoryId,
       itemTypeId: data.itemTypeId,
       materialId: data.materialId,
-      model: data.model,
       lengthCm: data.lengthCm,
       widthCm: data.widthCm,
       heightCm: data.heightCm,
       weightG: data.weightG,
-      notes: data.notes,
+      desc: data.desc,
       status: data.status,
-      hasSku: data.hasSku,
-      costPrice: data.costPrice,
+      purchasingPrice: data.purchasingPrice,
       isManufactured: data.isManufactured,
       isPurchasable: data.isPurchasable,
       isSellable: data.isSellable,
       sellingPrice: data.sellingPrice,
       uomCode: data.uomCode,
       itemUoms: data.itemUoms?.map((u: any) => ItemUOM.fromPersistence(u)) ?? [],
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
     });
   }
 }

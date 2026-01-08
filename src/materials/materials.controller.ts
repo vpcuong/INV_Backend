@@ -11,14 +11,14 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { MaterialsService } from './materials.service';
+import { MaterialService } from './application/material.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
 
 @ApiTags('materials')
 @Controller('materials')
 export class MaterialsController {
-  constructor(private readonly materialsService: MaterialsService) {}
+  constructor(private readonly materialsService: MaterialService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)

@@ -1,0 +1,1 @@
+export const ITEM_TYPE_REPOSITORY = Symbol('ITEM_TYPE_REPOSITORY');

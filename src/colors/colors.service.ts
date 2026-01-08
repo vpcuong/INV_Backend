@@ -53,7 +53,7 @@ export class ColorsService {
 
     return this.prisma.client.color.update({
       where: { id },
-      data: { status: true },
+      data: { isActive: true },
     });
   }
 
@@ -62,7 +62,7 @@ export class ColorsService {
 
     return this.prisma.client.color.update({
       where: { id },
-      data: { status: false },
+      data: { isActive: false },
     });
   }
 }

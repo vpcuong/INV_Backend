@@ -60,14 +60,6 @@ export class ItemsController {
     return this.itemsService.findOne(id);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateItemDto: UpdateItemDto
-  ) {
-    return this.itemsService.update(id, updateItemDto);
-  }
-
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.itemsService.remove(id);
@@ -81,5 +73,21 @@ export class ItemsController {
   @Patch(':id/deactivate')
   deactivate(@Param('id', ParseIntPipe) id: number) {
     return this.itemsService.deactivate(id);
+  }
+
+  @Patch(':id/draft')
+  @ApiOperation({ summary: 'Change item status to draft' })
+  @ApiResponse({ status: 200, description: 'Item status changed to draft successfully' })
+  @ApiResponse({ status: 404, description: 'Item not found' })
+  draft(@Param('id', ParseIntPipe) id: number) {
+    return this.itemsService.draft(id);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateItemDto: UpdateItemDto
+  ) {
+    return this.itemsService.update(id, updateItemDto);
   }
 }

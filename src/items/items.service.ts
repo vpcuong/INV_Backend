@@ -2,53 +2,47 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
+import { ItemStatus } from './domain/item-status.enum';
 
 @Injectable()
 export class ItemsService {
   constructor(private prisma: PrismaService) {}
 
+  private readonly commonInclude = {
+    category: true,
+    itemType: true,
+    material: true,
+    uom: true,
+    models: true,
+  };
+
   async create(createItemDto: CreateItemDto) {
     return this.prisma.client.item.create({
       data: {
-        name: createItemDto.name,
-        model: createItemDto.model,
-        costPrice: createItemDto.costPrice,
+        code: createItemDto.code,
+        purchasingPrice: createItemDto.purchasingPrice,
         sellingPrice: createItemDto.sellingPrice,
         lengthCm: createItemDto.lengthCm,
         widthCm: createItemDto.widthCm,
         heightCm: createItemDto.heightCm,
         weightG: createItemDto.weightG,
-        notes: createItemDto.notes,
-        status: createItemDto.status || 'Draft',
-        hasSku: createItemDto.hasSku || false,
+        desc: createItemDto.desc,
+        status: createItemDto.status || ItemStatus.ACTIVE,
         isPurchasable: createItemDto.isPurchasable || false,
         isSellable: createItemDto.isSellable || false,
         isManufactured: createItemDto.isManufactured || false,
-        // Relationships - use connect
         category: { connect: { id: createItemDto.categoryId } },
         itemType: { connect: { id: createItemDto.itemTypeId } },
         ...(createItemDto.materialId && { material: { connect: { id: createItemDto.materialId } } }),
         ...(createItemDto.uomCode && { uom: { connect: { code: createItemDto.uomCode } } }),
       },
-      include: {
-        category: true,
-        itemType: true,
-        material: true,
-        uom: true,
-        revisions: true,
-      },
+      include: this.commonInclude,
     });
   }
 
   async findAll() {
     return this.prisma.client.item.findMany({
-      include: {
-        category: true,
-        itemType: true,
-        material: true,
-        uom: true,
-        revisions: true,
-      },
+      include: this.commonInclude,
       orderBy: {
         createdAt: 'desc',
       },
@@ -58,13 +52,7 @@ export class ItemsService {
   async findOne(id: number) {
     const item = await this.prisma.client.item.findUnique({
       where: { id },
-      include: {
-        category: true,
-        itemType: true,
-        material: true,
-        uom: true,
-        revisions: true,
-      },
+      include: this.commonInclude,
     });
 
     if (!item) {
@@ -75,27 +63,20 @@ export class ItemsService {
   }
 
   async update(id: number, updateItemDto: UpdateItemDto) {
-    await this.findOne(id);
-
     const updateData: any = {};
 
-    // Scalar fields
-    if (updateItemDto.name !== undefined) updateData.name = updateItemDto.name;
-    if (updateItemDto.model !== undefined) updateData.model = updateItemDto.model;
-    if (updateItemDto.costPrice !== undefined) updateData.costPrice = updateItemDto.costPrice;
-    if (updateItemDto.sellingPrice !== undefined) updateData.sellingPrice = updateItemDto.sellingPrice;
-    if (updateItemDto.lengthCm !== undefined) updateData.lengthCm = updateItemDto.lengthCm;
-    if (updateItemDto.widthCm !== undefined) updateData.widthCm = updateItemDto.widthCm;
-    if (updateItemDto.heightCm !== undefined) updateData.heightCm = updateItemDto.heightCm;
-    if (updateItemDto.weightG !== undefined) updateData.weightG = updateItemDto.weightG;
-    if (updateItemDto.notes !== undefined) updateData.notes = updateItemDto.notes;
-    if (updateItemDto.status !== undefined) updateData.status = updateItemDto.status;
-    if (updateItemDto.hasSku !== undefined) updateData.hasSku = updateItemDto.hasSku;
-    if (updateItemDto.isPurchasable !== undefined) updateData.isPurchasable = updateItemDto.isPurchasable;
-    if (updateItemDto.isSellable !== undefined) updateData.isSellable = updateItemDto.isSellable;
-    if (updateItemDto.isManufactured !== undefined) updateData.isManufactured = updateItemDto.isManufactured;
+    const scalarFields = [
+      'code', 'purchasingPrice', 'sellingPrice', 'lengthCm', 
+      'widthCm', 'heightCm', 'weightG', 'desc', 'status', 
+      'isPurchasable', 'isSellable', 'isManufactured'
+    ];
 
-    // Relationships
+    scalarFields.forEach(field => {
+      if ((updateItemDto as any)[field] !== undefined) {
+        updateData[field] = (updateItemDto as any)[field];
+      }
+    });
+
     if (updateItemDto.categoryId !== undefined) {
       updateData.category = { connect: { id: updateItemDto.categoryId } };
     }
@@ -109,63 +90,61 @@ export class ItemsService {
       updateData.uom = { connect: { code: updateItemDto.uomCode } };
     }
 
-    return this.prisma.client.item.update({
-      where: { id },
-      data: updateData,
-      include: {
-        category: true,
-        itemType: true,
-        material: true,
-        uom: true,
-        revisions: true,
-      },
-    });
+    try {
+      return await this.prisma.client.item.update({
+        where: { id },
+        data: updateData,
+        include: this.commonInclude,
+      });
+    } catch (error: any) {
+      // Prisma error code for record not found
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`Item with ID ${id} not found`);
+      }
+      throw error;
+    }
   }
 
   async remove(id: number) {
-    await this.findOne(id);
+    try {
+      return await this.prisma.client.item.delete({
+        where: { id },
+      });
+    } catch (error: any) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`Item with ID ${id} not found`);
+      }
+      throw error;
+    }
+  }
 
-    return this.prisma.client.item.delete({
-      where: { id },
-    });
+  private async updateStatus(id: number, status: ItemStatus) {
+    try {
+      return await this.prisma.client.item.update({
+        where: { id },
+        data: { status },
+        include: this.commonInclude,
+      });
+    } catch (error: any) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`Item with ID ${id} not found`);
+      }
+      throw error;
+    }
   }
 
   async activate(id: number) {
-    await this.findOne(id);
-
-    return this.prisma.client.item.update({
-      where: { id },
-      data: { status: 'Active' },
-      include: {
-        category: true,
-        itemType: true,
-        material: true,
-        uom: true,
-        revisions: true,
-      },
-    });
+    return this.updateStatus(id, ItemStatus.ACTIVE);
   }
 
   async deactivate(id: number) {
-    await this.findOne(id);
-
-    return this.prisma.client.item.update({
-      where: { id },
-      data: { status: 'Inactive' },
-      include: {
-        category: true,
-        itemType: true,
-        material: true,
-        uom: true,
-        revisions: true,
-      },
-    });
+    return this.updateStatus(id, ItemStatus.INACTIVE);
   }
 
-  /**
-   * Search items by searchTerm
-   * Searches through name, model, and notes fields
-   */
+  async draft(id: number) {
+    return this.updateStatus(id, ItemStatus.DRAFT);
+  }
+
   async search(searchTerm: string) {
     if (!searchTerm || searchTerm.trim() === '') {
       return [];
@@ -177,31 +156,19 @@ export class ItemsService {
       where: {
         OR: [
           {
-            name: {
+            code: {
               contains: trimmedSearch,
               mode: 'insensitive',
             },
           },
           {
-            model: {
-              contains: trimmedSearch,
-              mode: 'insensitive',
-            },
-          },
-          {
-            notes: {
+            desc: {
               contains: trimmedSearch,
               mode: 'insensitive',
             },
           },
         ],
       },
-      // include: {
-      //   category: true,
-      //   itemType: true,
-      //   material: true,
-      //   uom: true,
-      // },
       orderBy: {
         createdAt: 'desc',
       },

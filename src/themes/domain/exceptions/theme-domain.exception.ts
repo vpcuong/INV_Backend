@@ -1,4 +1,4 @@
-import { DomainException } from '../../../common/filters/domain-exception.filter';
+import { DomainException } from '../../../common/exception-filters/domain-exception.filter';
 
 export class ThemeDomainException extends DomainException {
   constructor(message: string) {

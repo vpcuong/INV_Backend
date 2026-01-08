@@ -11,14 +11,14 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { ItemSkusService } from './item-skus.service';
+import { ItemSkuService } from './application/item-sku.service';
 import { CreateItemSkuDto } from './dto/create-item-sku.dto';
 import { UpdateItemSkuDto } from './dto/update-item-sku.dto';
 
 @ApiTags('ItemSKUs')
 @Controller('item-skus')
 export class ItemSkusController {
-  constructor(private readonly itemSkusService: ItemSkusService) {}
+  constructor(private readonly service: ItemSkuService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -34,21 +34,21 @@ export class ItemSkusController {
     status: 400,
     description: 'Invalid input data',
   })
-  create(@Body() createItemSkuDto: CreateItemSkuDto) {
-    return this.itemSkusService.create(createItemSkuDto);
+  create(@Body() createDto: CreateItemSkuDto) {
+    return this.service.create(createDto);
   }
 
   @Get()
   @ApiOperation({
     summary: 'Get all item SKUs',
-    description: 'Retrieves a list of all item SKUs with their associated color, gender, size, and revision details.',
+    description: 'Retrieves a list of all item SKUs with their associated color, gender, size, and theme details.',
   })
   @ApiResponse({
     status: 200,
     description: 'Returns all item SKUs',
   })
   findAll() {
-    return this.itemSkusService.findAll();
+    return this.service.findAll();
   }
 
   @Get('item/:itemId')
@@ -71,36 +71,36 @@ export class ItemSkusController {
     description: 'Item not found',
   })
   findByItemId(@Param('itemId', ParseIntPipe) itemId: number) {
-    return this.itemSkusService.findByItemId(itemId);
+    return this.service.findByItemId(itemId);
   }
 
-  @Get('revision/:revisionId')
+  @Get('model/:modelId')
   @ApiOperation({
-    summary: 'Get SKUs by revision ID',
-    description: 'Retrieves all SKU variants for a specific item revision.',
+    summary: 'Get SKUs by model ID',
+    description: 'Retrieves all SKU variants for a specific item model.',
   })
   @ApiParam({
-    name: 'revisionId',
-    description: 'The ID of the item revision',
+    name: 'modelId',
+    description: 'The ID of the item model',
     example: 1,
     type: Number,
   })
   @ApiResponse({
     status: 200,
-    description: 'Returns all SKUs for the specified revision',
+    description: 'Returns all SKUs for the specified model',
   })
   @ApiResponse({
     status: 404,
-    description: 'Revision not found',
+    description: 'Model not found',
   })
-  findByRevisionId(@Param('revisionId', ParseIntPipe) revisionId: number) {
-    return this.itemSkusService.findByRevisionId(revisionId);
+  findByModelId(@Param('modelId', ParseIntPipe) modelId: number) {
+    return this.service.findByModelId(modelId);
   }
 
   @Get(':id')
   @ApiOperation({
     summary: 'Get item SKU by ID',
-    description: 'Retrieves a specific item SKU with all related details including color, gender, size, and revision information.',
+    description: 'Retrieves a specific item SKU with all related details including color, gender, size, and theme information.',
   })
   @ApiParam({
     name: 'id',
@@ -117,7 +117,7 @@ export class ItemSkusController {
     description: 'Item SKU not found',
   })
   findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.itemSkusService.findOne(id);
+    return this.service.findOne(id);
   }
 
   @Patch(':id')
@@ -145,15 +145,15 @@ export class ItemSkusController {
   })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateItemSkuDto: UpdateItemSkuDto,
+    @Body() updateDto: UpdateItemSkuDto,
   ) {
-    return this.itemSkusService.update(id, updateItemSkuDto);
+    return this.service.update(id, updateDto);
   }
 
   @Patch(':id/activate')
   @ApiOperation({
     summary: 'Activate an item SKU',
-    description: 'Sets the status of an item SKU to Active, making it available for use.',
+    description: 'Sets the status of an item SKU to active, making it available for use.',
   })
   @ApiParam({
     name: 'id',
@@ -170,13 +170,13 @@ export class ItemSkusController {
     description: 'Item SKU not found',
   })
   activate(@Param('id', ParseIntPipe) id: number) {
-    return this.itemSkusService.activate(id);
+    return this.service.activate(id);
   }
 
   @Patch(':id/deactivate')
   @ApiOperation({
     summary: 'Deactivate an item SKU',
-    description: 'Sets the status of an item SKU to Inactive, making it unavailable for use.',
+    description: 'Sets the status of an item SKU to inactive, making it unavailable for use.',
   })
   @ApiParam({
     name: 'id',
@@ -193,7 +193,7 @@ export class ItemSkusController {
     description: 'Item SKU not found',
   })
   deactivate(@Param('id', ParseIntPipe) id: number) {
-    return this.itemSkusService.deactivate(id);
+    return this.service.deactivate(id);
   }
 
   @Delete(':id')
@@ -220,6 +220,6 @@ export class ItemSkusController {
     description: 'Cannot delete SKU - it may be referenced by other records',
   })
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.itemSkusService.remove(id);
+    return this.service.remove(id);
   }
 }

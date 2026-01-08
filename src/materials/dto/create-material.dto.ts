@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsBoolean, IsNumber, IsOptional, MaxLength, Min } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 
 export class CreateMaterialDto {
   @ApiProperty({
@@ -6,6 +8,8 @@ export class CreateMaterialDto {
     example: 'COTTON',
     maxLength: 20,
   })
+  @IsString()
+  @MaxLength(20)
   code!: string;
 
   @ApiProperty({
@@ -13,6 +17,8 @@ export class CreateMaterialDto {
     example: 'Cotton fabric 100%',
     maxLength: 100,
   })
+  @IsString()
+  @MaxLength(100)
   desc!: string;
 
   @ApiProperty({
@@ -21,6 +27,9 @@ export class CreateMaterialDto {
     required: false,
     default: true,
   })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
   status?: boolean;
 
   @ApiProperty({
@@ -28,6 +37,10 @@ export class CreateMaterialDto {
     example: 1,
     required: false,
   })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
   sortOrder?: number;
 
   @ApiProperty({
@@ -36,5 +49,8 @@ export class CreateMaterialDto {
     required: false,
     maxLength: 50,
   })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
   createdBy?: string;
 }

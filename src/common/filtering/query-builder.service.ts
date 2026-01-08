@@ -59,6 +59,8 @@ export class QueryBuilderService {
         query.where.AND = filterConditions;
       }
     }
+    console.log(`query-bulider.service:filters dto`)
+    console.log(filterDto.sort)
 
     // Sort
     if (filterDto.sort && filterDto.sort.length > 0) {
@@ -187,7 +189,7 @@ export class QueryBuilderService {
 
     return {
       data,
-      meta: {
+      pagination: {
         total,
         page,
         limit,

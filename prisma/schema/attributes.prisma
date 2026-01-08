@@ -3,7 +3,7 @@ model Color {
   code      String    @unique @db.VarChar(20)
   desc      String    @db.VarChar(100)
   hexValue  String?   @db.Char(7)
-  status    Boolean   @default(true)
+  isActive    Boolean   @default(true)
   sortOrder Int?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -16,7 +16,7 @@ model Gender {
   id        Int       @id @default(autoincrement())
   code      String    @unique @db.VarChar(20)
   desc      String    @db.VarChar(100)
-  status    Boolean   @default(true)
+  isActive    Boolean   @default(true)
   sortOrder Int?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -28,7 +28,7 @@ model Size {
   id        Int       @id @default(autoincrement())
   code      String    @unique @db.VarChar(20)
   desc      String    @db.VarChar(100)
-  status    Boolean   @default(true)
+  isActive    Boolean   @default(true)
   sortOrder Int?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -40,7 +40,7 @@ model Material {
   id        Int      @id @default(autoincrement())
   code      String   @unique @db.VarChar(20)
   desc      String   @db.VarChar(100)
-  status    Boolean  @default(true)
+  isActive    Boolean  @default(true)
   sortOrder Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

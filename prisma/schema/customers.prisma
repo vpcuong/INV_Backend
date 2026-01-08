@@ -2,7 +2,8 @@ model Customer {
   id           Int                   @id @default(autoincrement())
   customerCode String                @unique @db.VarChar(50)
   customerName String                @db.VarChar(200)
-  shortName    String?               @db.VarChar(50)
+  phone        String?
+  email        String?
   taxCode      String?               @db.VarChar(50)
   country      String?               @db.VarChar(100)
   status       CustomerStatus        @default(ACTIVE)

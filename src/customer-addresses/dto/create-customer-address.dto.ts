@@ -1,5 +1,6 @@
 import { IsInt, IsEnum, IsString, IsBoolean, IsOptional, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type, Transform } from 'class-transformer';
 import { AddressType } from '../enums/address-type.enum';
 
 export class CreateCustomerAddressDto {
@@ -7,6 +8,7 @@ export class CreateCustomerAddressDto {
     description: 'Customer ID',
     example: 1
   })
+  @Type(() => Number)
   @IsInt()
   customerId!: number;
 
@@ -90,6 +92,7 @@ export class CreateCustomerAddressDto {
     default: false
   })
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   isDefault?: boolean;
 }

@@ -120,4 +120,17 @@ export class ThemeService {
     // Delete theme
     await this.themeRepository.delete(id);
   }
+
+  async updateTheme(id: number, updateThemeDto: any): Promise<Theme> {
+     // Check if theme exists
+     const theme = await this.themeRepository.findById(id);
+     if (!theme) {
+       throw new NotFoundException(`Theme with ID ${id} not found`);
+     }
+ 
+     // Update theme
+     const updatedTheme = await this.themeRepository.update(id, updateThemeDto);
+     
+     return updatedTheme.toPersistence();
+   }
 }

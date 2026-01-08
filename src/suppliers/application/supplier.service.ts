@@ -99,7 +99,6 @@ export class SupplierService {
       status: updateSupplierDto.status ?? existingSupplier.getStatus(),
       category: updateSupplierDto.category ?? existingSupplier.getCategory(),
       isActive: updateSupplierDto.isActive ?? existingSupplier.getIsActive(),
-      rating: updateSupplierDto.rating ?? existingSupplier.getRating(),
       updatedAt: new Date(),
       createdAt: existingSupplier.getCreatedAt(),
       createdBy: existingSupplier.getCreatedBy(),

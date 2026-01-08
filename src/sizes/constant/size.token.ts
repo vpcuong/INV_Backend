@@ -1,0 +1,1 @@
+export const SIZE_REPOSITORY = Symbol('SIZE_REPOSITORY');

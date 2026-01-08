@@ -23,19 +23,17 @@ export class ItemApplicationService {
     // Create domain entity with business rules
     const item = new Item({
       id: 0, // Will be set by database
-      name: dto.name,
+      code: dto.code,
       categoryId: dto.categoryId,
       itemTypeId: dto.itemTypeId,
       materialId: dto.materialId,
-      model: dto.model,
       lengthCm: dto.lengthCm,
       widthCm: dto.widthCm,
       heightCm: dto.heightCm,
       weightG: dto.weightG,
-      notes: dto.notes,
-      status: dto.status || 'Draft',
-      hasSku: dto.hasSku ?? false,
-      costPrice: dto.costPrice,
+      desc: dto.desc,
+      status: dto.status || 'active',
+      purchasingPrice: dto.purchasingPrice,
       isManufactured: dto.isManufactured ?? false,
       isPurchasable: dto.isPurchasable ?? false,
       isSellable: dto.isSellable ?? false,
@@ -74,15 +72,13 @@ export class ItemApplicationService {
     // Apply updates (in real world, you might use a mapper)
     const updatedData = {
       ...item.toPersistence(),
-      ...(dto.name !== undefined && { name: dto.name }),
-      ...(dto.model !== undefined && { model: dto.model }),
+      ...(dto.code !== undefined && { code: dto.code }),
       ...(dto.lengthCm !== undefined && { lengthCm: dto.lengthCm }),
       ...(dto.widthCm !== undefined && { widthCm: dto.widthCm }),
       ...(dto.heightCm !== undefined && { heightCm: dto.heightCm }),
       ...(dto.weightG !== undefined && { weightG: dto.weightG }),
-      ...(dto.notes !== undefined && { notes: dto.notes }),
+      ...(dto.desc !== undefined && { desc: dto.desc }),
       ...(dto.status !== undefined && { status: dto.status }),
-      ...(dto.hasSku !== undefined && { hasSku: dto.hasSku }),
       ...(dto.categoryId !== undefined && { categoryId: dto.categoryId }),
       ...(dto.itemTypeId !== undefined && { itemTypeId: dto.itemTypeId }),
       ...(dto.materialId !== undefined && { materialId: dto.materialId }),
@@ -97,9 +93,9 @@ export class ItemApplicationService {
     };
 
     // Handle price updates with business logic
-    if (dto.costPrice !== undefined || dto.sellingPrice !== undefined) {
-      item.updatePrice(dto.costPrice, dto.sellingPrice);
-      updatedData.costPrice = item.getCostPrice();
+    if (dto.purchasingPrice !== undefined || dto.sellingPrice !== undefined) {
+      item.updatePrice(dto.purchasingPrice, dto.sellingPrice);
+      updatedData.purchasingPrice = item.getPurchasingPrice();
       updatedData.sellingPrice = item.getSellingPrice();
     }
 
@@ -177,19 +173,22 @@ export class ItemApplicationService {
   private toDto(item: Item): any {
     return {
       id: item.getId(),
-      name: item.getName(),
+      code: item.getCode(),
       categoryId: item.getCategoryId(),
       itemTypeId: item.getItemTypeId(),
       materialId: item.getMaterialId(),
-      model: item.getModel(),
+      lengthCm: item.getLengthCm(),
+      widthCm: item.getWidthCm(),
+      heightCm: item.getHeightCm(),
+      weightG: item.getWeightG(),
+      desc: item.getDesc(),
       status: item.getStatus(),
       uomCode: item.getUomCode(),
-      costPrice: item.getCostPrice(),
+      purchasingPrice: item.getPurchasingPrice(),
       sellingPrice: item.getSellingPrice(),
       isPurchasable: item.getIsPurchasable(),
       isSellable: item.getIsSellable(),
       isManufactured: item.getIsManufactured(),
-      hasSku: item.getHasSku(),
       itemUoms: item.getItemUOMs().map((uom) => ({
         uomCode: uom.getUomCode(),
         toBaseFactor: uom.getToBaseFactor(),

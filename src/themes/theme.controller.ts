@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiBody } from '@nestj
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ThemeService } from './application/theme.service';
 import { CreateThemeDto } from './dto/create-theme.dto';
+import { UpdateThemeDto } from './dto/update-theme.dto';
 
 @Controller('themes')
 @ApiTags('themes')
@@ -81,5 +82,17 @@ export class ThemeController {
   async delete(@Param('id', ParseIntPipe) id: number) {
     return this.themeService.delete(id);
   }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update theme' })
+  @ApiResponse({ status: 200, description: 'The theme has been successfully updated.' })
+  @ApiResponse({ status: 404, description: 'Theme not found' })
+  async updateTheme(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateThemeDto: UpdateThemeDto,
+  ) {
+    return this.themeService.updateTheme(id, updateThemeDto);
+  }
+
 
 }

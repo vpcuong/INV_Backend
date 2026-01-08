@@ -1,0 +1,142 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CreateItemRequest",
+  "description": "Schema for creating a new Item",
+  "type": "object",
+  "required": [
+    "code",
+    "categoryId",
+    "itemTypeId"
+  ],
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "Unique item code",
+      "maxLength": 10,
+      "minLength": 1,
+      "pattern": "^[A-Z0-9]+$",
+      "examples": ["FABRIC001", "ITEM001"]
+    },
+    "categoryId": {
+      "type": "integer",
+      "description": "Item Category ID (foreign key)",
+      "minimum": 1,
+      "examples": [1, 2, 3]
+    },
+    "itemTypeId": {
+      "type": "integer",
+      "description": "Item Type ID (foreign key)",
+      "minimum": 1,
+      "examples": [1, 2, 3]
+    },
+    "materialId": {
+      "type": ["integer", "null"],
+      "description": "Material ID (foreign key, optional)",
+      "minimum": 1,
+      "examples": [1, 5, null]
+    },
+    "uomCode": {
+      "type": ["string", "null"],
+      "description": "Unit of Measure code",
+      "maxLength": 10,
+      "examples": ["PCS", "MTR", "KG", "SET", null]
+    },
+    "purchasingPrice": {
+      "type": ["number", "null"],
+      "description": "Purchasing price (cost price)",
+      "minimum": 0,
+      "examples": [15.50, 100.00, null]
+    },
+    "sellingPrice": {
+      "type": ["number", "null"],
+      "description": "Selling price (retail price)",
+      "minimum": 0,
+      "examples": [25.99, 150.00, null]
+    },
+    "lengthCm": {
+      "type": ["number", "null"],
+      "description": "Length in centimeters",
+      "minimum": 0,
+      "examples": [50.5, 100.0, null]
+    },
+    "widthCm": {
+      "type": ["number", "null"],
+      "description": "Width in centimeters",
+      "minimum": 0,
+      "examples": [30.0, 150.0, null]
+    },
+    "heightCm": {
+      "type": ["number", "null"],
+      "description": "Height in centimeters",
+      "minimum": 0,
+      "examples": [2.5, 10.0, null]
+    },
+    "weightG": {
+      "type": ["number", "null"],
+      "description": "Weight in grams",
+      "minimum": 0,
+      "examples": [250.0, 1000.0, null]
+    },
+    "desc": {
+      "type": ["string", "null"],
+      "description": "Item description",
+      "maxLength": 200,
+      "examples": [
+        "Premium quality cotton fabric",
+        "High-quality polyester thread",
+        null
+      ]
+    },
+    "status": {
+      "type": "string",
+      "description": "Item status",
+      "enum": ["active", "inactive"],
+      "default": "active",
+      "examples": ["active", "inactive"]
+    },
+    "isPurchasable": {
+      "type": "boolean",
+      "description": "Whether the item can be purchased",
+      "default": false,
+      "examples": [true, false]
+    },
+    "isSellable": {
+      "type": "boolean",
+      "description": "Whether the item can be sold",
+      "default": false,
+      "examples": [true, false]
+    },
+    "isManufactured": {
+      "type": "boolean",
+      "description": "Whether the item is manufactured internally",
+      "default": false,
+      "examples": [true, false]
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "code": "FABRIC001",
+      "categoryId": 1,
+      "itemTypeId": 2,
+      "materialId": 5,
+      "uomCode": "MTR",
+      "purchasingPrice": 15.50,
+      "sellingPrice": 25.99,
+      "lengthCm": 100.0,
+      "widthCm": 150.0,
+      "heightCm": 0.5,
+      "weightG": 250.0,
+      "desc": "Premium cotton fabric for t-shirts",
+      "status": "active",
+      "isPurchasable": true,
+      "isSellable": true,
+      "isManufactured": false
+    },
+    {
+      "code": "THREAD001",
+      "categoryId": 2,
+      "itemTypeId": 1
+    }
+  ]
+}

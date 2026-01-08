@@ -287,25 +287,10 @@ export class SkuUomService {
    *        => Return only SKUUOMs (Item UOMs don't apply)
    */
   async getAvailableUomsForSku(skuId: number) {
-    // Get SKU with its Item information
+    // Get SKU with its UOM information
     const sku = await this.prisma.client.itemSKU.findUnique({
       where: { id: skuId },
       include: {
-        revision: {
-          include: {
-            item: {
-              include: {
-                uom: true,
-                itemUoms: {
-                  where: { isActive: true },
-                  include: {
-                    uom: true,
-                  },
-                },
-              },
-            },
-          },
-        },
         uom: true,
         skuUoms: {
           where: { isActive: true },
@@ -320,12 +305,39 @@ export class SkuUomService {
       throw new NotFoundException(`SKU with ID ${skuId} not found`);
     }
 
-    const item = sku.revision.item;
+    // Get Item with its UOMs (use modelId if available, otherwise itemId)
+    const itemId = sku.modelId
+      ? (await this.prisma.client.itemModel.findUnique({
+          where: { id: sku.modelId },
+          select: { itemId: true }
+        }))?.itemId
+      : sku.itemId;
+
+    if (!itemId) {
+      throw new NotFoundException(`Item not found for SKU ${skuId}`);
+    }
+
+    const item = await this.prisma.client.item.findUnique({
+      where: { id: itemId },
+      include: {
+        uom: true,
+        itemUoms: {
+          where: { isActive: true },
+          include: {
+            uom: true,
+          },
+        },
+      },
+    });
+
+    if (!item) {
+      throw new NotFoundException(`Item with ID ${itemId} not found`);
+    }
     const itemUomCode = item.uomCode;
     const skuUomCode = sku.uomCode;
 
     // Get SKUUOM codes (these override ItemUOMs)
-    const skuUomCodes = new Set(sku.skuUoms.map(su => su.uomCode));
+    const skuUomCodes = new Set(sku.skuUoms?.map((su: any) => su.uomCode) || []);
 
     let availableUoms: any[] = [];
 
@@ -347,9 +359,9 @@ export class SkuUomService {
       }
 
       // Add ItemUOMs that are NOT overridden by SKUUOMs
-      const nonOverriddenItemUoms = item.itemUoms
-        .filter(itemUom => !skuUomCodes.has(itemUom.uomCode))
-        .map(itemUom => ({
+      const nonOverriddenItemUoms = (item.itemUoms || [])
+        .filter((itemUom: any) => !skuUomCodes.has(itemUom.uomCode))
+        .map((itemUom: any) => ({
           uomCode: itemUom.uomCode,
           uomName: itemUom.uom.name,
           source: 'ITEM',
@@ -365,11 +377,11 @@ export class SkuUomService {
       availableUoms = [...availableUoms, ...nonOverriddenItemUoms];
 
       // Add all SKUUOMs (overridden or new)
-      const skuUoms = sku.skuUoms.map(skuUom => ({
+      const skuUoms = (sku.skuUoms || []).map((skuUom: any) => ({
         uomCode: skuUom.uomCode,
         uomName: skuUom.uom.name,
         source: skuUomCodes.has(skuUom.uomCode) &&
-                item.itemUoms.some(iu => iu.uomCode === skuUom.uomCode)
+                (item.itemUoms || []).some((iu: any) => iu.uomCode === skuUom.uomCode)
                 ? 'SKU_OVERRIDE'
                 : 'SKU',
         toBaseFactor: Number(skuUom.toBaseFactor),
@@ -401,7 +413,7 @@ export class SkuUomService {
       }
 
       // Only add SKUUOMs (ItemUOMs don't apply)
-      const skuUoms = sku.skuUoms.map(skuUom => ({
+      const skuUoms = (sku.skuUoms || []).map((skuUom: any) => ({
         uomCode: skuUom.uomCode,
         uomName: skuUom.uom.name,
         source: 'SKU',
@@ -424,7 +436,7 @@ export class SkuUomService {
       skuId,
       skuCode: sku.skuCode,
       itemId: item.id,
-      itemName: item.name,
+      itemName: item.code,
       itemUomCode,
       skuUomCode,
       sameBaseUom: itemUomCode === skuUomCode,

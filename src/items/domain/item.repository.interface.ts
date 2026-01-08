@@ -41,9 +41,9 @@ export interface IItemRepository {
   delete(id: number): Promise<void>;
 
   /**
-   * Check if item exists by name
+   * Check if item exists by code
    */
-  existsByName(name: string, excludeId?: number): Promise<boolean>;
+  existsByCode(code: string, excludeId?: number): Promise<boolean>;
 
   /**
    * Count items matching filters

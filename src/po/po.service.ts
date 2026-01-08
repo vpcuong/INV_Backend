@@ -94,11 +94,7 @@ export class PoService {
                 color: true,
                 gender: true,
                 size: true,
-                revision: {
-                  include: {
-                    item: true,
-                  },
-                },
+                theme: true,
               }
             },
             uom: true,
@@ -136,11 +132,7 @@ export class PoService {
                 color: true,
                 gender: true,
                 size: true,
-                revision: {
-                  include: {
-                    item: true,
-                  },
-                },
+                theme: true,
               }
             },
             uom: true,
@@ -242,11 +234,7 @@ export class PoService {
                   color: true,
                   gender: true,
                   size: true,
-                  revision: {
-                    include: {
-                      item: true,
-                    },
-                  },
+                  theme: true,
                 }
               },
               uom: true,

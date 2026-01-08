@@ -7,16 +7,22 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { CustomersService } from './customers.service';
+import { CustomerService } from './application/customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
+import { CustomerQueryService } from './application/customer-query.service';
+import { CustomerFilterDto } from './dto/customer-filter.dto';
 
 @ApiTags('customers')
 @Controller('customers')
 export class CustomersController {
-  constructor(private readonly customersService: CustomersService) {}
+  constructor(
+    private readonly customersService: CustomerService,
+    private readonly customerQueryService: CustomerQueryService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new customer' })
@@ -28,10 +34,39 @@ export class CustomersController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all customers' })
-  @ApiResponse({ status: 200, description: 'Return all customers with addresses, contacts, and payment terms' })
-  findAll() {
-    return this.customersService.findAll();
+  @ApiOperation({
+    summary: 'Get all customers with filtering, sorting, and pagination',
+    description: 'Supports search, filters, sorting, pagination, and field selection. Use query parameters for quick filters or advanced JSON-based filters.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Return paginated customers with metadata',
+    schema: {
+      example: {
+        data: [
+          {
+            id: 1,
+            customerCode: 'CUST001',
+            customerName: 'ABC Company',
+            email: 'contact@abc.com',
+            status: 'ACTIVE',
+            country: 'Vietnam',
+            isActive: true,
+          }
+        ],
+        meta: {
+          total: 50,
+          page: 1,
+          limit: 10,
+          totalPages: 5,
+          hasNextPage: true,
+          hasPreviousPage: false
+        }
+      }
+    }
+  })
+  findAll(@Query() filterDto: CustomerFilterDto) {
+    return this.customerQueryService.findAllWithFilters(filterDto);
   }
 
   @Get(':id')

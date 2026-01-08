@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsOptional, MaxLength } from 'class-validator';
 
 export class CreateItemTypeDto {
   @ApiProperty({
@@ -7,18 +8,19 @@ export class CreateItemTypeDto {
     maxLength: 20,
     required: false,
   })
-  code?: string;
-
-  @ApiProperty({
-    description: 'Item type name',
-    example: 'T-Shirt',
-  })
-  name!: string;
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  code!: string;
 
   @ApiProperty({
     description: 'Item type description',
     example: 'Short sleeve t-shirt',
     required: false,
+    maxLength: 500,
   })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
   description?: string;
 }

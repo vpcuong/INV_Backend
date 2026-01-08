@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsBoolean, IsNumber, IsEnum, Min } from 'class-validator';
+import { IsOptional, IsString, IsBoolean, IsNumber, IsEnum, Min, IsArray } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -21,16 +21,6 @@ export enum SupplierCategory {
  */
 export class SupplierQuickFiltersDto {
   // Quick filters - Các filter nhanh thường dùng
-
-  @ApiPropertyOptional({
-    description: 'Filter by supplier status',
-    enum: SupplierStatus,
-    example: SupplierStatus.ACTIVE,
-  })
-  @IsOptional()
-  @IsEnum(SupplierStatus)
-  status?: SupplierStatus;
-
   @ApiPropertyOptional({
     description: 'Filter by supplier category',
     enum: SupplierCategory,
@@ -75,28 +65,6 @@ export class SupplierQuickFiltersDto {
   country?: string;
 
   @ApiPropertyOptional({
-    description: 'Minimum rating (0-5)',
-    example: 4,
-    minimum: 0,
-    maximum: 5,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  minRating?: number;
-
-  @ApiPropertyOptional({
-    description: 'Maximum rating (0-5)',
-    example: 5,
-    minimum: 0,
-    maximum: 5,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  maxRating?: number;
-
-  @ApiPropertyOptional({
     description: 'Search supplier code (shortcut for filters)',
     example: 'SUP001',
   })
@@ -127,9 +95,8 @@ export class SupplierQuickFiltersDto {
  */
 export class SupplierFilterDto extends SupplierQuickFiltersDto {
   // Inherited from SupplierQuickFiltersDto:
-  // - status, category, isActive
+  // - category, isActive
   // - city, province, country
-  // - minRating, maxRating
   // - code, name, search
 
   // Add pagination, sort, fields
@@ -152,10 +119,11 @@ export class SupplierFilterDto extends SupplierQuickFiltersDto {
     example: '[{"field":"createdAt","order":"desc"}]',
   })
   @IsOptional()
-  @IsString()
   @Transform(({ value }) => {
     if (typeof value === 'string') {
       try {
+        // convert JSON string to array
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return JSON.parse(value);
       } catch {
         return [];
@@ -170,7 +138,6 @@ export class SupplierFilterDto extends SupplierQuickFiltersDto {
     example: 'id,code,name',
   })
   @IsOptional()
-  @IsString()
   @Transform(({ value }) => (typeof value === 'string' ? value.split(',').map(f => f.trim()) : value))
   fields?: string[];
 }

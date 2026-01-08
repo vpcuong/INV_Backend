@@ -88,10 +88,10 @@ export class ItemRepository implements IItemRepository {
     });
   }
 
-  async existsByName(name: string, excludeId?: number): Promise<boolean> {
+  async existsByCode(code: string, excludeId?: number): Promise<boolean> {
     const count = await this.prisma.client.item.count({
       where: {
-        name,
+        code,
         ...(excludeId && { id: { not: excludeId } }),
       },
     });

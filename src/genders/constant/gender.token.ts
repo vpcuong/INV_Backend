@@ -1,0 +1,1 @@
+export const GENDER_REPOSITORY = Symbol('GENDER_REPOSITORY');

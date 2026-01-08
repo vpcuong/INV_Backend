@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { QueryBuilderService, FilterDto } from '@/common/filtering';
 import { SupplierFilterDto } from '../dto/supplier-filter.dto';
 
@@ -19,14 +19,13 @@ export class SupplierQueryService {
       searchableFields: ['code', 'name', 'email', 'phone', 'contactPerson', 'taxId'],
       filterableFields: [
         'status',
-        'category',
         'isActive',
         'city',
         'province',
         'country',
         'rating',
       ],
-      sortableFields: ['code', 'name', 'createdAt', 'updatedAt', 'sortOrder', 'rating'],
+      sortableFields: ['code', 'name', 'createdAt', 'updatedAt', 'sortOrder'],
       defaultSort: [
         { field: 'sortOrder', order: 'asc' as const },
         { field: 'code', order: 'asc' as const },
@@ -61,11 +60,6 @@ export class SupplierQueryService {
    */
   private applyQuickFilters(query: any, filterDto: SupplierFilterDto) {
     query.where.AND = query.where.AND || [];
-
-    // Filter by status
-    if (filterDto.status) {
-      query.where.AND.push({ status: filterDto.status });
-    }
 
     // Filter by category
     if (filterDto.category) {
@@ -107,15 +101,6 @@ export class SupplierQueryService {
       });
     }
 
-    // Filter by rating range
-    if (filterDto.minRating !== undefined) {
-      query.where.AND.push({ rating: { gte: filterDto.minRating } });
-    }
-
-    if (filterDto.maxRating !== undefined) {
-      query.where.AND.push({ rating: { lte: filterDto.maxRating } });
-    }
-
     // Quick search by code
     if (filterDto.code) {
       query.where.AND.push({
@@ -153,7 +138,7 @@ export class SupplierQueryService {
     const config = {
       searchableFields: ['code', 'name', 'email', 'phone'],
       filterableFields: ['status', 'category', 'city', 'country'],
-      sortableFields: ['code', 'name', 'rating'],
+      sortableFields: ['code', 'name'],
       defaultSort: [{ field: 'name', order: 'asc' as const }],
     };
 
