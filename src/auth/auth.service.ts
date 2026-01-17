@@ -13,7 +13,7 @@ import * as bcrypt from 'bcrypt';
 export class AuthService {
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService,
+    private jwtService: JwtService
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -70,7 +70,7 @@ export class AuthService {
     // Verify password
     const isPasswordValid = await bcrypt.compare(
       loginDto.password,
-      user.password,
+      user.password
     );
 
     if (!isPasswordValid) {

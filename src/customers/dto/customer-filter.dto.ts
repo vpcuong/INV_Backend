@@ -1,4 +1,12 @@
-import { IsOptional, IsString, IsBoolean, IsNumber, IsEnum, Min, IsInt } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsBoolean,
+  IsNumber,
+  IsEnum,
+  Min,
+  IsInt,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { CustomerStatus } from '../enums/customer-status.enum';
@@ -84,19 +92,27 @@ export class CustomerFilterDto extends CustomerQuickFiltersDto {
   // - status, isActive, country
   // - customerCode, customerName, phone, email, taxCode, search
 
-  @ApiPropertyOptional({ description: 'Page number (1-based)', minimum: 1, default: 1 })
+  @ApiPropertyOptional({
+    description: 'Page number (1-based)',
+    minimum: 1,
+    default: 1,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)
   page?: number = 1;
 
-  @ApiPropertyOptional({ description: 'Items per page', minimum: 1, maximum: 100, default: 10 })
+  @ApiPropertyOptional({
+    description: 'Items per page (if not provided, returns all results)',
+    minimum: 1,
+    maximum: 100,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)
-  limit?: number = 10;
+  limit?: number;
 
   @ApiPropertyOptional({
     description: 'Sort conditions (JSON string)',
@@ -119,6 +135,8 @@ export class CustomerFilterDto extends CustomerQuickFiltersDto {
     description: 'Fields to include in response',
   })
   @IsOptional()
-  @Transform(({ value }) => (typeof value === 'string' ? value.split(',').map(f => f.trim()) : value))
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.split(',').map((f) => f.trim()) : value
+  )
   fields?: string[];
 }

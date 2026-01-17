@@ -57,7 +57,7 @@ export class CustomerAddress {
     }
     if (this.addressLine.length > 500) {
       throw new InvalidAddressException(
-        'Address line must not exceed 500 characters',
+        'Address line must not exceed 500 characters'
       );
     }
     if (!this.city || this.city.trim().length === 0) {
@@ -71,7 +71,7 @@ export class CustomerAddress {
     }
     if (this.country.length > 100) {
       throw new InvalidAddressException(
-        'Country must not exceed 100 characters',
+        'Country must not exceed 100 characters'
       );
     }
   }
@@ -111,7 +111,7 @@ export class CustomerAddress {
       }
       if (data.addressLine.length > 500) {
         throw new InvalidAddressException(
-          'Address line must not exceed 500 characters',
+          'Address line must not exceed 500 characters'
         );
       }
       this.addressLine = data.addressLine;
@@ -123,7 +123,7 @@ export class CustomerAddress {
       }
       if (data.city.length > 100) {
         throw new InvalidAddressException(
-          'City must not exceed 100 characters',
+          'City must not exceed 100 characters'
         );
       }
       this.city = data.city;
@@ -135,7 +135,7 @@ export class CustomerAddress {
       }
       if (data.country.length > 100) {
         throw new InvalidAddressException(
-          'Country must not exceed 100 characters',
+          'Country must not exceed 100 characters'
         );
       }
       this.country = data.country;

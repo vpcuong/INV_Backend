@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { FilesService } from '../files.service';
 
 /**
@@ -24,7 +29,9 @@ export class FileAccessGuard implements CanActivate {
     const filePath = request.params.filePath; // From URL params
 
     if (!user) {
-      throw new ForbiddenException('Authentication required to access this file');
+      throw new ForbiddenException(
+        'Authentication required to access this file'
+      );
     }
 
     // Admin có quyền truy cập tất cả files
@@ -45,7 +52,9 @@ export class FileAccessGuard implements CanActivate {
     const hasAccess = await this.checkFileAccess(user, filePath, contextType);
 
     if (!hasAccess) {
-      throw new ForbiddenException('You do not have permission to access this file');
+      throw new ForbiddenException(
+        'You do not have permission to access this file'
+      );
     }
 
     return true;
@@ -54,7 +63,11 @@ export class FileAccessGuard implements CanActivate {
   /**
    * Kiểm tra quyền truy cập file dựa trên contextType
    */
-  private async checkFileAccess(user: any, filePath: string, contextType: string): Promise<boolean> {
+  private async checkFileAccess(
+    user: any,
+    filePath: string,
+    contextType: string
+  ): Promise<boolean> {
     // Get file metadata from database
     const file = await this.filesService.getFileByPath(filePath);
 
@@ -101,7 +114,10 @@ export class FileAccessGuard implements CanActivate {
   /**
    * Kiểm tra quyền truy cập product files
    */
-  private async checkProductAccess(user: any, productId: number): Promise<boolean> {
+  private async checkProductAccess(
+    user: any,
+    productId: number
+  ): Promise<boolean> {
     // TODO: Implement logic kiểm tra user có quyền với product này không
 
     // Tạm thời: cho phép tất cả authenticated users

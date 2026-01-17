@@ -17,6 +17,7 @@ model Customer {
   contacts     CustomerContact[]
   paymentTerms CustomerPaymentTerm[]
   salesOrders  SOHeader[]
+  itemModels   ItemModel[]
 
   @@index([customerCode])
   @@index([status])

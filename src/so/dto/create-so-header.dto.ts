@@ -6,10 +6,12 @@ import {
   IsEnum,
   IsArray,
   ValidateNested,
+  IsDate,
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { CreateSOLineDto } from './create-so-line.dto';
+import { SOAddressesDto, SOMetadataDto } from './composed/so-composed.dto';
+import { CreateSOLineDto } from './composed/create-so-line.dto';
 
 export class CreateSOHeaderDto {
   @ApiProperty({
@@ -26,16 +28,8 @@ export class CreateSOHeaderDto {
     example: 1,
   })
   @IsNumber()
+  @Min(1)
   customerId!: number;
-
-  @ApiProperty({
-    description: 'Customer PO Number',
-    example: 'PO-CUST-12345',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  customerPoNum?: string;
 
   @ApiProperty({
     description: 'Order date',
@@ -43,6 +37,7 @@ export class CreateSOHeaderDto {
     required: false,
   })
   @IsOptional()
+  @IsDate()
   orderDate?: Date;
 
   @ApiProperty({
@@ -51,213 +46,126 @@ export class CreateSOHeaderDto {
     required: false,
   })
   @IsOptional()
+  @IsDate()
   requestDate?: Date;
 
   @ApiProperty({
     description: 'Need by date',
-    example: '2024-12-31T00:00:00.000Z',
+    example: '2024-12-25T00:00:00.000Z',
     required: false,
   })
   @IsOptional()
+  @IsDate()
   needByDate?: Date;
 
   @ApiProperty({
     description: 'Order status',
     example: 'OPEN',
-    enum: ['DRAFT', 'OPEN', 'PARTIAL', 'CLOSED', 'CANCELLED', 'ON_HOLD'],
     required: false,
-    default: 'OPEN',
   })
   @IsOptional()
-  @IsEnum(['DRAFT', 'OPEN', 'PARTIAL', 'CLOSED', 'CANCELLED', 'ON_HOLD'])
+  @IsString()
   orderStatus?: string;
 
   @ApiProperty({
-    description: 'Sales channel',
-    example: 'ONLINE',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  channel?: string;
-
-  @ApiProperty({
-    description: 'FOB code',
-    example: 'FOB_ORIGIN',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  fobCode?: string;
-
-  @ApiProperty({
-    description: 'Ship via code',
-    example: 'FEDEX',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  shipViaCode?: string;
-
-  @ApiProperty({
-    description: 'Payment term code',
-    example: 'NET30',
-    enum: ['COD', 'PREPAID', 'NET7', 'NET15', 'NET30', 'NET45', 'NET60', 'NET90', 'EOM', 'CUSTOM'],
-    required: false,
-  })
-  @IsOptional()
-  @IsEnum(['COD', 'PREPAID', 'NET7', 'NET15', 'NET30', 'NET45', 'NET60', 'NET90', 'EOM', 'CUSTOM'])
-  paymentTermCode?: string;
-
-  @ApiProperty({
-    description: 'Currency code',
-    example: 'VND',
-    default: 'VND',
-  })
-  @IsString()
-  currencyCode!: string;
-
-  @ApiProperty({
-    description: 'Exchange rate',
-    example: 1,
-    required: false,
-    default: 1,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  exchangeRate?: number;
-
-  @ApiProperty({
-    description: 'Header discount percent',
-    example: 5.00,
-    required: false,
-    default: 0,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  headerDiscountPercent?: number;
-
-  @ApiProperty({
     description: 'Header discount amount',
-    example: 100.00,
+    example: 50.0,
     required: false,
-    default: 0,
   })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  @Type(() => Number)
   headerDiscountAmount?: number;
 
   @ApiProperty({
-    description: 'Total line amount',
-    example: 2599.00,
-  })
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  totalLineAmount!: number;
-
-  @ApiProperty({
-    description: 'Total discount',
-    example: 100.00,
+    description: 'Header discount percent',
+    example: 5.0,
     required: false,
-    default: 0,
   })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  @Type(() => Number)
+  headerDiscountPercent?: number;
+
+  @ApiProperty({
+    description: 'Total line amount (calculated from lines)',
+    example: 1000.0,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  totalLineAmount?: number;
+
+  @ApiProperty({
+    description: 'Total discount (calculated)',
+    example: 50.0,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
   totalDiscount?: number;
 
   @ApiProperty({
-    description: 'Total tax',
-    example: 246.91,
+    description: 'Total tax (calculated)',
+    example: 100.0,
     required: false,
-    default: 0,
   })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  @Type(() => Number)
   totalTax?: number;
 
   @ApiProperty({
-    description: 'Total charges (shipping, handling, etc.)',
-    example: 50.00,
+    description: 'Total charges',
+    example: 25.0,
     required: false,
-    default: 0,
   })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  @Type(() => Number)
   totalCharges?: number;
 
   @ApiProperty({
-    description: 'Order total',
-    example: 2795.91,
+    description: 'Order total (calculated)',
+    example: 1075.0,
+    required: false,
   })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  @Type(() => Number)
-  orderTotal!: number;
+  orderTotal?: number;
 
   @ApiProperty({
-    description: 'Open amount (remaining to be fulfilled)',
-    example: 2795.91,
+    description: 'Open amount',
+    example: 1075.0,
+    required: false,
   })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  @Type(() => Number)
-  openAmount!: number;
+  openAmount?: number;
 
   @ApiProperty({
-    description: 'Billing address ID',
-    example: 1,
+    description: 'Addresses information (billing and shipping)',
+    type: SOAddressesDto,
     required: false,
   })
+  @ValidateNested()
+  @Type(() => SOAddressesDto)
   @IsOptional()
-  @IsNumber()
-  billingAddressId?: number;
+  addresses?: SOAddressesDto;
 
   @ApiProperty({
-    description: 'Shipping address ID',
-    example: 2,
+    description: 'Metadata (channel, FOB, shipping, payment, etc.)',
+    type: SOMetadataDto,
     required: false,
   })
+  @ValidateNested()
+  @Type(() => SOMetadataDto)
   @IsOptional()
-  @IsNumber()
-  shippingAddressId?: number;
-
-  @ApiProperty({
-    description: 'Header note',
-    example: 'Important customer - priority order',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  headerNote?: string;
-
-  @ApiProperty({
-    description: 'Internal note (not visible to customer)',
-    example: 'Check inventory before confirming',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  internalNote?: string;
-
-  @ApiProperty({
-    description: 'Created by username',
-    example: 'admin',
-  })
-  @IsString()
-  createdBy!: string;
+  metadata?: SOMetadataDto;
 
   @ApiProperty({
     description: 'Order lines',
@@ -269,4 +177,11 @@ export class CreateSOHeaderDto {
   @ValidateNested({ each: true })
   @Type(() => CreateSOLineDto)
   lines?: CreateSOLineDto[];
+
+  @ApiProperty({
+    description: 'Created by user',
+    example: 'admin',
+  })
+  @IsString()
+  createdBy!: string;
 }

@@ -8,7 +8,9 @@ export class ItemCategoryDomainException extends DomainException {
 
 export class InvalidItemCategoryCodeException extends ItemCategoryDomainException {
   constructor(code: string) {
-    super(`Invalid item category code: ${code}. Code must not exceed 10 characters.`);
+    super(
+      `Invalid item category code: ${code}. Code must not exceed 10 characters.`
+    );
   }
 }
 
@@ -20,6 +22,8 @@ export class ItemCategoryNotFoundException extends ItemCategoryDomainException {
 
 export class InvalidItemCategoryFlagsException extends ItemCategoryDomainException {
   constructor() {
-    super(`Only one of 'isOutsourced', 'isFinishedGood', or 'isFabric' can be true.`);
+    super(
+      `Only one of 'isOutsourced', 'isFinishedGood', or 'isFabric' can be true.`
+    );
   }
 }

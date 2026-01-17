@@ -27,7 +27,7 @@ export interface ICustomerAddressRepository {
    */
   findDefaultByCustomerAndType(
     customerId: number,
-    addressType: AddressType,
+    addressType: AddressType
   ): Promise<CustomerAddress | null>;
 
   /**
@@ -46,6 +46,6 @@ export interface ICustomerAddressRepository {
   unsetDefaultsByCustomerAndType(
     customerId: number,
     addressType: AddressType,
-    exceptId?: number,
+    exceptId?: number
   ): Promise<void>;
 }

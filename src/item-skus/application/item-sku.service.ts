@@ -11,11 +11,6 @@ import { IItemSkuRepository } from '../domain/item-sku.repository.interface';
 import { ITEM_SKU_REPOSITORY } from '../constant/item-sku.token';
 import { CreateItemSkuDto } from '../dto/create-item-sku.dto';
 import { UpdateItemSkuDto } from '../dto/update-item-sku.dto';
-import {
-  InvalidItemSkuException,
-  InvalidPriceException,
-  InvalidDimensionException,
-} from '../domain/exceptions/item-sku-domain.exception';
 
 /**
  * Application Service - Orchestrates ItemSKU use cases
@@ -25,7 +20,7 @@ export class ItemSkuService {
   constructor(
     @Inject(ITEM_SKU_REPOSITORY)
     private readonly skuRepository: IItemSkuRepository,
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaService
   ) {}
 
   /**
@@ -41,7 +36,7 @@ export class ItemSkuService {
           createDto.modelId,
           createDto.colorId,
           createDto.genderId,
-          createDto.sizeId,
+          createDto.sizeId
         ));
 
       // Check for duplicate SKU code
@@ -52,15 +47,15 @@ export class ItemSkuService {
 
       // Create domain entity
       const itemSku = new ItemSku({
-        skuCode,
+        skuCode: skuCode,
         itemId: createDto.itemId,
         modelId: createDto.modelId,
-        colorId: createDto.colorId,
-        genderId: createDto.genderId,
-        sizeId: createDto.sizeId,
-        themeId: createDto.themeId,
-        supplierId: createDto.supplierId,
-        customerId: createDto.customerId,
+        colorId: createDto.colorId ?? null,
+        genderId: createDto.genderId ?? null,
+        sizeId: createDto.sizeId ?? null,
+        supplierId: createDto.supplierId ?? null,
+        customerId: createDto.customerId ?? null,
+        fabricSKUId: createDto.fabricSKUId ?? null,
         pattern: createDto.pattern,
         lengthCm: createDto.lengthCm,
         widthCm: createDto.widthCm,
@@ -78,13 +73,8 @@ export class ItemSkuService {
       // Fetch with relations for response
       return this.findOneWithRelations(saved.getId()!);
     } catch (error) {
-      if (
-        error instanceof InvalidItemSkuException ||
-        error instanceof InvalidPriceException ||
-        error instanceof InvalidDimensionException
-      ) {
-        throw new BadRequestException(error.message);
-      }
+      // Re-throw ConflictException and domain exceptions as-is
+      // DomainExceptionFilter will automatically handle domain exceptions
       throw error;
     }
   }
@@ -152,46 +142,64 @@ export class ItemSkuService {
       throw new NotFoundException(`Item SKU with ID ${id} not found`);
     }
 
-    try {
-      // Update prices if provided
-      if (
-        updateDto.costPrice !== undefined ||
-        updateDto.sellingPrice !== undefined
-      ) {
-        sku.updatePrices(updateDto.costPrice, updateDto.sellingPrice);
-      }
-
-      // Update dimensions if provided
-      if (
-        updateDto.lengthCm !== undefined ||
-        updateDto.widthCm !== undefined ||
-        updateDto.heightCm !== undefined ||
-        updateDto.weightG !== undefined
-      ) {
-        sku.updateDimensions({
-          lengthCm: updateDto.lengthCm,
-          widthCm: updateDto.widthCm,
-          heightCm: updateDto.heightCm,
-          weightG: updateDto.weightG,
-        });
-      }
-
-      // Update details if provided
-      if (updateDto.desc !== undefined || updateDto.pattern !== undefined) {
-        sku.updateDetails(updateDto.desc, updateDto.pattern);
-      }
-
-      const updated = await this.skuRepository.update(id, sku);
-      return this.findOneWithRelations(updated.getId()!);
-    } catch (error) {
-      if (
-        error instanceof InvalidPriceException ||
-        error instanceof InvalidDimensionException
-      ) {
-        throw new BadRequestException(error.message);
-      }
-      throw error;
+    // Update prices if provided
+    if (
+      updateDto.costPrice !== undefined ||
+      updateDto.sellingPrice !== undefined
+    ) {
+      sku.updatePrices(updateDto.costPrice, updateDto.sellingPrice);
     }
+
+    // Update dimensions if provided
+    if (
+      updateDto.lengthCm !== undefined ||
+      updateDto.widthCm !== undefined ||
+      updateDto.heightCm !== undefined ||
+      updateDto.weightG !== undefined
+    ) {
+      sku.updateDimensions({
+        lengthCm: updateDto.lengthCm,
+        widthCm: updateDto.widthCm,
+        heightCm: updateDto.heightCm,
+        weightG: updateDto.weightG,
+      });
+    }
+
+    // Update details if provided
+    if (updateDto.desc !== undefined || updateDto.pattern !== undefined) {
+      sku.updateDetails(updateDto.desc, updateDto.pattern);
+    }
+
+    // Update relations if provided
+    if (
+      updateDto.supplierId !== undefined ||
+      updateDto.customerId !== undefined ||
+      updateDto.fabricSKUId !== undefined
+    ) {
+      sku.updateRelations(
+        updateDto.supplierId,
+        updateDto.customerId,
+        updateDto.fabricSKUId
+      );
+    }
+
+    // Update classification if provided
+    if (updateDto.genderId !== undefined || updateDto.sizeId !== undefined) {
+      sku.updateClassification(updateDto.genderId, updateDto.sizeId);
+    }
+
+    // Update UOM if provided
+    if (updateDto.uomCode !== undefined) {
+      sku.updateUom(updateDto.uomCode);
+    }
+
+    // Update status if provided
+    if (updateDto.status !== undefined) {
+      sku.updateStatus(updateDto.status);
+    }
+
+    const updated = await this.skuRepository.update(id, sku);
+    return this.findOneWithRelations(updated.getId()!);
   }
 
   /**
@@ -246,47 +254,47 @@ export class ItemSkuService {
     modelId?: number | null,
     colorId?: number,
     genderId?: number,
-    sizeId?: number,
+    sizeId?: number
   ): Promise<string> {
-    const [color, gender, size, model] = await Promise.all([
-      colorId
-        ? this.prisma.client.color.findUnique({ where: { id: colorId } })
-        : null,
-      genderId
-        ? this.prisma.client.gender.findUnique({ where: { id: genderId } })
-        : null,
-      sizeId
-        ? this.prisma.client.size.findUnique({ where: { id: sizeId } })
-        : null,
-      modelId
-        ? this.prisma.client.itemModel.findUnique({
-            where: { id: modelId },
-            include: {
-              item: {
-                include: {
-                  itemType: true,
-                  material: true,
-                },
-              },
-            },
-          })
-        : null,
-    ]);
+    // const [color, gender, size, model] = await Promise.all([
+    //   colorId
+    //     ? this.prisma.client.color.findUnique({ where: { id: colorId } })
+    //     : null,
+    //   genderId
+    //     ? this.prisma.client.gender.findUnique({ where: { id: genderId } })
+    //     : null,
+    //   sizeId
+    //     ? this.prisma.client.size.findUnique({ where: { id: sizeId } })
+    //     : null,
+    //   modelId
+    //     ? this.prisma.client.itemModel.findUnique({
+    //         where: { id: modelId },
+    //         include: {
+    //           item: {
+    //             include: {
+    //               itemType: true,
+    //               material: true,
+    //             },
+    //           },
+    //         },
+    //       })
+    //     : null,
+    // ]);
 
-    if (!color || !gender || !size) {
-      throw new BadRequestException('Invalid color, gender, or size ID');
-    }
+    // if (!color || !gender || !size) {
+    //   throw new BadRequestException('Invalid color, gender, or size ID');
+    // }
 
-    let itemTypeCode = 'NOTYPE';
-    let materialCode = 'NOMAT';
+    // let itemTypeCode = 'NOTYPE';
+    // let materialCode = 'NOMAT';
 
-    if (model?.item) {
-      itemTypeCode = model.item.itemType?.code || 'NOTYPE';
-      materialCode = model.item.material?.code || 'NOMAT';
-    }
+    // if (model?.item) {
+    //   itemTypeCode = model.item.itemType?.code || 'NOTYPE';
+    //   materialCode = model.item.material?.code || 'NOMAT';
+    // }
 
-    const skuCode = `${itemTypeCode}-${materialCode}-${color.code}-${gender.code}-${size.code}`.trim();
-    return skuCode;
+    // const skuCode = `${itemTypeCode}-${materialCode}-${color.code}-${gender.code}-${size.code}`.trim();
+    return '';
   }
 
   /**
@@ -299,7 +307,6 @@ export class ItemSkuService {
         color: true,
         gender: true,
         size: true,
-        theme: true,
         uom: true,
       },
     });
@@ -323,9 +330,9 @@ export class ItemSkuService {
       colorId: sku.getColorId(),
       genderId: sku.getGenderId(),
       sizeId: sku.getSizeId(),
-      themeId: sku.getThemeId(),
       supplierId: sku.getSupplierId(),
       customerId: sku.getCustomerId(),
+      fabricSKUId: sku.getFabricSKUId(),
       pattern: sku.getPattern(),
       lengthCm: sku.getLengthCm(),
       widthCm: sku.getWidthCm(),

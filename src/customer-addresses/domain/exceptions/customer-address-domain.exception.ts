@@ -22,7 +22,7 @@ export class InvalidAddressException extends CustomerAddressDomainException {
 export class DuplicateDefaultAddressException extends CustomerAddressDomainException {
   constructor(customerId: number, addressType: string) {
     super(
-      `Customer ${customerId} already has a default ${addressType} address`,
+      `Customer ${customerId} already has a default ${addressType} address`
     );
     this.name = 'DuplicateDefaultAddressException';
   }

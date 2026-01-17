@@ -1,8 +1,15 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { IFileStorage, UploadResult } from '../interfaces/file-storage.interface';
+import {
+  IFileStorage,
+  UploadResult,
+} from '../interfaces/file-storage.interface';
 
 @Injectable()
 export class LocalStorageProvider implements IFileStorage {
@@ -14,9 +21,14 @@ export class LocalStorageProvider implements IFileStorage {
     this.baseUrl = this.configService.get('BASE_URL', 'http://localhost:3000');
   }
 
-  async uploadFile(file: Express.Multer.File, folder?: string): Promise<UploadResult> {
+  async uploadFile(
+    file: Express.Multer.File,
+    folder?: string
+  ): Promise<UploadResult> {
     try {
-      const targetFolder = folder ? path.join(this.uploadPath, folder) : this.uploadPath;
+      const targetFolder = folder
+        ? path.join(this.uploadPath, folder)
+        : this.uploadPath;
 
       // Ensure folder exists
       await fs.mkdir(targetFolder, { recursive: true });
@@ -37,12 +49,17 @@ export class LocalStorageProvider implements IFileStorage {
         mimetype: file.mimetype,
       };
     } catch (error: any) {
-      throw new InternalServerErrorException(`Failed to upload file: ${error.message}`);
+      throw new InternalServerErrorException(
+        `Failed to upload file: ${error.message}`
+      );
     }
   }
 
-  async uploadFiles(files: Express.Multer.File[], folder?: string): Promise<UploadResult[]> {
-    return Promise.all(files.map(file => this.uploadFile(file, folder)));
+  async uploadFiles(
+    files: Express.Multer.File[],
+    folder?: string
+  ): Promise<UploadResult[]> {
+    return Promise.all(files.map((file) => this.uploadFile(file, folder)));
   }
 
   async deleteFile(filePath: string): Promise<void> {
@@ -53,7 +70,9 @@ export class LocalStorageProvider implements IFileStorage {
       if (error.code === 'ENOENT') {
         throw new NotFoundException(`File not found: ${filePath}`);
       }
-      throw new InternalServerErrorException(`Failed to delete file: ${error.message}`);
+      throw new InternalServerErrorException(
+        `Failed to delete file: ${error.message}`
+      );
     }
   }
 
@@ -91,14 +110,19 @@ export class LocalStorageProvider implements IFileStorage {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new InternalServerErrorException(`Failed to read file: ${error.message}`);
+      throw new InternalServerErrorException(
+        `Failed to read file: ${error.message}`
+      );
     }
   }
 
   /**
    * Read file content as string
    */
-  async readFileAsString(filePath: string, encoding: BufferEncoding = 'utf-8'): Promise<string> {
+  async readFileAsString(
+    filePath: string,
+    encoding: BufferEncoding = 'utf-8'
+  ): Promise<string> {
     try {
       const buffer = await this.readFile(filePath);
       return buffer.toString(encoding);
@@ -143,13 +167,15 @@ export class LocalStorageProvider implements IFileStorage {
         '.webp': 'image/webp',
         '.pdf': 'application/pdf',
         '.doc': 'application/msword',
-        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        '.docx':
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         '.txt': 'text/plain',
         '.json': 'application/json',
         '.xml': 'application/xml',
       };
 
-      const mimetype = mimetypeMap[extension.toLowerCase()] || 'application/octet-stream';
+      const mimetype =
+        mimetypeMap[extension.toLowerCase()] || 'application/octet-stream';
 
       return {
         size: stats.size,
@@ -161,7 +187,9 @@ export class LocalStorageProvider implements IFileStorage {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new InternalServerErrorException(`Failed to get file info: ${error.message}`);
+      throw new InternalServerErrorException(
+        `Failed to get file info: ${error.message}`
+      );
     }
   }
 }

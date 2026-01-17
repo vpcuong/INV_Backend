@@ -1,4 +1,4 @@
-import { Theme } from "./theme.entity";
+import { Theme } from './theme.entity';
 
 export interface IThemeRepository {
   save(theme: Theme): Promise<Theme>;

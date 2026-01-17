@@ -9,22 +9,31 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
+  Query,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { ItemSkuService } from './application/item-sku.service';
+import { ItemSkuQueryService } from './application/item-sku-query.service';
 import { CreateItemSkuDto } from './dto/create-item-sku.dto';
 import { UpdateItemSkuDto } from './dto/update-item-sku.dto';
+import { ItemSkuFilterDto } from './dto/item-sku-filter.dto';
+import { FilterDto } from '@/common/filtering';
 
 @ApiTags('ItemSKUs')
 @Controller('item-skus')
 export class ItemSkusController {
-  constructor(private readonly service: ItemSkuService) {}
+  constructor(
+    private readonly service: ItemSkuService,
+    private readonly queryService: ItemSkuQueryService
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Create a new item SKU',
-    description: 'Creates a new SKU variant for an item with specific color, gender, and size combinations. SKU code will be auto-generated if not provided.',
+    description:
+      'Creates a new SKU variant for an item with specific color, gender, and size combinations. SKU code will be auto-generated if not provided.',
   })
   @ApiResponse({
     status: 201,
@@ -40,21 +49,23 @@ export class ItemSkusController {
 
   @Get()
   @ApiOperation({
-    summary: 'Get all item SKUs',
-    description: 'Retrieves a list of all item SKUs with their associated color, gender, size, and theme details.',
+    summary: 'Get all item SKUs with filtering, sorting, and pagination',
+    description:
+      'Retrieves a list of all item SKUs with optional filtering, sorting, and pagination. Also includes associated color, gender, size, and fabric details.',
   })
   @ApiResponse({
     status: 200,
-    description: 'Returns all item SKUs',
+    description: 'Returns filtered item SKUs with pagination',
   })
-  findAll() {
-    return this.service.findAll();
+  findAll(@Query() filterDto: ItemSkuFilterDto) {
+    return this.queryService.findAllWithFilters(filterDto);
   }
 
   @Get('item/:itemId')
   @ApiOperation({
-    summary: 'Get SKUs by item ID',
-    description: 'Retrieves all SKU variants for a specific item.',
+    summary: 'Get SKUs by item ID with filtering',
+    description:
+      'Retrieves all SKU variants for a specific item with optional filtering, sorting, and pagination.',
   })
   @ApiParam({
     name: 'itemId',
@@ -70,14 +81,18 @@ export class ItemSkusController {
     status: 404,
     description: 'Item not found',
   })
-  findByItemId(@Param('itemId', ParseIntPipe) itemId: number) {
-    return this.service.findByItemId(itemId);
+  findByItemId(
+    @Param('itemId', ParseIntPipe) itemId: number,
+    @Query() filterDto: FilterDto
+  ) {
+    return this.queryService.findByItemId(itemId, filterDto);
   }
 
   @Get('model/:modelId')
   @ApiOperation({
-    summary: 'Get SKUs by model ID',
-    description: 'Retrieves all SKU variants for a specific item model.',
+    summary: 'Get SKUs by model ID with filtering',
+    description:
+      'Retrieves all SKU variants for a specific item model with optional filtering, sorting, and pagination.',
   })
   @ApiParam({
     name: 'modelId',
@@ -93,14 +108,70 @@ export class ItemSkusController {
     status: 404,
     description: 'Model not found',
   })
-  findByModelId(@Param('modelId', ParseIntPipe) modelId: number) {
-    return this.service.findByModelId(modelId);
+  findByModelId(
+    @Param('modelId', ParseIntPipe) modelId: number,
+    @Query() filterDto: FilterDto
+  ) {
+    return this.queryService.findByModelId(modelId, filterDto);
+  }
+
+  @Get('category/:categoryId')
+  @ApiOperation({
+    summary: 'Get SKUs by category ID with filtering',
+    description:
+      'Retrieves all SKU variants for a specific item category with optional filtering (e.g., by materialId), sorting, and pagination.',
+  })
+  @ApiParam({
+    name: 'categoryId',
+    description: 'The ID of the item category',
+    example: 1,
+    type: Number,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all SKUs for the specified category',
+  })
+  findByCategory(
+    @Param('categoryId', ParseIntPipe) categoryId: number,
+    @Query() filterDto: ItemSkuFilterDto
+  ) {
+    return this.queryService.findByCategory(categoryId, filterDto);
+  }
+
+  @Get('valid-fabric/:materialId/:colorId')
+  @ApiOperation({
+    summary: 'Get SKUs by category and material ID',
+    description:
+      'Retrieves all SKU variants for a specific category and material combination. Supports additional filtering, sorting, and pagination.',
+  })
+  @ApiParam({
+    name: 'materialId',
+    description: 'The ID of the material',
+    type: Number,
+  })
+  @ApiParam({
+    name: 'colorId',
+    description: 'The ID of the color',
+    type: Number,
+  })
+  @ApiResponse({ status: 200, description: 'Returns filtered SKUs' })
+  findValidFabricSKUByMaterialColor(
+    @Param('materialId', ParseIntPipe) materialId: number,
+    @Param('colorId', ParseIntPipe) colorId: number,
+    @Query() filterDto: ItemSkuFilterDto
+  ) {
+    return this.queryService.findValidFabricSKUByMaterialColor(
+      materialId,
+      colorId,
+      filterDto
+    );
   }
 
   @Get(':id')
   @ApiOperation({
     summary: 'Get item SKU by ID',
-    description: 'Retrieves a specific item SKU with all related details including color, gender, size, and theme information.',
+    description:
+      'Retrieves a specific item SKU with all related details including color, gender, size, and theme information.',
   })
   @ApiParam({
     name: 'id',
@@ -116,14 +187,19 @@ export class ItemSkusController {
     status: 404,
     description: 'Item SKU not found',
   })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.service.findOne(id);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const sku = await this.queryService.findOne(id);
+    if (!sku) {
+      throw new NotFoundException(`Item SKU with ID ${id} not found`);
+    }
+    return sku;
   }
 
   @Patch(':id')
   @ApiOperation({
     summary: 'Update an item SKU',
-    description: 'Updates an existing item SKU. Can modify prices, dimensions, status, and other SKU properties.',
+    description:
+      'Updates an existing item SKU. Can modify prices, dimensions, status, and other SKU properties.',
   })
   @ApiParam({
     name: 'id',
@@ -145,7 +221,7 @@ export class ItemSkusController {
   })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateDto: UpdateItemSkuDto,
+    @Body() updateDto: UpdateItemSkuDto
   ) {
     return this.service.update(id, updateDto);
   }
@@ -153,7 +229,8 @@ export class ItemSkusController {
   @Patch(':id/activate')
   @ApiOperation({
     summary: 'Activate an item SKU',
-    description: 'Sets the status of an item SKU to active, making it available for use.',
+    description:
+      'Sets the status of an item SKU to active, making it available for use.',
   })
   @ApiParam({
     name: 'id',
@@ -176,7 +253,8 @@ export class ItemSkusController {
   @Patch(':id/deactivate')
   @ApiOperation({
     summary: 'Deactivate an item SKU',
-    description: 'Sets the status of an item SKU to inactive, making it unavailable for use.',
+    description:
+      'Sets the status of an item SKU to inactive, making it unavailable for use.',
   })
   @ApiParam({
     name: 'id',

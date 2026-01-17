@@ -23,19 +23,27 @@ import { ItemCategoryFilterDto } from './dto/item-category-filter.dto';
 export class ItemCategoriesController {
   constructor(
     private readonly itemCategoryService: ItemCategoryService,
-    private readonly itemCategoryQueryService: ItemCategoryQueryService,
+    private readonly itemCategoryQueryService: ItemCategoryQueryService
   ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new item category' })
-  @ApiResponse({ status: 201, description: 'Item category created successfully' })
-  @ApiResponse({ status: 409, description: 'Item category code already exists' })
+  @ApiResponse({
+    status: 201,
+    description: 'Item category created successfully',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Item category code already exists',
+  })
   create(@Body() createDto: CreateProductCategoryDto) {
     return this.itemCategoryService.create(createDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all item categories with filtering and pagination' })
+  @ApiOperation({
+    summary: 'Get all item categories with filtering and pagination',
+  })
   @ApiResponse({ status: 200, description: 'List of item categories' })
   findAll(@Query() filterDto: ItemCategoryFilterDto) {
     return this.itemCategoryQueryService.findAll(filterDto);
@@ -53,11 +61,14 @@ export class ItemCategoriesController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update item category' })
   @ApiParam({ name: 'id', description: 'Item category ID' })
-  @ApiResponse({ status: 200, description: 'Item category updated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Item category updated successfully',
+  })
   @ApiResponse({ status: 404, description: 'Item category not found' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateDto: UpdateProductCategoryDto,
+    @Body() updateDto: UpdateProductCategoryDto
   ) {
     return this.itemCategoryService.update(id, updateDto);
   }

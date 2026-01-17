@@ -45,20 +45,14 @@ export class CustomerAddressesService {
           },
         },
       },
-      orderBy: [
-        { customerId: 'asc' },
-        { isDefault: 'desc' },
-      ],
+      orderBy: [{ customerId: 'asc' }, { isDefault: 'desc' }],
     });
   }
 
   async findByCustomer(customerId: number) {
     return this.prisma.client.customerAddress.findMany({
       where: { customerId },
-      orderBy: [
-        { isDefault: 'desc' },
-        { addressType: 'asc' },
-      ],
+      orderBy: [{ isDefault: 'desc' }, { addressType: 'asc' }],
     });
   }
 

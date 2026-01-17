@@ -1,4 +1,12 @@
-import { IsOptional, IsString, IsBoolean, IsNumber, IsEnum, Min, IsArray } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsBoolean,
+  IsNumber,
+  IsEnum,
+  Min,
+  IsArray,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -22,17 +30,16 @@ export enum SupplierCategory {
 export class SupplierQuickFiltersDto {
   // Quick filters - Các filter nhanh thường dùng
   @ApiPropertyOptional({
-    description: 'Filter by supplier category',
+    description:
+      'Filter by supplier category (e.g., FABRIC, ACCESSORIES, PACKAGING, YARN)',
     enum: SupplierCategory,
-    example: SupplierCategory.FABRIC,
   })
   @IsOptional()
   @IsEnum(SupplierCategory)
   category?: SupplierCategory;
 
   @ApiPropertyOptional({
-    description: 'Filter by active status',
-    example: true,
+    description: 'Filter by active status (true/false)',
   })
   @IsOptional()
   @Type(() => Boolean)
@@ -41,48 +48,43 @@ export class SupplierQuickFiltersDto {
   isActive?: boolean;
 
   @ApiPropertyOptional({
-    description: 'Filter by city',
-    example: 'Ho Chi Minh City',
+    description: 'Filter by city (e.g., Ho Chi Minh City)',
   })
   @IsOptional()
   @IsString()
   city?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by province',
-    example: 'Ho Chi Minh',
+    description: 'Filter by province (e.g., Ho Chi Minh)',
   })
   @IsOptional()
   @IsString()
   province?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by country',
-    example: 'Vietnam',
+    description: 'Filter by country (e.g., Vietnam)',
   })
   @IsOptional()
   @IsString()
   country?: string;
 
   @ApiPropertyOptional({
-    description: 'Search supplier code (shortcut for filters)',
-    example: 'SUP001',
+    description: 'Search supplier code - shortcut for filters (e.g., SUP001)',
   })
   @IsOptional()
   @IsString()
   code?: string;
 
   @ApiPropertyOptional({
-    description: 'Search supplier name (shortcut for filters)',
-    example: 'ABC Textiles',
+    description:
+      'Search supplier name - shortcut for filters (e.g., ABC Textiles)',
   })
   @IsOptional()
   @IsString()
   name?: string;
 
   @ApiPropertyOptional({
-    description: 'Full-text search across multiple fields',
-    example: 'ABC',
+    description: 'Full-text search across multiple fields (e.g., ABC)',
   })
   @IsOptional()
   @IsString()
@@ -100,23 +102,32 @@ export class SupplierFilterDto extends SupplierQuickFiltersDto {
   // - code, name, search
 
   // Add pagination, sort, fields
-  @ApiPropertyOptional({ description: 'Page number (1-based)', example: 1, minimum: 1, default: 1 })
+  @ApiPropertyOptional({
+    description: 'Page number - 1-based (e.g., 1)',
+    minimum: 1,
+    default: 1,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)
   page?: number = 1;
 
-  @ApiPropertyOptional({ description: 'Items per page', example: 10, minimum: 1, maximum: 100, default: 10 })
+  @ApiPropertyOptional({
+    description:
+      'Items per page (e.g., 10). If not provided, returns all results',
+    minimum: 1,
+    maximum: 100,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)
-  limit?: number = 10;
+  limit?: number;
 
   @ApiPropertyOptional({
-    description: 'Sort conditions (JSON string)',
-    example: '[{"field":"createdAt","order":"desc"}]',
+    description:
+      'Sort conditions - JSON string (e.g., [{"field":"createdAt","order":"desc"}])',
   })
   @IsOptional()
   @Transform(({ value }) => {
@@ -134,10 +145,12 @@ export class SupplierFilterDto extends SupplierQuickFiltersDto {
   sort?: any[];
 
   @ApiPropertyOptional({
-    description: 'Fields to include in response',
-    example: 'id,code,name',
+    description:
+      'Fields to include in response - comma separated (e.g., id,code,name)',
   })
   @IsOptional()
-  @Transform(({ value }) => (typeof value === 'string' ? value.split(',').map(f => f.trim()) : value))
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.split(',').map((f) => f.trim()) : value
+  )
   fields?: string[];
 }

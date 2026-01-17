@@ -15,10 +15,7 @@ export class CustomersService {
 
   async findAll() {
     return this.prisma.client.customer.findMany({
-      orderBy: [
-        { sortOrder: 'asc' },
-        { customerCode: 'asc' },
-      ],
+      orderBy: [{ sortOrder: 'asc' }, { customerCode: 'asc' }],
       include: {
         addresses: true,
         contacts: true,
@@ -32,17 +29,11 @@ export class CustomersService {
       where: { id },
       include: {
         addresses: {
-          orderBy: [
-            { isDefault: 'desc' },
-            { addressType: 'asc' },
-          ],
+          orderBy: [{ isDefault: 'desc' }, { addressType: 'asc' }],
         },
         contacts: {
           where: { isActive: true },
-          orderBy: [
-            { isPrimary: 'desc' },
-            { fullName: 'asc' },
-          ],
+          orderBy: [{ isPrimary: 'desc' }, { fullName: 'asc' }],
         },
         paymentTerms: {
           where: { isActive: true },
@@ -69,7 +60,9 @@ export class CustomersService {
     });
 
     if (!customer) {
-      throw new NotFoundException(`Customer with code ${customerCode} not found`);
+      throw new NotFoundException(
+        `Customer with code ${customerCode} not found`
+      );
     }
 
     return customer;
@@ -99,7 +92,7 @@ export class CustomersService {
       where: { id },
       data: {
         isActive: true,
-        status: 'ACTIVE'
+        status: 'ACTIVE',
       },
     });
   }
@@ -111,7 +104,7 @@ export class CustomersService {
       where: { id },
       data: {
         isActive: false,
-        status: 'INACTIVE'
+        status: 'INACTIVE',
       },
     });
   }
@@ -123,7 +116,7 @@ export class CustomersService {
       where: { id },
       data: {
         isActive: false,
-        status: 'BLACKLIST'
+        status: 'BLACKLIST',
       },
     });
   }

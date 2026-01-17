@@ -1,4 +1,6 @@
-export class ItemSkuDomainException extends Error {
+import { DomainException } from '@/common/exception-filters/domain-exception.filter';
+
+export class ItemSkuDomainException extends DomainException {
   constructor(message: string) {
     super(message);
     this.name = 'ItemSkuDomainException';

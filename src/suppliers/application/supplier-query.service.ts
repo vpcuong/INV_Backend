@@ -7,7 +7,7 @@ import { SupplierFilterDto } from '../dto/supplier-filter.dto';
 export class SupplierQueryService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly queryBuilder: QueryBuilderService,
+    private readonly queryBuilder: QueryBuilderService
   ) {}
 
   /**
@@ -16,7 +16,14 @@ export class SupplierQueryService {
   async findAllWithFilters(filterDto: SupplierFilterDto) {
     // Configure what fields can be searched, filtered, and sorted
     const config = {
-      searchableFields: ['code', 'name', 'email', 'phone', 'contactPerson', 'taxId'],
+      searchableFields: [
+        'code',
+        'name',
+        'email',
+        'phone',
+        'contactPerson',
+        'taxId',
+      ],
       filterableFields: [
         'status',
         'isActive',
@@ -46,12 +53,11 @@ export class SupplierQueryService {
       this.prisma.client.supplier.count({ where: query.where }),
     ]);
 
-    // Return paginated response
     return this.queryBuilder.buildPaginatedResponse(
       data,
       total,
       filterDto.page || 1,
-      filterDto.limit || 10,
+      filterDto.limit
     );
   }
 
@@ -157,7 +163,7 @@ export class SupplierQueryService {
       data,
       total,
       filterDto.page || 1,
-      filterDto.limit || 10,
+      filterDto.limit || 10
     );
   }
 
@@ -187,7 +193,7 @@ export class SupplierQueryService {
       data,
       total,
       filterDto.page || 1,
-      filterDto.limit || 10,
+      filterDto.limit || 10
     );
   }
 }

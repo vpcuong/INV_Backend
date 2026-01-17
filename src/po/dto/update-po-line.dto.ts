@@ -57,7 +57,7 @@ export class UpdatePOLineDto {
 
   @ApiPropertyOptional({
     description: 'Line amount (orderQty * unitPrice)',
-    example: 2599.00,
+    example: 2599.0,
   })
   @IsOptional()
   @IsNumber()

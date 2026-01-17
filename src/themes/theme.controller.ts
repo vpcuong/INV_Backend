@@ -1,5 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ThemeService } from './application/theme.service';
 import { CreateThemeDto } from './dto/create-theme.dto';
@@ -23,11 +40,18 @@ export class ThemeController {
         colorCode: { type: 'string', example: 'RED' },
         price: { type: 'number', example: 100 },
         uom: { type: 'string', example: 'KG' },
-        image: { type: 'string', format: 'binary', description: 'Theme image (optional)' },
+        image: {
+          type: 'string',
+          format: 'binary',
+          description: 'Theme image (optional)',
+        },
       },
     },
   })
-  @ApiResponse({ status: 201, description: 'The theme has been successfully created.' })
+  @ApiResponse({
+    status: 201,
+    description: 'The theme has been successfully created.',
+  })
   @ApiResponse({ status: 400, description: 'Bad request - validation error' })
   @UseInterceptors(FileInterceptor('image'))
   async create(
@@ -35,20 +59,25 @@ export class ThemeController {
     @UploadedFile() image?: Express.Multer.File
   ) {
     return this.themeService.save(createThemeDto, image);
-
   }
 
   @Get('')
   @ApiOperation({ summary: 'Get all themes' })
-  @ApiResponse({ status: 200, description: 'The themes have been successfully found.' })
+  @ApiResponse({
+    status: 200,
+    description: 'The themes have been successfully found.',
+  })
   async getAll() {
     return this.themeService.getAll();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get theme by id' })
-  @ApiResponse({ status: 200, description: 'The theme has been successfully found.' })  
-    @ApiResponse({ status: 404, description: 'Item not found' })
+  @ApiResponse({
+    status: 200,
+    description: 'The theme has been successfully found.',
+  })
+  @ApiResponse({ status: 404, description: 'Item not found' })
   async findById(@Param('id', ParseIntPipe) id: number) {
     return this.themeService.findById(id);
   }
@@ -60,12 +89,19 @@ export class ThemeController {
     schema: {
       type: 'object',
       properties: {
-        image: { type: 'string', format: 'binary', description: 'New theme image' },
+        image: {
+          type: 'string',
+          format: 'binary',
+          description: 'New theme image',
+        },
       },
       required: ['image'],
     },
   })
-  @ApiResponse({ status: 200, description: 'The theme image has been successfully updated.' })
+  @ApiResponse({
+    status: 200,
+    description: 'The theme image has been successfully updated.',
+  })
   @ApiResponse({ status: 404, description: 'Theme not found' })
   @UseInterceptors(FileInterceptor('image'))
   async updateImage(
@@ -77,7 +113,11 @@ export class ThemeController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete theme by id (cascade delete files)' })
-  @ApiResponse({ status: 200, description: 'The theme and associated files have been successfully deleted.' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'The theme and associated files have been successfully deleted.',
+  })
   @ApiResponse({ status: 404, description: 'Item not found' })
   async delete(@Param('id', ParseIntPipe) id: number) {
     return this.themeService.delete(id);
@@ -85,14 +125,15 @@ export class ThemeController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update theme' })
-  @ApiResponse({ status: 200, description: 'The theme has been successfully updated.' })
+  @ApiResponse({
+    status: 200,
+    description: 'The theme has been successfully updated.',
+  })
   @ApiResponse({ status: 404, description: 'Theme not found' })
   async updateTheme(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateThemeDto: UpdateThemeDto,
+    @Body() updateThemeDto: UpdateThemeDto
   ) {
     return this.themeService.updateTheme(id, updateThemeDto);
   }
-
-
 }

@@ -1,4 +1,9 @@
-import { ExceptionFilter, Catch, ArgumentsHost, BadRequestException } from '@nestjs/common';
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  BadRequestException,
+} from '@nestjs/common';
 import { Response } from 'express';
 
 /**
@@ -19,6 +24,11 @@ export class DomainException extends Error {
 @Catch(DomainException)
 export class DomainExceptionFilter implements ExceptionFilter {
   catch(exception: DomainException, host: ArgumentsHost) {
+    // CONSOLE LOG FOR DEBUG
+    console.log(
+      `DomainExceptionFilter: ${exception.name} - ${exception.message}`
+    );
+    //
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest();
@@ -32,7 +42,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
       message: exception.message,
       error: 'Bad Request',
       path: request.url,
-      time: new Date().toISOString(), 
+      time: new Date().toISOString(),
     });
   }
 }

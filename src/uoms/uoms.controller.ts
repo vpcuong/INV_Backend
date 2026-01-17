@@ -48,10 +48,7 @@ export class UomsController {
   @ApiOperation({ summary: 'Update UOM' })
   @ApiResponse({ status: 200, description: 'UOM updated successfully' })
   @ApiResponse({ status: 404, description: 'UOM or UOM class not found' })
-  update(
-    @Param('code') code: string,
-    @Body() updateUomDto: UpdateUomDto,
-  ) {
+  update(@Param('code') code: string, @Body() updateUomDto: UpdateUomDto) {
     return this.uomsService.update(code, updateUomDto);
   }
 
@@ -60,7 +57,10 @@ export class UomsController {
   @ApiOperation({ summary: 'Delete UOM' })
   @ApiResponse({ status: 204, description: 'UOM deleted' })
   @ApiResponse({ status: 404, description: 'UOM not found' })
-  @ApiResponse({ status: 409, description: 'Cannot delete UOM with conversions or items' })
+  @ApiResponse({
+    status: 409,
+    description: 'Cannot delete UOM with conversions or items',
+  })
   remove(@Param('code') code: string) {
     return this.uomsService.remove(code);
   }

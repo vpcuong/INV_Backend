@@ -119,12 +119,16 @@ describe('ThemeController', () => {
     it('should throw NotFoundException when theme is not found', async () => {
       // Arrange
       const themeId = 999;
-      jest.spyOn(service, 'findById').mockRejectedValue(
-        new NotFoundException(`Theme with ID ${themeId} not found`)
-      );
+      jest
+        .spyOn(service, 'findById')
+        .mockRejectedValue(
+          new NotFoundException(`Theme with ID ${themeId} not found`)
+        );
 
       // Act & Assert
-      await expect(controller.findById(themeId)).rejects.toThrow(NotFoundException);
+      await expect(controller.findById(themeId)).rejects.toThrow(
+        NotFoundException
+      );
       expect(service.findById).toHaveBeenCalledWith(themeId);
     });
   });

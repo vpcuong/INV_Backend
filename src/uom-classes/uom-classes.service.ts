@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUomClassDto } from './dto/create-uom-class.dto';
 import { UpdateUomClassDto } from './dto/update-uom-class.dto';
@@ -14,7 +18,9 @@ export class UomClassesService {
     });
 
     if (existingUomClass) {
-      throw new ConflictException(`UOM class with code '${createUomClassDto.code}' already exists`);
+      throw new ConflictException(
+        `UOM class with code '${createUomClassDto.code}' already exists`
+      );
     }
 
     // Validate baseUOMCode if provided
@@ -24,7 +30,9 @@ export class UomClassesService {
       });
 
       if (!baseUOM) {
-        throw new NotFoundException(`Base UOM with code '${createUomClassDto.baseUOMCode}' not found`);
+        throw new NotFoundException(
+          `Base UOM with code '${createUomClassDto.baseUOMCode}' not found`
+        );
       }
     }
 
@@ -74,7 +82,9 @@ export class UomClassesService {
       });
 
       if (!baseUOM) {
-        throw new NotFoundException(`Base UOM with code '${updateUomClassDto.baseUOMCode}' not found`);
+        throw new NotFoundException(
+          `Base UOM with code '${updateUomClassDto.baseUOMCode}' not found`
+        );
       }
     }
 
@@ -100,7 +110,9 @@ export class UomClassesService {
     });
 
     if (uomClass && uomClass.uoms.length > 0) {
-      throw new ConflictException(`Cannot delete UOM class that has associated UOMs`);
+      throw new ConflictException(
+        `Cannot delete UOM class that has associated UOMs`
+      );
     }
 
     return this.prisma.client.uOMClass.delete({

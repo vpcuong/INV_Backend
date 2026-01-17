@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { Material } from '../domain/material.entity';
 import { IMaterialRepository } from '../domain/material.repository.interface';
 import { MATERIAL_REPOSITORY } from '../constant/material.token';
@@ -14,14 +19,18 @@ import {
 export class MaterialService {
   constructor(
     @Inject(MATERIAL_REPOSITORY)
-    private readonly materialRepository: IMaterialRepository,
+    private readonly materialRepository: IMaterialRepository
   ) {}
 
   async create(createMaterialDto: CreateMaterialDto): Promise<Material> {
     // Check if code already exists
-    const existing = await this.materialRepository.findByCode(createMaterialDto.code);
+    const existing = await this.materialRepository.findByCode(
+      createMaterialDto.code
+    );
     if (existing) {
-      throw new ConflictException(`Material with code ${createMaterialDto.code} already exists`);
+      throw new ConflictException(
+        `Material with code ${createMaterialDto.code} already exists`
+      );
     }
 
     const material = new Material({
@@ -47,14 +56,24 @@ export class MaterialService {
     return material;
   }
 
-  async update(id: number, updateMaterialDto: UpdateMaterialDto): Promise<Material> {
+  async update(
+    id: number,
+    updateMaterialDto: UpdateMaterialDto
+  ): Promise<Material> {
     const material = await this.findOne(id);
 
     // If updating code, check for conflicts
-    if (updateMaterialDto.code && updateMaterialDto.code !== material.getCode()) {
-      const existing = await this.materialRepository.findByCode(updateMaterialDto.code);
+    if (
+      updateMaterialDto.code &&
+      updateMaterialDto.code !== material.getCode()
+    ) {
+      const existing = await this.materialRepository.findByCode(
+        updateMaterialDto.code
+      );
       if (existing && existing.getId() !== id) {
-        throw new ConflictException(`Material with code ${updateMaterialDto.code} already exists`);
+        throw new ConflictException(
+          `Material with code ${updateMaterialDto.code} already exists`
+        );
       }
     }
 

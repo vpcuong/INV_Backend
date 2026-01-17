@@ -25,7 +25,7 @@ export class ItemModelService {
   constructor(
     @Inject(ITEM_MODEL_REPOSITORY)
     private readonly modelRepository: IItemModelRepository,
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaService
   ) {}
 
   /**
@@ -44,7 +44,9 @@ export class ItemModelService {
         where: { id: createDto.itemId },
       });
       if (!item) {
-        throw new BadRequestException(`Item with ID ${createDto.itemId} not found`);
+        throw new BadRequestException(
+          `Item with ID ${createDto.itemId} not found`
+        );
       }
 
       // Create domain entity
@@ -52,6 +54,7 @@ export class ItemModelService {
         itemId: createDto.itemId,
         code: createDto.code,
         desc: createDto.desc,
+        customerId: createDto.customerId,
         status: createDto.status,
       });
 
@@ -128,8 +131,8 @@ export class ItemModelService {
       }
 
       // Update details
-      if (updateDto.desc !== undefined) {
-        model.updateDetails(updateDto.desc);
+      if (updateDto.desc !== undefined || updateDto.customerId !== undefined) {
+        model.updateDetails(updateDto.desc, updateDto.customerId);
       }
 
       // Note: Code cannot be updated in this implementation to maintain data integrity
@@ -218,6 +221,7 @@ export class ItemModelService {
             material: true,
           },
         },
+        customer: true,
       },
     });
 
@@ -237,6 +241,7 @@ export class ItemModelService {
       itemId: model.getItemId(),
       code: model.getCode(),
       desc: model.getDesc(),
+      customerId: model.getCustomerId(),
       status: model.getStatus(),
       createdAt: model.getCreatedAt(),
       updatedAt: model.getUpdatedAt(),

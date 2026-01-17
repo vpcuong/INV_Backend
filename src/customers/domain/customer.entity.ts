@@ -76,7 +76,7 @@ export class Customer {
     if (this.status === CustomerStatus.BLACKLIST) {
       throw new InvalidCustomerStatusException(
         this.status,
-        CustomerStatus.ACTIVE,
+        CustomerStatus.ACTIVE
       );
     }
     this.isActive = true;
@@ -91,7 +91,7 @@ export class Customer {
     if (this.status === CustomerStatus.BLACKLIST) {
       throw new InvalidCustomerStatusException(
         this.status,
-        CustomerStatus.INACTIVE,
+        CustomerStatus.INACTIVE
       );
     }
     this.isActive = false;

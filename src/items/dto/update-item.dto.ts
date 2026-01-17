@@ -1,5 +1,12 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsNumber, IsBoolean, IsEnum, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsBoolean,
+  IsEnum,
+  Min,
+} from 'class-validator';
 
 export class UpdateItemDto {
   @ApiPropertyOptional({
@@ -35,6 +42,14 @@ export class UpdateItemDto {
   materialId?: number;
 
   @ApiPropertyOptional({
+    description: 'Fabric Customer ID (for fabric items)',
+    example: 1,
+  })
+  @IsOptional()
+  @IsNumber()
+  fabricSupId?: number;
+
+  @ApiPropertyOptional({
     description: 'Unit of Measure code',
     example: 'PCS',
   })
@@ -44,7 +59,7 @@ export class UpdateItemDto {
 
   @ApiPropertyOptional({
     description: 'Purchasing price',
-    example: 15.50,
+    example: 15.5,
   })
   @IsOptional()
   @IsNumber()

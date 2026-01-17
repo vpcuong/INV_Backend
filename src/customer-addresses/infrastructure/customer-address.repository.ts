@@ -46,7 +46,7 @@ export class CustomerAddressRepository implements ICustomerAddressRepository {
 
   async findDefaultByCustomerAndType(
     customerId: number,
-    addressType: AddressType,
+    addressType: AddressType
   ): Promise<CustomerAddress | null> {
     const address = await this.prisma.client.customerAddress.findFirst({
       where: {
@@ -92,7 +92,7 @@ export class CustomerAddressRepository implements ICustomerAddressRepository {
   async unsetDefaultsByCustomerAndType(
     customerId: number,
     addressType: AddressType,
-    exceptId?: number,
+    exceptId?: number
   ): Promise<void> {
     await this.prisma.client.customerAddress.updateMany({
       where: {

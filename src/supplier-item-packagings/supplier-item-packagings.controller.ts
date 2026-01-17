@@ -23,9 +23,15 @@ export class SupplierItemPackagingsController {
   @Post()
   @ApiOperation({ summary: 'Create a new packaging level for a supplier item' })
   @ApiResponse({ status: 201, description: 'Packaging created successfully' })
-  @ApiResponse({ status: 400, description: 'Bad request - validation error or missing previous level' })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - validation error or missing previous level',
+  })
   @ApiResponse({ status: 404, description: 'Supplier item or UOM not found' })
-  @ApiResponse({ status: 409, description: 'Conflict - level already exists for this supplier item' })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflict - level already exists for this supplier item',
+  })
   create(@Body() createDto: CreateSupplierItemPackagingDto) {
     return this.supplierItemPackagingsService.create(createDto);
   }
@@ -38,12 +44,21 @@ export class SupplierItemPackagingsController {
   }
 
   @Get('supplier-item/:supplierItemId')
-  @ApiOperation({ summary: 'Get all packaging levels for a specific supplier item' })
+  @ApiOperation({
+    summary: 'Get all packaging levels for a specific supplier item',
+  })
   @ApiParam({ name: 'supplierItemId', description: 'Supplier item ID' })
-  @ApiResponse({ status: 200, description: 'Return packagings for the supplier item' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return packagings for the supplier item',
+  })
   @ApiResponse({ status: 404, description: 'Supplier item not found' })
-  findBySupplierItem(@Param('supplierItemId', ParseIntPipe) supplierItemId: number) {
-    return this.supplierItemPackagingsService.findBySupplierItem(supplierItemId);
+  findBySupplierItem(
+    @Param('supplierItemId', ParseIntPipe) supplierItemId: number
+  ) {
+    return this.supplierItemPackagingsService.findBySupplierItem(
+      supplierItemId
+    );
   }
 
   @Get(':id')
@@ -76,13 +91,20 @@ export class SupplierItemPackagingsController {
 
   @Post('supplier-item/:supplierItemId/recalculate')
   @ApiOperation({
-    summary: 'Recalculate qtyToBase for all packaging levels of a supplier item',
-    description: 'Useful after updating lower level packagings to ensure all qtyToBase values are correct'
+    summary:
+      'Recalculate qtyToBase for all packaging levels of a supplier item',
+    description:
+      'Useful after updating lower level packagings to ensure all qtyToBase values are correct',
   })
   @ApiParam({ name: 'supplierItemId', description: 'Supplier item ID' })
-  @ApiResponse({ status: 200, description: 'Recalculated all packaging levels' })
+  @ApiResponse({
+    status: 200,
+    description: 'Recalculated all packaging levels',
+  })
   @ApiResponse({ status: 404, description: 'Supplier item not found' })
   recalculate(@Param('supplierItemId', ParseIntPipe) supplierItemId: number) {
-    return this.supplierItemPackagingsService.recalculateQtyToBase(supplierItemId);
+    return this.supplierItemPackagingsService.recalculateQtyToBase(
+      supplierItemId
+    );
   }
 }

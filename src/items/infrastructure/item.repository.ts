@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Item } from '../domain/item.entity';
-import { IItemRepository, ItemFilters } from '../domain/item.repository.interface';
+import {
+  IItemRepository,
+  ItemFilters,
+} from '../domain/item.repository.interface';
 
 /**
  * Prisma implementation of IItemRepository
@@ -76,6 +79,10 @@ export class ItemRepository implements IItemRepository {
             uom: true,
           },
         },
+        category: true,
+        itemType: true,
+        material: true,
+        uom: true,
       },
     });
 

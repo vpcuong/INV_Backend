@@ -1,24 +1,24 @@
-export interface ColorConstructorData{
-  id: number
-  code: string
-  desc: string
-  hexValue?: string
-  sortOrder: number
-  status: string
-  createdAt: Date
-  updatedAt: Date
-  createdBy: string
+export interface ColorConstructorData {
+  id: number;
+  code: string;
+  desc: string;
+  hexValue?: string;
+  sortOrder: number;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: string;
 }
-export class Color{
-  private id: number
-  private code: string
-  private desc: string
-  private hexValue: string
-  private sortOrder: number
-  private status: string
-  private createdAt: Date
-  private updatedAt: Date
-  private createdBy: string
+export class Color {
+  private id: number;
+  private code: string;
+  private desc: string;
+  private hexValue: string;
+  private sortOrder: number;
+  private status: string;
+  private createdAt: Date;
+  private updatedAt: Date;
+  private createdBy: string;
 
   constructor(data: ColorConstructorData) {
     this.id = data.id;
@@ -56,7 +56,7 @@ export class Color{
       status: data.status,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
-      createdBy: data.createdBy
+      createdBy: data.createdBy,
     });
   }
 

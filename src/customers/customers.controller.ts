@@ -21,7 +21,7 @@ import { CustomerFilterDto } from './dto/customer-filter.dto';
 export class CustomersController {
   constructor(
     private readonly customersService: CustomerService,
-    private readonly customerQueryService: CustomerQueryService,
+    private readonly customerQueryService: CustomerQueryService
   ) {}
 
   @Post()
@@ -36,7 +36,8 @@ export class CustomersController {
   @Get()
   @ApiOperation({
     summary: 'Get all customers with filtering, sorting, and pagination',
-    description: 'Supports search, filters, sorting, pagination, and field selection. Use query parameters for quick filters or advanced JSON-based filters.'
+    description:
+      'Supports search, filters, sorting, pagination, and field selection. Use query parameters for quick filters or advanced JSON-based filters.',
   })
   @ApiResponse({
     status: 200,
@@ -52,7 +53,7 @@ export class CustomersController {
             status: 'ACTIVE',
             country: 'Vietnam',
             isActive: true,
-          }
+          },
         ],
         meta: {
           total: 50,
@@ -60,10 +61,10 @@ export class CustomersController {
           limit: 10,
           totalPages: 5,
           hasNextPage: true,
-          hasPreviousPage: false
-        }
-      }
-    }
+          hasPreviousPage: false,
+        },
+      },
+    },
   })
   findAll(@Query() filterDto: CustomerFilterDto) {
     return this.customerQueryService.findAllWithFilters(filterDto);
@@ -116,7 +117,10 @@ export class CustomersController {
 
   @Patch(':id/deactivate')
   @ApiOperation({ summary: 'Deactivate a customer' })
-  @ApiResponse({ status: 200, description: 'Customer deactivated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Customer deactivated successfully',
+  })
   @ApiResponse({ status: 404, description: 'Customer not found' })
   deactivate(@Param('id', ParseIntPipe) id: number) {
     return this.customersService.deactivate(id);
@@ -124,7 +128,10 @@ export class CustomersController {
 
   @Patch(':id/blacklist')
   @ApiOperation({ summary: 'Blacklist a customer' })
-  @ApiResponse({ status: 200, description: 'Customer blacklisted successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Customer blacklisted successfully',
+  })
   @ApiResponse({ status: 404, description: 'Customer not found' })
   blacklist(@Param('id', ParseIntPipe) id: number) {
     return this.customersService.blacklist(id);

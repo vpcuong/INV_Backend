@@ -17,11 +17,11 @@ export class CreateUomConversionDto {
   uomCode!: string;
 
   @ApiProperty({
-    description: 'Conversion factor to base UOM (e.g., 1 M = 100 CM, factor = 100)',
+    description:
+      'Conversion factor to base UOM (e.g., 1 M = 100 CM, factor = 100)',
     example: 100,
   })
   @IsNumber()
   @Min(0)
   toBaseFactor!: number;
 }
-

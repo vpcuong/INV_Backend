@@ -23,6 +23,7 @@ model Supplier {
   sortOrder     Int            @default(0)
   supplierItems SupplierItem[]
   poHeader      POHeader[]
+  fabricItems   Item[]
 }
 
 model SupplierItem {

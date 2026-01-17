@@ -4,12 +4,19 @@ import { ItemCategoryFilterDto } from '../dto/item-category-filter.dto';
 
 @Injectable()
 export class ItemCategoryQueryService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async findAll(filterDto: ItemCategoryFilterDto) {
-    const { page = 1, limit = 10, sort, fields, search, code, isActive } = filterDto;
+    const {
+      page = 1,
+      limit = 10,
+      sort,
+      fields,
+      search,
+      code,
+      isActive,
+      type,
+    } = filterDto;
 
     // Build where clause
     const where: any = {};
@@ -21,6 +28,10 @@ export class ItemCategoryQueryService {
 
     if (isActive !== undefined) {
       where.isActive = isActive;
+    }
+
+    if (type) {
+      where.type = type;
     }
 
     // Full-text search
@@ -37,8 +48,6 @@ export class ItemCategoryQueryService {
     // Pagination
     const skip = (page - 1) * limit;
     const take = limit;
-    //
-    console.log(where, orderBy, skip, take, this.buildSelect(fields));
 
     // Execute query
     const [data, total] = await Promise.all([
@@ -75,7 +84,7 @@ export class ItemCategoryQueryService {
     }
 
     // Convert array of sort objects to Prisma orderBy format
-    return sort.map(s => ({ [s.field]: s.order }));
+    return sort.map((s) => ({ [s.field]: s.order }));
   }
 
   private buildSelect(fields?: string[]) {
@@ -84,7 +93,7 @@ export class ItemCategoryQueryService {
     }
 
     const select: any = {};
-    fields.forEach(field => {
+    fields.forEach((field) => {
       select[field] = true;
     });
 

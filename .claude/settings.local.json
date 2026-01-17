@@ -17,7 +17,8 @@
       "Bash(rm:*)",
       "Bash(psql:*)",
       "Bash(npx ts-node:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

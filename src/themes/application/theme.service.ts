@@ -1,14 +1,15 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { Theme } from "../domain/theme.entity";
-import { IThemeRepository } from "../domain/theme.repository.interface";
-import { CreateThemeDto } from "../dto/create-theme.dto";
-import { FilesService } from "../../common/files/files.service";
-import { INJECTION_TOKENS } from "../constant/theme.token";
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Theme } from '../domain/theme.entity';
+import { IThemeRepository } from '../domain/theme.repository.interface';
+import { CreateThemeDto } from '../dto/create-theme.dto';
+import { FilesService } from '../../common/files/files.service';
+import { INJECTION_TOKENS } from '../constant/theme.token';
 
 @Injectable()
 export class ThemeService {
   constructor(
-    @Inject(INJECTION_TOKENS.THEME_REPOSITORY) private readonly themeRepository: IThemeRepository,
+    @Inject(INJECTION_TOKENS.THEME_REPOSITORY)
+    private readonly themeRepository: IThemeRepository,
     private readonly filesService: FilesService
   ) {}
 
@@ -18,7 +19,10 @@ export class ThemeService {
    * @param image
    * @returns
    */
-  async save(createThemeDto: CreateThemeDto, image?: Express.Multer.File): Promise<any> {
+  async save(
+    createThemeDto: CreateThemeDto,
+    image?: Express.Multer.File
+  ): Promise<any> {
     // Create theme entity
     const theme = new Theme({
       code: createThemeDto.code,
@@ -26,7 +30,7 @@ export class ThemeService {
       supplierId: createThemeDto.supplierId,
       colorCode: createThemeDto.colorCode,
       price: createThemeDto.price,
-      uom: createThemeDto.uom
+      uom: createThemeDto.uom,
     });
 
     // Save theme to database
@@ -47,9 +51,12 @@ export class ThemeService {
       });
 
       // Update theme with image URL
-      const updatedTheme = await this.themeRepository.update(themePersistence.id, {
-        imgUrls: uploadedFile.toPersistence().path,
-      });
+      const updatedTheme = await this.themeRepository.update(
+        themePersistence.id,
+        {
+          imgUrls: uploadedFile.toPersistence().path,
+        }
+      );
       themePersistence = updatedTheme.toPersistence();
     }
 
@@ -122,15 +129,15 @@ export class ThemeService {
   }
 
   async updateTheme(id: number, updateThemeDto: any): Promise<Theme> {
-     // Check if theme exists
-     const theme = await this.themeRepository.findById(id);
-     if (!theme) {
-       throw new NotFoundException(`Theme with ID ${id} not found`);
-     }
- 
-     // Update theme
-     const updatedTheme = await this.themeRepository.update(id, updateThemeDto);
-     
-     return updatedTheme.toPersistence();
-   }
+    // Check if theme exists
+    const theme = await this.themeRepository.findById(id);
+    if (!theme) {
+      throw new NotFoundException(`Theme with ID ${id} not found`);
+    }
+
+    // Update theme
+    const updatedTheme = await this.themeRepository.update(id, updateThemeDto);
+
+    return updatedTheme.toPersistence();
+  }
 }

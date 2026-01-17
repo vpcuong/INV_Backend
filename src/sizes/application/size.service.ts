@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { Size } from '../domain/size.entity';
 import { ISizeRepository } from '../domain/size.repository.interface';
 import { SIZE_REPOSITORY } from '../constant/size.token';
@@ -9,14 +14,16 @@ import { UpdateSizeDto } from '../dto/update-size.dto';
 export class SizeService {
   constructor(
     @Inject(SIZE_REPOSITORY)
-    private readonly sizeRepository: ISizeRepository,
+    private readonly sizeRepository: ISizeRepository
   ) {}
 
   async create(createSizeDto: CreateSizeDto): Promise<Size> {
     // Check if code already exists
     const existing = await this.sizeRepository.findByCode(createSizeDto.code);
     if (existing) {
-      throw new ConflictException(`Size with code ${createSizeDto.code} already exists`);
+      throw new ConflictException(
+        `Size with code ${createSizeDto.code} already exists`
+      );
     }
 
     const size = new Size({
@@ -48,7 +55,9 @@ export class SizeService {
     if (updateSizeDto.code && updateSizeDto.code !== size.getCode()) {
       const existing = await this.sizeRepository.findByCode(updateSizeDto.code);
       if (existing && existing.getId() !== id) {
-        throw new ConflictException(`Size with code ${updateSizeDto.code} already exists`);
+        throw new ConflictException(
+          `Size with code ${updateSizeDto.code} already exists`
+        );
       }
     }
 

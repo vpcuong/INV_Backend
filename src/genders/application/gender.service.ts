@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { Gender } from '../domain/gender.entity';
 import { IGenderRepository } from '../domain/gender.repository.interface';
 import { GENDER_REPOSITORY } from '../constant/gender.token';
@@ -9,14 +14,18 @@ import { UpdateGenderDto } from '../dto/update-gender.dto';
 export class GenderService {
   constructor(
     @Inject(GENDER_REPOSITORY)
-    private readonly genderRepository: IGenderRepository,
+    private readonly genderRepository: IGenderRepository
   ) {}
 
   async create(createGenderDto: CreateGenderDto): Promise<Gender> {
     // Check if code already exists
-    const existing = await this.genderRepository.findByCode(createGenderDto.code);
+    const existing = await this.genderRepository.findByCode(
+      createGenderDto.code
+    );
     if (existing) {
-      throw new ConflictException(`Gender with code ${createGenderDto.code} already exists`);
+      throw new ConflictException(
+        `Gender with code ${createGenderDto.code} already exists`
+      );
     }
 
     const gender = new Gender({
@@ -46,9 +55,13 @@ export class GenderService {
 
     // If updating code, check for conflicts
     if (updateGenderDto.code && updateGenderDto.code !== gender.getCode()) {
-      const existing = await this.genderRepository.findByCode(updateGenderDto.code);
+      const existing = await this.genderRepository.findByCode(
+        updateGenderDto.code
+      );
       if (existing && existing.getId() !== id) {
-        throw new ConflictException(`Gender with code ${updateGenderDto.code} already exists`);
+        throw new ConflictException(
+          `Gender with code ${updateGenderDto.code} already exists`
+        );
       }
     }
 

@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsEnum, IsBoolean, IsInt, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsBoolean,
+  IsInt,
+  MaxLength,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type, Transform } from 'class-transformer';
 import { CustomerStatus } from '../enums/customer-status.enum';
@@ -7,7 +14,7 @@ export class CreateCustomerDto {
   @ApiProperty({
     description: 'Unique customer code',
     example: 'CUST001',
-    maxLength: 50
+    maxLength: 50,
   })
   @IsString()
   @MaxLength(50)
@@ -16,21 +23,21 @@ export class CreateCustomerDto {
   @ApiProperty({
     description: 'Customer full name',
     example: 'ABC Company Ltd.',
-    maxLength: 200
+    maxLength: 200,
   })
   @IsString()
   @MaxLength(200)
   customerName!: string;
 
   @ApiPropertyOptional({
-    description: 'Phone number'
+    description: 'Phone number',
   })
   @IsOptional()
   @IsString()
   phone?: string;
 
   @ApiPropertyOptional({
-    description: 'Email address'
+    description: 'Email address',
   })
   @IsOptional()
   @IsString()
@@ -38,7 +45,7 @@ export class CreateCustomerDto {
 
   @ApiPropertyOptional({
     description: 'Tax identification number',
-    maxLength: 50
+    maxLength: 50,
   })
   @IsOptional()
   @IsString()
@@ -48,7 +55,7 @@ export class CreateCustomerDto {
   @ApiPropertyOptional({
     description: 'Country',
     example: 'Vietnam',
-    maxLength: 100
+    maxLength: 100,
   })
   @IsOptional()
   @IsString()
@@ -58,7 +65,7 @@ export class CreateCustomerDto {
   @ApiPropertyOptional({
     description: 'Customer status',
     enum: CustomerStatus,
-    default: CustomerStatus.ACTIVE
+    default: CustomerStatus.ACTIVE,
   })
   @IsOptional()
   @IsEnum(CustomerStatus)
@@ -66,7 +73,7 @@ export class CreateCustomerDto {
 
   @ApiPropertyOptional({
     description: 'Additional notes',
-    example: 'VIP customer with special pricing'
+    example: 'VIP customer with special pricing',
   })
   @IsOptional()
   @IsString()
@@ -74,7 +81,7 @@ export class CreateCustomerDto {
 
   @ApiPropertyOptional({
     description: 'Is customer active',
-    default: true
+    default: true,
   })
   @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)
@@ -83,7 +90,7 @@ export class CreateCustomerDto {
 
   @ApiPropertyOptional({
     description: 'Created by user',
-    example: 'admin'
+    example: 'admin',
   })
   @IsOptional()
   @IsString()
@@ -93,7 +100,7 @@ export class CreateCustomerDto {
   @ApiPropertyOptional({
     description: 'Sort order',
     example: 0,
-    default: 0
+    default: 0,
   })
   @IsOptional()
   @Type(() => Number)

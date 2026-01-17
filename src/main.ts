@@ -16,7 +16,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-    }),
+    })
   );
 
   app.enableCors();
@@ -50,7 +50,9 @@ async function bootstrap() {
   const port = process.env.RUNNING_PORT || 3000;
   await app.listen(port, () => {
     console.log(`Application is running on: http://localhost:${port}`);
-    console.log(`API Documentation available at: http://localhost:${port}/api/docs`);
+    console.log(
+      `API Documentation available at: http://localhost:${port}/api/docs`
+    );
   });
 }
 

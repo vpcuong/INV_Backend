@@ -1,4 +1,4 @@
-import { ItemSkuStatus } from './item-sku-status.enum';
+import { ItemSkuStatus } from '../enums/item-sku-status.enum';
 import {
   InvalidPriceException,
   InvalidDimensionException,
@@ -10,12 +10,12 @@ export interface ItemSkuConstructorData {
   skuCode: string;
   itemId?: number | null;
   modelId?: number | null;
-  colorId: number;
-  genderId: number;
-  sizeId: number;
-  themeId: number;
+  colorId?: number | null;
+  genderId?: number | null;
+  sizeId?: number | null;
   supplierId?: number | null;
   customerId?: number | null;
+  fabricSKUId?: number | null;
   pattern?: string | null;
   lengthCm?: number | null;
   widthCm?: number | null;
@@ -35,12 +35,12 @@ export class ItemSku {
   private skuCode: string;
   private itemId?: number | null;
   private modelId?: number | null;
-  private colorId: number;
-  private genderId: number;
-  private sizeId: number;
-  private themeId: number;
+  private colorId?: number | null;
+  private genderId?: number | null;
+  private sizeId?: number | null;
   private supplierId?: number | null;
   private customerId?: number | null;
+  private fabricSKUId?: number | null;
   private pattern?: string | null;
   private lengthCm?: number | null;
   private widthCm?: number | null;
@@ -66,9 +66,9 @@ export class ItemSku {
     this.colorId = data.colorId;
     this.genderId = data.genderId;
     this.sizeId = data.sizeId;
-    this.themeId = data.themeId;
     this.supplierId = data.supplierId;
     this.customerId = data.customerId;
+    this.fabricSKUId = data.fabricSKUId;
     this.pattern = data.pattern;
     this.lengthCm = data.lengthCm;
     this.widthCm = data.widthCm;
@@ -93,15 +93,6 @@ export class ItemSku {
     if (!data.colorId) {
       throw new InvalidItemSkuException('Color is required');
     }
-    if (!data.genderId) {
-      throw new InvalidItemSkuException('Gender is required');
-    }
-    if (!data.sizeId) {
-      throw new InvalidItemSkuException('Size is required');
-    }
-    if (!data.themeId) {
-      throw new InvalidItemSkuException('Theme is required');
-    }
   }
 
   /**
@@ -109,7 +100,7 @@ export class ItemSku {
    */
   private validatePrices(
     costPrice?: number | null,
-    sellingPrice?: number | null,
+    sellingPrice?: number | null
   ): void {
     if (costPrice !== undefined && costPrice !== null && costPrice < 0) {
       throw new InvalidPriceException('Cost price', costPrice);
@@ -132,16 +123,32 @@ export class ItemSku {
     heightCm?: number | null;
     weightG?: number | null;
   }): void {
-    if (data.lengthCm !== undefined && data.lengthCm !== null && data.lengthCm < 0) {
+    if (
+      data.lengthCm !== undefined &&
+      data.lengthCm !== null &&
+      data.lengthCm < 0
+    ) {
       throw new InvalidDimensionException('Length', data.lengthCm);
     }
-    if (data.widthCm !== undefined && data.widthCm !== null && data.widthCm < 0) {
+    if (
+      data.widthCm !== undefined &&
+      data.widthCm !== null &&
+      data.widthCm < 0
+    ) {
       throw new InvalidDimensionException('Width', data.widthCm);
     }
-    if (data.heightCm !== undefined && data.heightCm !== null && data.heightCm < 0) {
+    if (
+      data.heightCm !== undefined &&
+      data.heightCm !== null &&
+      data.heightCm < 0
+    ) {
       throw new InvalidDimensionException('Height', data.heightCm);
     }
-    if (data.weightG !== undefined && data.weightG !== null && data.weightG < 0) {
+    if (
+      data.weightG !== undefined &&
+      data.weightG !== null &&
+      data.weightG < 0
+    ) {
       throw new InvalidDimensionException('Weight', data.weightG);
     }
   }
@@ -149,7 +156,10 @@ export class ItemSku {
   /**
    * Business rule: Update prices with validation
    */
-  public updatePrices(costPrice?: number | null, sellingPrice?: number | null): void {
+  public updatePrices(
+    costPrice?: number | null,
+    sellingPrice?: number | null
+  ): void {
     this.validatePrices(costPrice, sellingPrice);
 
     if (costPrice !== undefined) {
@@ -165,7 +175,7 @@ export class ItemSku {
       this.sellingPrice < this.costPrice
     ) {
       console.warn(
-        `Warning: Selling price (${this.sellingPrice}) is less than cost price (${this.costPrice}) for SKU ${this.skuCode}`,
+        `Warning: Selling price (${this.sellingPrice}) is less than cost price (${this.costPrice}) for SKU ${this.skuCode}`
       );
     }
 
@@ -228,6 +238,63 @@ export class ItemSku {
     this.updatedAt = new Date();
   }
 
+  /**
+   * Business rule: Update relationship IDs
+   */
+  public updateRelations(
+    supplierId?: number | null,
+    customerId?: number | null,
+    fabricSKUId?: number | null
+  ): void {
+    if (supplierId !== undefined) {
+      this.supplierId = supplierId;
+    }
+    if (customerId !== undefined) {
+      this.customerId = customerId;
+    }
+    if (fabricSKUId !== undefined) {
+      this.fabricSKUId = fabricSKUId;
+    }
+    this.updatedAt = new Date();
+  }
+
+  /**
+   * Business rule: Update classification fields
+   */
+  public updateClassification(
+    genderId?: number | null,
+    sizeId?: number | null
+  ): void {
+    if (genderId !== undefined) {
+      this.genderId = genderId;
+    }
+    if (sizeId !== undefined) {
+      this.sizeId = sizeId;
+    }
+    this.updatedAt = new Date();
+  }
+
+  /**
+   * Business rule: Update UOM code
+   */
+  public updateUom(uomCode?: string | null): void {
+    if (uomCode !== undefined) {
+      this.uomCode = uomCode;
+    }
+    this.updatedAt = new Date();
+  }
+
+  /**
+   * Business rule: Update status
+   */
+  public updateStatus(status: string): void {
+    if (status !== ItemSkuStatus.ACTIVE && status !== ItemSkuStatus.INACTIVE) {
+      throw new InvalidItemSkuException(`Invalid status: ${status}`);
+    }
+    this.status = status;
+    this.updatedAt = new Date();
+  }
+
   // Getters
   public getId(): number | undefined {
     return this.id;
@@ -241,23 +308,23 @@ export class ItemSku {
   public getModelId(): number | null | undefined {
     return this.modelId;
   }
-  public getColorId(): number {
+  public getColorId(): number | null | undefined {
     return this.colorId;
   }
-  public getGenderId(): number {
+  public getGenderId(): number | null | undefined {
     return this.genderId;
   }
-  public getSizeId(): number {
+  public getSizeId(): number | null | undefined {
     return this.sizeId;
-  }
-  public getThemeId(): number {
-    return this.themeId;
   }
   public getSupplierId(): number | null | undefined {
     return this.supplierId;
   }
   public getCustomerId(): number | null | undefined {
     return this.customerId;
+  }
+  public getFabricSKUId(): number | null | undefined {
+    return this.fabricSKUId;
   }
   public getPattern(): string | null | undefined {
     return this.pattern;
@@ -301,16 +368,16 @@ export class ItemSku {
    */
   public toPersistence(): any {
     return {
-      id: this.id,
+      id: this.id || undefined,
       skuCode: this.skuCode,
       itemId: this.itemId,
       modelId: this.modelId,
       colorId: this.colorId,
       genderId: this.genderId,
       sizeId: this.sizeId,
-      themeId: this.themeId,
       supplierId: this.supplierId,
       customerId: this.customerId,
+      fabricSKUId: this.fabricSKUId,
       pattern: this.pattern,
       lengthCm: this.lengthCm,
       widthCm: this.widthCm,
@@ -338,9 +405,9 @@ export class ItemSku {
       colorId: data.colorId,
       genderId: data.genderId,
       sizeId: data.sizeId,
-      themeId: data.themeId,
       supplierId: data.supplierId,
       customerId: data.customerId,
+      fabricSKUId: data.fabricSKUId,
       pattern: data.pattern,
       lengthCm: data.lengthCm,
       widthCm: data.widthCm,

@@ -50,7 +50,7 @@ export class MaterialsController {
   @ApiResponse({ status: 404, description: 'Material not found' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateMaterialDto: UpdateMaterialDto,
+    @Body() updateMaterialDto: UpdateMaterialDto
   ) {
     return this.materialsService.update(id, updateMaterialDto);
   }

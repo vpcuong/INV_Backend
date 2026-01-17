@@ -45,7 +45,8 @@ export class ItemModelsController {
   @Get()
   @ApiOperation({
     summary: 'Get all item models',
-    description: 'Retrieves a list of all item models with their associated item details.',
+    description:
+      'Retrieves a list of all item models with their associated item details.',
   })
   @ApiResponse({
     status: 200,
@@ -122,7 +123,7 @@ export class ItemModelsController {
   })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateDto: UpdateItemModelDto,
+    @Body() updateDto: UpdateItemModelDto
   ) {
     return this.service.update(id, updateDto);
   }

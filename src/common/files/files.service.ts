@@ -1,5 +1,8 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { IFileStorage, UploadResult } from './interfaces/file-storage.interface';
+import {
+  IFileStorage,
+  UploadResult,
+} from './interfaces/file-storage.interface';
 import { IFileRepository } from './domain/file.repository.interface';
 import { FileEntity } from './domain/file.entity';
 import * as path from 'path';
@@ -30,7 +33,10 @@ export class FilesService {
     options: UploadFileOptions
   ): Promise<FileEntity> {
     // Upload physical file
-    const uploadResult = await this.fileStorage.uploadFile(file, options.contextType);
+    const uploadResult = await this.fileStorage.uploadFile(
+      file,
+      options.contextType
+    );
 
     // Save metadata to database
     const fileEntity = new FileEntity({
@@ -61,7 +67,7 @@ export class FilesService {
     files: Express.Multer.File[],
     options: UploadFileOptions
   ): Promise<FileEntity[]> {
-    return Promise.all(files.map(file => this.uploadFile(file, options)));
+    return Promise.all(files.map((file) => this.uploadFile(file, options)));
   }
 
   /**
@@ -88,31 +94,50 @@ export class FilesService {
     contextId: number,
     contextKey?: string
   ): Promise<FileEntity[]> {
-    return this.fileRepository.findByContext(contextType, contextId, contextKey);
+    return this.fileRepository.findByContext(
+      contextType,
+      contextId,
+      contextKey
+    );
   }
 
   /**
    * Get primary file for a context
    */
-  async getPrimaryFile(contextType: string, contextId: number): Promise<FileEntity | null> {
+  async getPrimaryFile(
+    contextType: string,
+    contextId: number
+  ): Promise<FileEntity | null> {
     return this.fileRepository.findPrimaryFile(contextType, contextId);
   }
 
   /**
    * Set file as primary
    */
-  async setPrimaryFile(id: number, contextType: string, contextId: number): Promise<void> {
+  async setPrimaryFile(
+    id: number,
+    contextType: string,
+    contextId: number
+  ): Promise<void> {
     return this.fileRepository.setPrimaryFile(id, contextType, contextId);
   }
 
   /**
    * Delete all files for a context
    */
-  async deleteFilesByContext(contextType: string, contextId: number): Promise<void> {
-    const files = await this.fileRepository.findByContext(contextType, contextId);
+  async deleteFilesByContext(
+    contextType: string,
+    contextId: number
+  ): Promise<void> {
+    const files = await this.fileRepository.findByContext(
+      contextType,
+      contextId
+    );
 
     // Delete physical files
-    await Promise.all(files.map(file => this.fileStorage.deleteFile(file.getPath())));
+    await Promise.all(
+      files.map((file) => this.fileStorage.deleteFile(file.getPath()))
+    );
 
     // Soft delete in database
     await this.fileRepository.deleteByContext(contextType, contextId);
@@ -126,12 +151,12 @@ export class FilesService {
 
     // Delete physical files
     await Promise.all(
-      orphanedFiles.map(file => this.fileStorage.deleteFile(file.getPath()))
+      orphanedFiles.map((file) => this.fileStorage.deleteFile(file.getPath()))
     );
 
     // Hard delete from database
     await Promise.all(
-      orphanedFiles.map(file => this.fileRepository.hardDelete(file.getId()!))
+      orphanedFiles.map((file) => this.fileRepository.hardDelete(file.getId()!))
     );
 
     return orphanedFiles.length;
@@ -155,7 +180,10 @@ export class FilesService {
   /**
    * Read file content as string
    */
-  async readFileAsString(filePath: string, encoding?: BufferEncoding): Promise<string> {
+  async readFileAsString(
+    filePath: string,
+    encoding?: BufferEncoding
+  ): Promise<string> {
     return this.fileStorage.readFileAsString(filePath, encoding);
   }
 

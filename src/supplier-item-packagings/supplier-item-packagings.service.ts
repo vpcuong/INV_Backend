@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSupplierItemPackagingDto } from './dto/create-supplier-item-packaging.dto';
 import { UpdateSupplierItemPackagingDto } from './dto/update-supplier-item-packaging.dto';
@@ -14,18 +19,21 @@ export class SupplierItemPackagingsService {
     });
 
     if (!supplierItem) {
-      throw new NotFoundException(`Supplier item with ID ${createDto.supplierItemId} not found`);
+      throw new NotFoundException(
+        `Supplier item with ID ${createDto.supplierItemId} not found`
+      );
     }
 
     // Check if level already exists for this supplier item
-    const existingPackaging = await this.prisma.client.supplierItemPackaging.findUnique({
-      where: {
-        supplierItemId_level: {
-          supplierItemId: createDto.supplierItemId,
-          level: createDto.level,
+    const existingPackaging =
+      await this.prisma.client.supplierItemPackaging.findUnique({
+        where: {
+          supplierItemId_level: {
+            supplierItemId: createDto.supplierItemId,
+            level: createDto.level,
+          },
         },
-      },
-    });
+      });
 
     if (existingPackaging) {
       throw new ConflictException(
@@ -39,7 +47,9 @@ export class SupplierItemPackagingsService {
     });
 
     if (!uom) {
-      throw new NotFoundException(`UOM with code '${createDto.uomCode}' not found`);
+      throw new NotFoundException(
+        `UOM with code '${createDto.uomCode}' not found`
+      );
     }
 
     // Calculate qtyToBase if not provided
@@ -83,10 +93,7 @@ export class SupplierItemPackagingsService {
           },
         },
       },
-      orderBy: [
-        { supplierItemId: 'asc' },
-        { level: 'asc' },
-      ],
+      orderBy: [{ supplierItemId: 'asc' }, { level: 'asc' }],
     });
   }
 
@@ -96,7 +103,9 @@ export class SupplierItemPackagingsService {
     });
 
     if (!supplierItem) {
-      throw new NotFoundException(`Supplier item with ID ${supplierItemId} not found`);
+      throw new NotFoundException(
+        `Supplier item with ID ${supplierItemId} not found`
+      );
     }
 
     return this.prisma.client.supplierItemPackaging.findMany({
@@ -109,21 +118,25 @@ export class SupplierItemPackagingsService {
   }
 
   async findOne(id: number) {
-    const packaging = await this.prisma.client.supplierItemPackaging.findUnique({
-      where: { id },
-      include: {
-        uom: true,
-        supplierItem: {
-          include: {
-            item: true,
-            supplier: true,
+    const packaging = await this.prisma.client.supplierItemPackaging.findUnique(
+      {
+        where: { id },
+        include: {
+          uom: true,
+          supplierItem: {
+            include: {
+              item: true,
+              supplier: true,
+            },
           },
         },
-      },
-    });
+      }
+    );
 
     if (!packaging) {
-      throw new NotFoundException(`Supplier item packaging with ID ${id} not found`);
+      throw new NotFoundException(
+        `Supplier item packaging with ID ${id} not found`
+      );
     }
 
     return packaging;
@@ -133,15 +146,19 @@ export class SupplierItemPackagingsService {
     await this.findOne(id);
 
     // If updating level, check for conflicts
-    if (updateDto.level !== undefined && updateDto.supplierItemId !== undefined) {
-      const existingPackaging = await this.prisma.client.supplierItemPackaging.findUnique({
-        where: {
-          supplierItemId_level: {
-            supplierItemId: updateDto.supplierItemId,
-            level: updateDto.level,
+    if (
+      updateDto.level !== undefined &&
+      updateDto.supplierItemId !== undefined
+    ) {
+      const existingPackaging =
+        await this.prisma.client.supplierItemPackaging.findUnique({
+          where: {
+            supplierItemId_level: {
+              supplierItemId: updateDto.supplierItemId,
+              level: updateDto.level,
+            },
           },
-        },
-      });
+        });
 
       if (existingPackaging && existingPackaging.id !== id) {
         throw new ConflictException(
@@ -153,9 +170,10 @@ export class SupplierItemPackagingsService {
     // Recalculate qtyToBase if qtyPerPrevLevel or level changes
     let qtyToBase = updateDto.qtyToBase;
     if (updateDto.qtyPerPrevLevel !== undefined && !updateDto.qtyToBase) {
-      const currentPackaging = await this.prisma.client.supplierItemPackaging.findUnique({
-        where: { id },
-      });
+      const currentPackaging =
+        await this.prisma.client.supplierItemPackaging.findUnique({
+          where: { id },
+        });
 
       if (currentPackaging) {
         qtyToBase = await this.calculateQtyToBase(
@@ -208,14 +226,16 @@ export class SupplierItemPackagingsService {
     }
 
     // For level > 1, find previous level and multiply
-    const prevLevel = await this.prisma.client.supplierItemPackaging.findUnique({
-      where: {
-        supplierItemId_level: {
-          supplierItemId,
-          level: level - 1,
+    const prevLevel = await this.prisma.client.supplierItemPackaging.findUnique(
+      {
+        where: {
+          supplierItemId_level: {
+            supplierItemId,
+            level: level - 1,
+          },
         },
-      },
-    });
+      }
+    );
 
     if (!prevLevel) {
       throw new BadRequestException(

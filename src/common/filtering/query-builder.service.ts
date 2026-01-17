@@ -24,11 +24,17 @@ export class QueryBuilderService {
       take: 10,
     };
 
-    // Pagination
-    const page = filterDto.page || 1;
-    const limit = Math.min(filterDto.limit || 10, maxLimit);
-    query.skip = (page - 1) * limit;
-    query.take = limit;
+    // Pagination - if limit is not provided, fetch all results
+    if (filterDto.limit !== undefined && filterDto.limit !== null) {
+      const page = filterDto.page || 1;
+      const limit = Math.min(filterDto.limit, maxLimit);
+      query.skip = (page - 1) * limit;
+      query.take = limit;
+    } else {
+      // No pagination - fetch all results
+      delete query.skip;
+      delete query.take;
+    }
 
     // Search
     if (filterDto.search && searchableFields.length > 0) {
@@ -44,28 +50,27 @@ export class QueryBuilderService {
     if (filterDto.filters && filterDto.filters.length > 0) {
       const filterConditions = this.buildFilterConditions(
         filterDto.filters,
-        filterableFields,
+        filterableFields
       );
 
       // Merge with search conditions
       if (query.where.OR) {
         query.where = {
-          AND: [
-            { OR: query.where.OR },
-            ...filterConditions,
-          ],
+          AND: [{ OR: query.where.OR }, ...filterConditions],
         };
       } else {
         query.where.AND = filterConditions;
       }
     }
-    console.log(`query-bulider.service:filters dto`)
-    console.log(filterDto.sort)
+    console.log(`=== query-bulider.service:filters ===`);
+    console.log(filterDto.filters);
 
     // Sort
     if (filterDto.sort && filterDto.sort.length > 0) {
       query.orderBy = filterDto.sort
-        .filter((s) => sortableFields.length === 0 || sortableFields.includes(s.field))
+        .filter(
+          (s) => sortableFields.length === 0 || sortableFields.includes(s.field)
+        )
         .map((s) => ({ [s.field]: s.order }));
     } else if (defaultSort.length > 0) {
       query.orderBy = defaultSort.map((s) => ({ [s.field]: s.order }));
@@ -95,10 +100,13 @@ export class QueryBuilderService {
    */
   private buildFilterConditions(
     filters: FilterCondition[],
-    filterableFields: string[],
+    filterableFields: string[]
   ): any[] {
     return filters
-      .filter((f) => filterableFields.length === 0 || filterableFields.includes(f.field))
+      .filter(
+        (f) =>
+          filterableFields.length === 0 || filterableFields.includes(f.field)
+      )
       .map((filter) => {
         const condition: any = {};
 
@@ -156,7 +164,9 @@ export class QueryBuilderService {
 
           case FilterOperator.NOT_IN:
             condition[filter.field] = {
-              notIn: Array.isArray(filter.value) ? filter.value : [filter.value],
+              notIn: Array.isArray(filter.value)
+                ? filter.value
+                : [filter.value],
             };
             break;
 
@@ -183,8 +193,12 @@ export class QueryBuilderService {
     data: T[],
     total: number,
     page: number,
-    limit: number,
+    limit: number | undefined | null
   ) {
+    if (!limit) {
+      limit = data.length;
+    }
+
     const totalPages = Math.ceil(total / limit);
 
     return {

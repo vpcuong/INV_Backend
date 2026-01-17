@@ -1,5 +1,19 @@
-import { Controller, Get, Param, Res, HttpStatus, NotFoundException, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Param,
+  Res,
+  HttpStatus,
+  NotFoundException,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { Response } from 'express';
 import { FilesService } from './files.service';
 // import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -14,13 +28,13 @@ export class FilesController {
 
   @Get('*/download')
   @ApiOperation({ summary: 'Download file by path' })
-  @ApiParam({ name: 'filePath', description: 'File path (e.g., theme/12345-image.jpg)' })
+  @ApiParam({
+    name: 'filePath',
+    description: 'File path (e.g., theme/12345-image.jpg)',
+  })
   @ApiResponse({ status: 200, description: 'File downloaded successfully' })
   @ApiResponse({ status: 404, description: 'File not found' })
-  async downloadFile(
-    @Param('0') filePath: string,
-    @Res() res: Response
-  ) {
+  async downloadFile(@Param('0') filePath: string, @Res() res: Response) {
     // Clean the filePath: remove leading slash and trailing /download
     filePath = filePath.replace(/^\//, '').replace(/\/download$/, '');
 
@@ -63,7 +77,10 @@ export class FilesController {
 
   @Get('*/info')
   @ApiOperation({ summary: 'Get file information' })
-  @ApiParam({ name: 'filePath', description: 'File path (e.g., theme/12345-image.jpg)' })
+  @ApiParam({
+    name: 'filePath',
+    description: 'File path (e.g., theme/12345-image.jpg)',
+  })
   @ApiResponse({ status: 200, description: 'File info retrieved successfully' })
   @ApiResponse({ status: 404, description: 'File not found' })
   async getFileInfo(@Param('0') filePath: string) {
@@ -89,8 +106,14 @@ export class FilesController {
 
   @Get('*/content')
   @ApiOperation({ summary: 'Get file content as text (for text files)' })
-  @ApiParam({ name: 'filePath', description: 'File path (e.g., theme/document.txt)' })
-  @ApiResponse({ status: 200, description: 'File content retrieved successfully' })
+  @ApiParam({
+    name: 'filePath',
+    description: 'File path (e.g., theme/document.txt)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'File content retrieved successfully',
+  })
   @ApiResponse({ status: 404, description: 'File not found' })
   async getFileContent(@Param('0') filePath: string) {
     // Clean the filePath: remove leading slash and trailing /content
@@ -115,13 +138,13 @@ export class FilesController {
 
   @Get('*/view')
   @ApiOperation({ summary: 'View/stream file (for images, PDFs, etc.)' })
-  @ApiParam({ name: 'filePath', description: 'File path (e.g., theme/12345-image.jpg)' })
+  @ApiParam({
+    name: 'filePath',
+    description: 'File path (e.g., theme/12345-image.jpg)',
+  })
   @ApiResponse({ status: 200, description: 'File streamed successfully' })
   @ApiResponse({ status: 404, description: 'File not found' })
-  async viewFile(
-    @Param('0') filePath: string,
-    @Res() res: Response
-  ) {
+  async viewFile(@Param('0') filePath: string, @Res() res: Response) {
     // Clean the filePath: remove leading slash and trailing /view
     filePath = filePath.replace(/^\//, '').replace(/\/view$/, '');
 

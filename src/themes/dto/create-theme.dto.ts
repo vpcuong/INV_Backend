@@ -1,6 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger'
-import { IsString, IsNumber, IsOptional, ValidateIf } from 'class-validator'
-import { Transform } from 'class-transformer'
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNumber, IsOptional, ValidateIf } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateThemeDto {
   @ApiProperty({
@@ -8,14 +8,14 @@ export class CreateThemeDto {
     example: '5060',
   })
   @IsString()
-  code!: string
+  code!: string;
 
   @ApiProperty({
     description: 'description',
     example: 'Classic T-Shirt',
   })
   @IsString()
-  desc?: string
+  desc?: string;
 
   @ApiProperty({
     description: 'Supplier ID',
@@ -23,31 +23,31 @@ export class CreateThemeDto {
   })
   @Transform(({ value }) => parseInt(value))
   @IsNumber()
-  supplierId!: number
+  supplierId!: number;
 
   @ApiProperty({
     description: 'color code',
     example: 'RED',
   })
   @IsString()
-  colorCode!: string
+  colorCode!: string;
 
   @ApiProperty({
     description: 'price',
     example: 100,
-    required: false
+    required: false,
   })
   @IsOptional()
-  @Transform(({ value }) => value ? parseFloat(value) : undefined)
+  @Transform(({ value }) => (value ? parseFloat(value) : undefined))
   @IsNumber()
-  price?: number
+  price?: number;
 
   @ApiProperty({
     description: 'UOM (required if price is provided)',
     example: 'KG',
-    required: false
+    required: false,
   })
   @ValidateIf((o) => o.price !== undefined && o.price !== null)
   @IsString()
-  uom?: string
+  uom?: string;
 }

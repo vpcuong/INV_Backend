@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUomDto } from './dto/create-uom.dto';
 import { UpdateUomDto } from './dto/update-uom.dto';
@@ -14,7 +18,9 @@ export class UomsService {
     });
 
     if (existingUom) {
-      throw new ConflictException(`UOM with code '${createUomDto.code}' already exists`);
+      throw new ConflictException(
+        `UOM with code '${createUomDto.code}' already exists`
+      );
     }
 
     // Check if UOM class exists
@@ -23,7 +29,9 @@ export class UomsService {
     });
 
     if (!uomClass) {
-      throw new NotFoundException(`UOM class with code '${createUomDto.classCode}' not found`);
+      throw new NotFoundException(
+        `UOM class with code '${createUomDto.classCode}' not found`
+      );
     }
 
     return this.prisma.client.uOM.create({
@@ -75,7 +83,9 @@ export class UomsService {
       });
 
       if (!uomClass) {
-        throw new NotFoundException(`UOM class with code '${updateUomDto.classCode}' not found`);
+        throw new NotFoundException(
+          `UOM class with code '${updateUomDto.classCode}' not found`
+        );
       }
     }
 

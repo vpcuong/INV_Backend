@@ -1,27 +1,26 @@
 import { Module } from '@nestjs/common';
 import { ItemsController } from './items.controller';
-import { ItemsService } from './items.service';
+// import { ItemsService } from './items.service'; // Deprecated - use ItemApplicationService
 import { ItemApplicationService } from './application/item.service';
+import { ItemQueryService } from './application/item-query.service';
 import { ItemRepository } from './infrastructure/item.repository';
-import { ItemsOOPController } from './items-oop.controller';
+// import { ItemsOOPController } from './items-oop.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
   controllers: [
-    ItemsController, // Original controller
-    // ItemsOOPController, // OOP-based controller (demo)
+    ItemsController, // Using Repository pattern with ItemApplicationService
   ],
   providers: [
-    // Keep old service for backward compatibility
-    ItemsService,
-    // New OOP services
+    // Repository pattern services
     ItemApplicationService,
+    ItemQueryService,
     {
       provide: 'IItemRepository',
       useClass: ItemRepository,
     },
   ],
-  exports: [ItemsService, ItemApplicationService],
+  exports: [ItemApplicationService, ItemQueryService],
 })
 export class ItemsModule {}

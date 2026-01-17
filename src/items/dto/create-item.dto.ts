@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsBoolean, IsOptional, IsEnum, Min } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsBoolean,
+  IsOptional,
+  IsEnum,
+  Min,
+} from 'class-validator';
 
 export class CreateItemDto {
   @ApiProperty({
@@ -33,6 +40,15 @@ export class CreateItemDto {
   materialId?: number;
 
   @ApiProperty({
+    description: 'Fabric Customer ID (for fabric items)',
+    example: 1,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  fabricSupId?: number;
+
+  @ApiProperty({
     description: 'Unit of Measure code',
     example: 'PCS',
     required: false,
@@ -43,7 +59,7 @@ export class CreateItemDto {
 
   @ApiProperty({
     description: 'Purchasing price',
-    example: 15.50,
+    example: 15.5,
     required: false,
   })
   @IsOptional()

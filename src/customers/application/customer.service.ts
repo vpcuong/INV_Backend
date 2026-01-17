@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { Customer } from '../domain/customer.entity';
 import { ICustomerRepository } from '../domain/customer.repository.interface';
 import { CUSTOMER_REPOSITORY } from '../constant/customer.token';
@@ -14,7 +19,7 @@ import { InvalidCustomerStatusException } from '../domain/exceptions/customer-do
 export class CustomerService {
   constructor(
     @Inject(CUSTOMER_REPOSITORY)
-    private readonly customerRepository: ICustomerRepository,
+    private readonly customerRepository: ICustomerRepository
   ) {}
 
   /**
@@ -23,12 +28,12 @@ export class CustomerService {
   async create(createCustomerDto: CreateCustomerDto): Promise<any> {
     // Check for duplicate customer code
     const existing = await this.customerRepository.findByCode(
-      createCustomerDto.customerCode,
+      createCustomerDto.customerCode
     );
 
     if (existing) {
       throw new ConflictException(
-        `Customer with code ${createCustomerDto.customerCode} already exists`,
+        `Customer with code ${createCustomerDto.customerCode} already exists`
       );
     }
 
@@ -82,7 +87,7 @@ export class CustomerService {
 
     if (!customer) {
       throw new NotFoundException(
-        `Customer with code ${customerCode} not found`,
+        `Customer with code ${customerCode} not found`
       );
     }
 
@@ -105,12 +110,12 @@ export class CustomerService {
       updateCustomerDto.customerCode !== customer.getCustomerCode()
     ) {
       const existing = await this.customerRepository.findByCode(
-        updateCustomerDto.customerCode,
+        updateCustomerDto.customerCode
       );
 
       if (existing && existing.getId() !== id) {
         throw new ConflictException(
-          `Customer with code ${updateCustomerDto.customerCode} already exists`,
+          `Customer with code ${updateCustomerDto.customerCode} already exists`
         );
       }
     }

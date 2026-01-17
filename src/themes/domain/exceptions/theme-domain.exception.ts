@@ -16,7 +16,9 @@ export class UomRequiredWhenPriceProvidedException extends ThemeDomainException 
 // Example: Thêm exception mới - Tự động được DomainExceptionFilter catch
 export class InvalidThemeCodeException extends ThemeDomainException {
   constructor(code: string) {
-    super(`Invalid theme code: ${code}. Code must be alphanumeric and 4-10 characters.`);
+    super(
+      `Invalid theme code: ${code}. Code must be alphanumeric and 4-10 characters.`
+    );
   }
 }
 

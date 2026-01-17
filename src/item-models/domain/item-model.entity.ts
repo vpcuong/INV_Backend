@@ -9,6 +9,7 @@ export interface ItemModelConstructorData {
   itemId: number;
   code: string;
   desc?: string | null;
+  customerId?: number | null;
   status?: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -19,6 +20,7 @@ export class ItemModel {
   private itemId: number;
   private code: string;
   private desc?: string | null;
+  private customerId?: number | null;
   private status: string;
   private createdAt?: Date;
   private updatedAt?: Date;
@@ -30,6 +32,7 @@ export class ItemModel {
     this.itemId = data.itemId;
     this.code = data.code;
     this.desc = data.desc;
+    this.customerId = data.customerId;
     this.status = data.status ?? ItemModelStatus.ACTIVE;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
@@ -42,8 +45,10 @@ export class ItemModel {
     if (!data.code || data.code.trim() === '') {
       throw new InvalidItemModelException('Model code is required');
     }
-    if (data.code.length > 10) {
-      throw new InvalidItemModelException('Model code must not exceed 10 characters');
+    if (data.code.length > 20) {
+      throw new InvalidItemModelException(
+        'Model code must not exceed 20 characters'
+      );
     }
     if (!data.itemId) {
       throw new InvalidItemModelException('Item ID is required');
@@ -86,9 +91,12 @@ export class ItemModel {
   /**
    * Update model details
    */
-  public updateDetails(desc?: string | null): void {
+  public updateDetails(desc?: string | null, customerId?: number | null): void {
     if (desc !== undefined) {
       this.desc = desc;
+    }
+    if (customerId !== undefined) {
+      this.customerId = customerId;
     }
     this.updatedAt = new Date();
   }
@@ -113,6 +121,9 @@ export class ItemModel {
   public getDesc(): string | null | undefined {
     return this.desc;
   }
+  public getCustomerId(): number | null | undefined {
+    return this.customerId;
+  }
   public getStatus(): string {
     return this.status;
   }
@@ -132,6 +143,7 @@ export class ItemModel {
       itemId: this.itemId,
       code: this.code,
       desc: this.desc,
+      customerId: this.customerId,
       status: this.status,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
@@ -147,6 +159,7 @@ export class ItemModel {
       itemId: data.itemId,
       code: data.code,
       desc: data.desc,
+      customerId: data.customerId,
       status: data.status,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,

@@ -51,7 +51,7 @@ export class ItemTypesController {
   @ApiResponse({ status: 409, description: 'Item type code already exists' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateItemTypeDto: UpdateItemTypeDto,
+    @Body() updateItemTypeDto: UpdateItemTypeDto
   ) {
     return this.itemTypesService.update(id, updateItemTypeDto);
   }

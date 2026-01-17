@@ -14,9 +14,9 @@ export class ItemCategoryRepository implements IItemCategoryRepository {
         code: data.code,
         desc: data.desc,
         isActive: data.isActive ?? true,
-        isOutsourced: data.isOutsourced ?? false,
-        isFinishedGood: data.isFinishedGood ?? false,
-        isFabric: data.isFabric ?? false,
+        type: data.type,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
       },
     });
     return ItemCategory.fromPersistence(created);
@@ -40,7 +40,7 @@ export class ItemCategoryRepository implements IItemCategoryRepository {
     const categories = await this.prisma.client.itemCategory.findMany({
       orderBy: { createdAt: 'desc' },
     });
-    return categories.map(cat => ItemCategory.fromPersistence(cat));
+    return categories.map((cat) => ItemCategory.fromPersistence(cat));
   }
 
   async update(category: ItemCategory): Promise<ItemCategory> {
@@ -50,9 +50,7 @@ export class ItemCategoryRepository implements IItemCategoryRepository {
       data: {
         desc: data.desc,
         isActive: data.isActive,
-        isOutsourced: data.isOutsourced,
-        isFinishedGood: data.isFinishedGood,
-        isFabric: data.isFabric,
+        type: data.type,
         updatedAt: data.updatedAt,
       },
     });

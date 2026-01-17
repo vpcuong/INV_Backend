@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNumber, IsOptional, IsEnum, Min, IsInt } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsEnum,
+  Min,
+  IsInt,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateItemSkuDto {
@@ -35,31 +42,25 @@ export class CreateItemSkuDto {
   })
   @Type(() => Number)
   @IsInt()
-  colorId!: number;
+  colorId?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Gender ID',
     example: 2,
   })
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
-  genderId!: number;
+  genderId?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Size ID',
     example: 3,
   })
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
-  sizeId!: number;
-
-  @ApiProperty({
-    description: 'Theme ID',
-    example: 1,
-  })
-  @Type(() => Number)
-  @IsInt()
-  themeId!: number;
+  sizeId?: number;
 
   @ApiPropertyOptional({
     description: 'Supplier ID',
@@ -80,6 +81,15 @@ export class CreateItemSkuDto {
   customerId?: number;
 
   @ApiPropertyOptional({
+    description: 'Fabric SKU ID',
+    example: 1,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  fabricSKUId?: number;
+
+  @ApiPropertyOptional({
     description: 'Pattern description',
     example: 'Striped',
   })
@@ -89,7 +99,7 @@ export class CreateItemSkuDto {
 
   @ApiPropertyOptional({
     description: 'Cost price (purchase price)',
-    example: 12.50,
+    example: 12.5,
     default: 0,
   })
   @IsOptional()

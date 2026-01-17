@@ -24,22 +24,24 @@ export class PoService {
         totalAmount: createDto.totalAmount,
         note: createDto.note,
         createdBy: 'test user',
-        lines: createDto.lines ? {
-          create: createDto.lines.map(line => ({
-            lineNum: line.lineNum,
-            skuId: line.skuId,
-            description: line.description,
-            uomCode: line.uomCode,
-            orderQty: line.orderQty,
-            unitPrice: line.unitPrice,
-            lineAmount: line.lineAmount,
-            receivedQty: line.receivedQty || 0,
-            warehouseCode: line.warehouseCode,
-            status: (line.status || 'OPEN') as any,
-            note: line.note,
-            createdBy: line.createdBy,
-          }))
-        } : undefined,
+        lines: createDto.lines
+          ? {
+              create: createDto.lines.map((line) => ({
+                lineNum: line.lineNum,
+                skuId: line.skuId,
+                description: line.description,
+                uomCode: line.uomCode,
+                orderQty: line.orderQty,
+                unitPrice: line.unitPrice,
+                lineAmount: line.lineAmount,
+                receivedQty: line.receivedQty || 0,
+                warehouseCode: line.warehouseCode,
+                status: (line.status || 'OPEN') as any,
+                note: line.note,
+                createdBy: line.createdBy,
+              })),
+            }
+          : undefined,
       },
       include: {
         lines: true,
@@ -94,8 +96,7 @@ export class PoService {
                 color: true,
                 gender: true,
                 size: true,
-                theme: true,
-              }
+              },
             },
             uom: true,
           },
@@ -132,8 +133,7 @@ export class PoService {
                 color: true,
                 gender: true,
                 size: true,
-                theme: true,
-              }
+              },
             },
             uom: true,
           },
@@ -199,7 +199,8 @@ export class PoService {
               _max: { lineNum: true },
             });
 
-            const nextLineNum = line.lineNum || (maxLineNum._max.lineNum || 0) + 1;
+            const nextLineNum =
+              line.lineNum || (maxLineNum._max.lineNum || 0) + 1;
 
             await tx.pODetail.create({
               data: {
@@ -234,8 +235,7 @@ export class PoService {
                   color: true,
                   gender: true,
                   size: true,
-                  theme: true,
-                }
+                },
               },
               uom: true,
             },

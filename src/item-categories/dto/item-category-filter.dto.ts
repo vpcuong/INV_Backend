@@ -1,6 +1,14 @@
-import { IsOptional, IsString, IsBoolean, IsNumber, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsBoolean,
+  IsNumber,
+  Min,
+  IsEnum,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ItemCategoryType } from '../enums/item-category-type.enum';
 
 /**
  * Base class with only quick filters (no pagination, search, sort)
@@ -23,6 +31,15 @@ export class ItemCategoryQuickFiltersDto {
   isActive?: boolean;
 
   @ApiPropertyOptional({
+    description:
+      'Filter by category type: OUT (Outsourced), FIG (Finished Good), FAB (Fabric)',
+    enum: ItemCategoryType,
+  })
+  @IsOptional()
+  @IsEnum(ItemCategoryType)
+  type?: ItemCategoryType;
+
+  @ApiPropertyOptional({
     description: 'Full-text search across code and description',
   })
   @IsOptional()
@@ -37,14 +54,23 @@ export class ItemCategoryFilterDto extends ItemCategoryQuickFiltersDto {
   // Inherited from ItemCategoryQuickFiltersDto:
   // - code, isActive, search
 
-  @ApiPropertyOptional({ description: 'Page number (1-based)', minimum: 1, default: 1 })
+  @ApiPropertyOptional({
+    description: 'Page number (1-based)',
+    minimum: 1,
+    default: 1,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)
   page?: number = 1;
 
-  @ApiPropertyOptional({ description: 'Items per page', minimum: 1, maximum: 100, default: 100 })
+  @ApiPropertyOptional({
+    description: 'Items per page',
+    minimum: 1,
+    maximum: 100,
+    default: 100,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
@@ -72,6 +98,8 @@ export class ItemCategoryFilterDto extends ItemCategoryQuickFiltersDto {
     description: 'Fields to include in response',
   })
   @IsOptional()
-  @Transform(({ value }) => (typeof value === 'string' ? value.split(',').map(f => f.trim()) : value))
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.split(',').map((f) => f.trim()) : value
+  )
   fields?: string[];
 }

@@ -34,7 +34,7 @@ export class ColorsController {
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateColorDto: UpdateColorDto,
+    @Body() updateColorDto: UpdateColorDto
   ) {
     return this.colorsService.update(id, updateColorDto);
   }

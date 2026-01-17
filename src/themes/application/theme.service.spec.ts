@@ -3,7 +3,10 @@ import { ThemeService } from './theme.service';
 import { IThemeRepository } from '../domain/theme.repository.interface';
 import { Theme } from '../domain/theme.entity';
 import { CreateThemeDto } from '../dto/create-theme.dto';
-import { UomRequiredWhenPriceProvidedException, InvalidThemeCodeException } from '../domain/exceptions/theme-domain.exception';
+import {
+  UomRequiredWhenPriceProvidedException,
+  InvalidThemeCodeException,
+} from '../domain/exceptions/theme-domain.exception';
 
 describe('ThemeService', () => {
   let service: ThemeService;
@@ -59,9 +62,7 @@ describe('ThemeService', () => {
 
       // Assert
       expect(repository.save).toHaveBeenCalledTimes(1);
-      expect(repository.save).toHaveBeenCalledWith(
-        expect.any(Theme)
-      );
+      expect(repository.save).toHaveBeenCalledWith(expect.any(Theme));
       expect(result).toBe(expectedTheme);
     });
 

@@ -15,7 +15,10 @@ export interface IFileStorage {
   /**
    * Upload multiple files
    */
-  uploadFiles(files: Express.Multer.File[], folder?: string): Promise<UploadResult[]>;
+  uploadFiles(
+    files: Express.Multer.File[],
+    folder?: string
+  ): Promise<UploadResult[]>;
 
   /**
    * Delete a file
@@ -40,7 +43,10 @@ export interface IFileStorage {
   /**
    * Read file content as string
    */
-  readFileAsString(filePath: string, encoding?: BufferEncoding): Promise<string>;
+  readFileAsString(
+    filePath: string,
+    encoding?: BufferEncoding
+  ): Promise<string>;
 
   /**
    * Get file info (size, mimetype, etc.)

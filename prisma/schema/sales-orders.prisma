@@ -28,6 +28,8 @@ model SOHeader {
   createdBy             String           @db.VarChar(100)
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
+  deletedAt             DateTime?
+  deletedBy             String?          @db.VarChar(100)
   lines                 SODetail[]
   billingAddress        CustomerAddress? @relation("SOBillingAddress", fields: [billingAddressId], references: [id])
   customer              Customer         @relation(fields: [customerId], references: [id])
@@ -37,6 +39,7 @@ model SOHeader {
   @@index([orderStatus])
   @@index([orderDate])
   @@index([soNum])
+  @@index([deletedAt])
   @@map("SOHeader")
 }
 

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSkuUomDto } from './dto/create-sku-uom.dto';
 import { UpdateSkuUomDto } from './dto/update-sku-uom.dto';
@@ -20,7 +25,7 @@ export class SkuUomService {
     // Prevent creating SKUUOM with the same UOM as the SKU's base UOM
     if (sku.uomCode === createDto.uomCode) {
       throw new ConflictException(
-        `Cannot create SKUUOM with UOM ${createDto.uomCode} because it is already the base UOM of SKU ${createDto.skuId}`,
+        `Cannot create SKUUOM with UOM ${createDto.uomCode} because it is already the base UOM of SKU ${createDto.skuId}`
       );
     }
 
@@ -30,7 +35,9 @@ export class SkuUomService {
     });
 
     if (!uom) {
-      throw new NotFoundException(`UOM with code '${createDto.uomCode}' not found`);
+      throw new NotFoundException(
+        `UOM with code '${createDto.uomCode}' not found`
+      );
     }
 
     // Check if SKUUOM already exists
@@ -45,7 +52,7 @@ export class SkuUomService {
 
     if (existing) {
       throw new ConflictException(
-        `SKUUOM already exists for SKU ${createDto.skuId} and UOM ${uom.code}`,
+        `SKUUOM already exists for SKU ${createDto.skuId} and UOM ${uom.code}`
       );
     }
 
@@ -90,8 +97,16 @@ export class SkuUomService {
     isSalesUom?: boolean;
     isManufacturingUom?: boolean;
   }) {
-    const { skip, take, skuId, uomCode, isActive, isPurchasingUom, isSalesUom, isManufacturingUom } =
-      params || {};
+    const {
+      skip,
+      take,
+      skuId,
+      uomCode,
+      isActive,
+      isPurchasingUom,
+      isSalesUom,
+      isManufacturingUom,
+    } = params || {};
 
     return this.prisma.client.sKUUOM.findMany({
       skip,
@@ -119,10 +134,7 @@ export class SkuUomService {
           },
         },
       },
-      orderBy: [
-        { skuId: 'asc' },
-        { toBaseFactor: 'asc' },
-      ],
+      orderBy: [{ skuId: 'asc' }, { toBaseFactor: 'asc' }],
     });
   }
 
@@ -211,7 +223,7 @@ export class SkuUomService {
 
     if (!skuUom) {
       throw new NotFoundException(
-        `SKUUOM not found for SKU ${skuId} and UOM ${uomCode}`,
+        `SKUUOM not found for SKU ${skuId} and UOM ${uomCode}`
       );
     }
 
@@ -307,10 +319,12 @@ export class SkuUomService {
 
     // Get Item with its UOMs (use modelId if available, otherwise itemId)
     const itemId = sku.modelId
-      ? (await this.prisma.client.itemModel.findUnique({
-          where: { id: sku.modelId },
-          select: { itemId: true }
-        }))?.itemId
+      ? (
+          await this.prisma.client.itemModel.findUnique({
+            where: { id: sku.modelId },
+            select: { itemId: true },
+          })
+        )?.itemId
       : sku.itemId;
 
     if (!itemId) {
@@ -337,7 +351,9 @@ export class SkuUomService {
     const skuUomCode = sku.uomCode;
 
     // Get SKUUOM codes (these override ItemUOMs)
-    const skuUomCodes = new Set(sku.skuUoms?.map((su: any) => su.uomCode) || []);
+    const skuUomCodes = new Set(
+      sku.skuUoms?.map((su: any) => su.uomCode) || []
+    );
 
     let availableUoms: any[] = [];
 
@@ -380,10 +396,11 @@ export class SkuUomService {
       const skuUoms = (sku.skuUoms || []).map((skuUom: any) => ({
         uomCode: skuUom.uomCode,
         uomName: skuUom.uom.name,
-        source: skuUomCodes.has(skuUom.uomCode) &&
-                (item.itemUoms || []).some((iu: any) => iu.uomCode === skuUom.uomCode)
-                ? 'SKU_OVERRIDE'
-                : 'SKU',
+        source:
+          skuUomCodes.has(skuUom.uomCode) &&
+          (item.itemUoms || []).some((iu: any) => iu.uomCode === skuUom.uomCode)
+            ? 'SKU_OVERRIDE'
+            : 'SKU',
         toBaseFactor: Number(skuUom.toBaseFactor),
         roundingPrecision: skuUom.roundingPrecision,
         isDefaultTransUom: skuUom.isDefaultTransUom,
@@ -449,7 +466,7 @@ export class SkuUomService {
     skuId: number,
     fromUomCode: string,
     toUomCode: string,
-    quantity: number,
+    quantity: number
   ): Promise<number> {
     // Prevent conversion if both UOMs are the same
     if (fromUomCode === toUomCode) {

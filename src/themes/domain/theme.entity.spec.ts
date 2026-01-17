@@ -1,5 +1,8 @@
 import { Theme, ThemeConstructorData } from './theme.entity';
-import { UomRequiredWhenPriceProvidedException, InvalidThemeCodeException } from './exceptions/theme-domain.exception';
+import {
+  UomRequiredWhenPriceProvidedException,
+  InvalidThemeCodeException,
+} from './exceptions/theme-domain.exception';
 
 describe('Theme Entity', () => {
   describe('constructor - Theme Code Validation', () => {
@@ -187,8 +190,12 @@ describe('Theme Entity', () => {
       };
 
       // Act & Assert
-      expect(() => new Theme(data)).toThrow(UomRequiredWhenPriceProvidedException);
-      expect(() => new Theme(data)).toThrow('UOM is required when price is provided');
+      expect(() => new Theme(data)).toThrow(
+        UomRequiredWhenPriceProvidedException
+      );
+      expect(() => new Theme(data)).toThrow(
+        'UOM is required when price is provided'
+      );
     });
 
     it('should throw UomRequiredWhenPriceProvidedException when price is provided but uom is empty string', () => {
@@ -203,7 +210,9 @@ describe('Theme Entity', () => {
       };
 
       // Act & Assert
-      expect(() => new Theme(data)).toThrow(UomRequiredWhenPriceProvidedException);
+      expect(() => new Theme(data)).toThrow(
+        UomRequiredWhenPriceProvidedException
+      );
     });
 
     it('should throw UomRequiredWhenPriceProvidedException when price is provided but uom is whitespace', () => {
@@ -218,7 +227,9 @@ describe('Theme Entity', () => {
       };
 
       // Act & Assert
-      expect(() => new Theme(data)).toThrow(UomRequiredWhenPriceProvidedException);
+      expect(() => new Theme(data)).toThrow(
+        UomRequiredWhenPriceProvidedException
+      );
     });
   });
 

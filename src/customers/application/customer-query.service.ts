@@ -7,7 +7,7 @@ import { CustomerFilterDto } from '../dto/customer-filter.dto';
 export class CustomerQueryService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly queryBuilder: QueryBuilderService,
+    private readonly queryBuilder: QueryBuilderService
   ) {}
 
   /**
@@ -16,7 +16,13 @@ export class CustomerQueryService {
   async findAllWithFilters(filterDto: CustomerFilterDto) {
     // Configure what fields can be searched, filtered, and sorted
     const config = {
-      searchableFields: ['customerCode', 'customerName', 'taxCode', 'email', 'phone'],
+      searchableFields: [
+        'customerCode',
+        'customerName',
+        'taxCode',
+        'email',
+        'phone',
+      ],
       filterableFields: [
         'status',
         'isActive',
@@ -25,7 +31,13 @@ export class CustomerQueryService {
         'customerName',
         'taxCode',
       ],
-      sortableFields: ['customerCode', 'customerName', 'createdAt', 'updatedAt', 'sortOrder'],
+      sortableFields: [
+        'customerCode',
+        'customerName',
+        'createdAt',
+        'updatedAt',
+        'sortOrder',
+      ],
       defaultSort: [
         { field: 'sortOrder', order: 'asc' as const },
         { field: 'customerCode', order: 'asc' as const },
@@ -46,13 +58,21 @@ export class CustomerQueryService {
       this.prisma.client.customer.count({ where: query.where }),
     ]);
 
-    // Return paginated response
-    return this.queryBuilder.buildPaginatedResponse(
-      data,
-      total,
-      filterDto.page || 1,
-      filterDto.limit || 10,
-    );
+    // Return response - paginated if limit is provided, otherwise all results
+    if (filterDto.limit !== undefined && filterDto.limit !== null) {
+      return this.queryBuilder.buildPaginatedResponse(
+        data,
+        total,
+        filterDto.page || 1,
+        filterDto.limit
+      );
+    } else {
+      // Return all results without pagination
+      return {
+        data,
+        total,
+      };
+    }
   }
 
   /**

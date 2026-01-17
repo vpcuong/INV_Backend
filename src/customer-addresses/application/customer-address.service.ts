@@ -20,7 +20,7 @@ import { InvalidAddressException } from '../domain/exceptions/customer-address-d
 export class CustomerAddressService {
   constructor(
     @Inject(CUSTOMER_ADDRESS_REPOSITORY)
-    private readonly addressRepository: ICustomerAddressRepository,
+    private readonly addressRepository: ICustomerAddressRepository
   ) {}
 
   /**
@@ -47,14 +47,14 @@ export class CustomerAddressService {
         const existingDefault =
           await this.addressRepository.findDefaultByCustomerAndType(
             createDto.customerId,
-            createDto.addressType,
+            createDto.addressType
           );
 
         if (existingDefault) {
           // Unset existing default
           await this.addressRepository.unsetDefaultsByCustomerAndType(
             createDto.customerId,
-            createDto.addressType,
+            createDto.addressType
           );
         }
       }
@@ -103,10 +103,7 @@ export class CustomerAddressService {
   /**
    * Use Case: Update customer address
    */
-  async update(
-    id: number,
-    updateDto: UpdateCustomerAddressDto,
-  ): Promise<any> {
+  async update(id: number, updateDto: UpdateCustomerAddressDto): Promise<any> {
     const address = await this.addressRepository.findOne(id);
 
     if (!address) {
@@ -130,13 +127,12 @@ export class CustomerAddressService {
       if (updateDto.isDefault !== undefined) {
         if (updateDto.isDefault) {
           // Business Rule: Only one default address per type per customer
-          const addressType =
-            updateDto.addressType ?? address.getAddressType();
+          const addressType = updateDto.addressType ?? address.getAddressType();
 
           await this.addressRepository.unsetDefaultsByCustomerAndType(
             address.getCustomerId(),
             addressType,
-            id, // Don't unset this address
+            id // Don't unset this address
           );
 
           address.setAsDefault();

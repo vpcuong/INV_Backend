@@ -64,16 +64,36 @@ export class ItemUOM {
   }
 
   // Getters
-  public getItemId(): number { return this.itemId; }
-  public getUomCode(): string { return this.uomCode; }
-  public getToBaseFactor(): number { return this.toBaseFactor; }
-  public getRoundingPrecision(): number { return this.roundingPrecision; }
-  public getIsDefaultTransUom(): boolean { return this.isDefaultTransUom; }
-  public getIsPurchasingUom(): boolean { return this.isPurchasingUom; }
-  public getIsSalesUom(): boolean { return this.isSalesUom; }
-  public getIsManufacturingUom(): boolean { return this.isManufacturingUom; }
-  public getIsActive(): boolean { return this.isActive; }
-  public getDesc(): string { return this.desc; }
+  public getItemId(): number {
+    return this.itemId;
+  }
+  public getUomCode(): string {
+    return this.uomCode;
+  }
+  public getToBaseFactor(): number {
+    return this.toBaseFactor;
+  }
+  public getRoundingPrecision(): number {
+    return this.roundingPrecision;
+  }
+  public getIsDefaultTransUom(): boolean {
+    return this.isDefaultTransUom;
+  }
+  public getIsPurchasingUom(): boolean {
+    return this.isPurchasingUom;
+  }
+  public getIsSalesUom(): boolean {
+    return this.isSalesUom;
+  }
+  public getIsManufacturingUom(): boolean {
+    return this.isManufacturingUom;
+  }
+  public getIsActive(): boolean {
+    return this.isActive;
+  }
+  public getDesc(): string {
+    return this.desc;
+  }
 
   /**
    * Convert to persistence model

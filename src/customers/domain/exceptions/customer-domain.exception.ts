@@ -21,7 +21,9 @@ export class DuplicateCustomerCodeException extends CustomerDomainException {
 
 export class InvalidCustomerStatusException extends CustomerDomainException {
   constructor(currentStatus: string, targetStatus: string) {
-    super(`Cannot change customer status from ${currentStatus} to ${targetStatus}`);
+    super(
+      `Cannot change customer status from ${currentStatus} to ${targetStatus}`
+    );
     this.name = 'InvalidCustomerStatusException';
   }
 }

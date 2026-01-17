@@ -1,0 +1,217 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { QueryBuilderService } from '@/common/filtering';
+import { SOFilterDto } from '../dto/so-filter.dto';
+
+@Injectable()
+export class SOQueryService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly queryBuilder: QueryBuilderService
+  ) {}
+
+  /**
+   * Find all sales orders with filtering, sorting, and pagination
+   */
+  async findAllWithFilters(filterDto: SOFilterDto) {
+    const config = {
+      searchableFields: [
+        'soNum',
+        'customerPoNum',
+        'headerNote',
+        'internalNote',
+      ],
+      filterableFields: [
+        'orderStatus',
+        'customerId',
+        'channel',
+        'soNum',
+        'customerPoNum',
+        'currencyCode',
+        'paymentTermCode',
+      ],
+      sortableFields: [
+        'soNum',
+        'orderDate',
+        'orderTotal',
+        'createdAt',
+        'updatedAt',
+      ],
+      defaultSort: [
+        { field: 'orderDate', order: 'desc' as const },
+        { field: 'soNum', order: 'desc' as const },
+      ],
+      maxLimit: 100,
+      relations: this.buildRelations(filterDto),
+    };
+
+    const query = this.queryBuilder.buildQuery(filterDto, config);
+
+    // Apply quick filters
+    this.applyQuickFilters(query, filterDto);
+
+    // Execute queries in parallel
+    const [data, total] = await Promise.all([
+      this.prisma.client.sOHeader.findMany(query),
+      this.prisma.client.sOHeader.count({ where: query.where }),
+    ]);
+
+    return this.queryBuilder.buildPaginatedResponse(
+      data,
+      total,
+      filterDto.page || 1,
+      filterDto.limit
+    );
+  }
+
+  /**
+   * Apply custom quick filters
+   */
+  private applyQuickFilters(query: any, filterDto: SOFilterDto): void {
+    const where = query.where;
+
+    // Date range filters
+    if (filterDto.orderDateFrom || filterDto.orderDateTo) {
+      where.orderDate = {};
+      if (filterDto.orderDateFrom) {
+        where.orderDate.gte = new Date(filterDto.orderDateFrom);
+      }
+      if (filterDto.orderDateTo) {
+        where.orderDate.lte = new Date(filterDto.orderDateTo);
+      }
+    }
+
+    // Order total range
+    if (
+      filterDto.minOrderTotal !== undefined ||
+      filterDto.maxOrderTotal !== undefined
+    ) {
+      where.orderTotal = {};
+      if (filterDto.minOrderTotal !== undefined) {
+        where.orderTotal.gte = filterDto.minOrderTotal;
+      }
+      if (filterDto.maxOrderTotal !== undefined) {
+        where.orderTotal.lte = filterDto.maxOrderTotal;
+      }
+    }
+  }
+
+  /**
+   * Build relations to include
+   */
+  private buildRelations(filterDto: SOFilterDto): any {
+    return {
+      customer: true,
+      billingAddress: true,
+      shippingAddress: true,
+      lines: {
+        include: {
+          item: true,
+          itemSku: {
+            include: {
+              color: true,
+              gender: true,
+              size: true,
+            },
+          },
+          uom: true,
+        },
+        orderBy: {
+          lineNum: 'asc',
+        },
+      },
+    };
+  }
+
+  /**
+   * Find sales orders by customer
+   */
+  async findByCustomer(customerId: number, filterDto: SOFilterDto) {
+    filterDto.customerId = customerId;
+    return this.findAllWithFilters(filterDto);
+  }
+
+  /**
+   * Find sales orders by status
+   */
+  async findByStatus(orderStatus: string, filterDto: SOFilterDto) {
+    filterDto.orderStatus = orderStatus;
+    return this.findAllWithFilters(filterDto);
+  }
+
+  /**
+   * Find open sales orders
+   */
+  async findOpen(filterDto: SOFilterDto) {
+    return this.findByStatus('OPEN', filterDto);
+  }
+
+  /**
+   * Find orders on hold
+   */
+  async findOnHold(filterDto: SOFilterDto) {
+    return this.findByStatus('ON_HOLD', filterDto);
+  }
+
+  /**
+   * Get sales order summary statistics
+   */
+  async getSummary(customerId?: number) {
+    const where: any = {};
+    if (customerId) {
+      where.customerId = customerId;
+    }
+
+    const [totalOrders, openOrders, totalValue, openValue] = await Promise.all([
+      this.prisma.client.sOHeader.count({ where }),
+      this.prisma.client.sOHeader.count({
+        where: { ...where, orderStatus: 'OPEN' },
+      }),
+      this.prisma.client.sOHeader.aggregate({
+        where,
+        _sum: { orderTotal: true },
+      }),
+      this.prisma.client.sOHeader.aggregate({
+        where: { ...where, orderStatus: 'OPEN' },
+        _sum: { openAmount: true },
+      }),
+    ]);
+
+    return {
+      totalOrders,
+      openOrders,
+      totalValue: totalValue._sum.orderTotal || 0,
+      openValue: openValue._sum.openAmount || 0,
+    };
+  }
+
+  /**
+   * Search sales orders by text query
+   */
+  async search(query: string, customerId?: number) {
+    const where: any = {
+      OR: [
+        { soNum: { contains: query, mode: 'insensitive' } },
+        { customerPoNum: { contains: query, mode: 'insensitive' } },
+        { headerNote: { contains: query, mode: 'insensitive' } },
+        { internalNote: { contains: query, mode: 'insensitive' } },
+      ],
+    };
+
+    if (customerId) {
+      where.customerId = customerId;
+    }
+
+    const data = await this.prisma.client.sOHeader.findMany({
+      where,
+      include: this.buildRelations({} as SOFilterDto),
+      orderBy: [
+        { orderDate: 'desc' },
+        { soNum: 'desc' },
+      ],
+      take: 50, // Limit search results
+    });
+
+    return data;
+  }
+}

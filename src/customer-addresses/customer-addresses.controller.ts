@@ -45,7 +45,10 @@ export class CustomerAddressesController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update an address' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateDto: UpdateCustomerAddressDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateDto: UpdateCustomerAddressDto
+  ) {
     return this.service.update(id, updateDto);
   }
 

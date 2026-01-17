@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsBoolean, IsString, Min, IsNotEmpty } from 'class-validator';
+import {
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+  IsString,
+  Min,
+  IsNotEmpty,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
 export class CreateSkuUomDto {
@@ -21,7 +28,8 @@ export class CreateSkuUomDto {
   uomCode!: string;
 
   @ApiProperty({
-    description: 'Conversion factor to base UOM (1 this UOM = toBaseFactor × base UOM)',
+    description:
+      'Conversion factor to base UOM (1 this UOM = toBaseFactor × base UOM)',
     example: 12,
     type: 'number',
   })

@@ -43,6 +43,30 @@ export class UpdateItemSkuDto {
   sizeId?: number;
 
   @ApiPropertyOptional({
+    description: 'Supplier ID',
+    example: 1,
+  })
+  @IsOptional()
+  @IsNumber()
+  supplierId?: number;
+
+  @ApiPropertyOptional({
+    description: 'Customer ID',
+    example: 1,
+  })
+  @IsOptional()
+  @IsNumber()
+  customerId?: number;
+
+  @ApiPropertyOptional({
+    description: 'Fabric SKU ID',
+    example: 1,
+  })
+  @IsOptional()
+  @IsNumber()
+  fabricSKUId?: number;
+
+  @ApiPropertyOptional({
     description: 'Pattern description',
     example: 'Striped',
   })
@@ -60,7 +84,7 @@ export class UpdateItemSkuDto {
 
   @ApiPropertyOptional({
     description: 'Cost price (purchase price)',
-    example: 12.50,
+    example: 12.5,
   })
   @IsOptional()
   @IsNumber()

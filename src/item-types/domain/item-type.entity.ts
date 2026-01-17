@@ -47,7 +47,7 @@ export class ItemType {
   }
 
   public getSearchText(): string {
-    return this.code ? `${this.code} - ${this.desc}` : this.desc ?? '';
+    return this.code ? `${this.code} - ${this.desc}` : (this.desc ?? '');
   }
 
   // Business logic methods

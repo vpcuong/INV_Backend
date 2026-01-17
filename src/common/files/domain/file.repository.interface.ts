@@ -23,7 +23,11 @@ export interface IFileRepository {
   /**
    * Find files by context (e.g., all files for a theme)
    */
-  findByContext(contextType: string, contextId: number, contextKey?: string): Promise<FileEntity[]>;
+  findByContext(
+    contextType: string,
+    contextId: number,
+    contextKey?: string
+  ): Promise<FileEntity[]>;
 
   /**
    * Find file by path
@@ -33,7 +37,10 @@ export interface IFileRepository {
   /**
    * Find primary file for a context
    */
-  findPrimaryFile(contextType: string, contextId: number): Promise<FileEntity | null>;
+  findPrimaryFile(
+    contextType: string,
+    contextId: number
+  ): Promise<FileEntity | null>;
 
   /**
    * Find files with filters
@@ -63,7 +70,11 @@ export interface IFileRepository {
   /**
    * Set primary file (unset others)
    */
-  setPrimaryFile(id: number, contextType: string, contextId: number): Promise<void>;
+  setPrimaryFile(
+    id: number,
+    contextType: string,
+    contextId: number
+  ): Promise<void>;
 
   /**
    * Reorder files

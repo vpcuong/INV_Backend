@@ -1,6 +1,14 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsNumber, IsString, IsEnum, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsNumber,
+  IsString,
+  IsEnum,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
+import { LinePricingDto } from './composed/create-so-line.dto';
 
 export class UpdateSOLineDto {
   @ApiPropertyOptional({
@@ -72,48 +80,17 @@ export class UpdateSOLineDto {
   unitPrice?: number;
 
   @ApiPropertyOptional({
-    description: 'Line discount percent',
-    example: 5.00,
+    description: 'Line pricing (discount and tax)',
+    type: LinePricingDto,
   })
+  @ValidateNested()
+  @Type(() => LinePricingDto)
   @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  lineDiscountPercent?: number;
+  pricing?: LinePricingDto;
 
   @ApiPropertyOptional({
-    description: 'Line discount amount',
-    example: 129.95,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  lineDiscountAmount?: number;
-
-  @ApiPropertyOptional({
-    description: 'Line tax percent',
-    example: 10.00,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  lineTaxPercent?: number;
-
-  @ApiPropertyOptional({
-    description: 'Line tax amount',
-    example: 246.91,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  lineTaxAmount?: number;
-
-  @ApiPropertyOptional({
-    description: 'Line total',
-    example: 2599.00,
+    description: 'Line total (calculated)',
+    example: 2599.0,
   })
   @IsOptional()
   @IsNumber()

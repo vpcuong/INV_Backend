@@ -1,13 +1,11 @@
-import { InvalidItemCategoryFlagsException } from './exceptions/item-category-domain.exception';
+import { ItemCategoryType } from '../enums/item-category-type.enum';
 
 export class ItemCategory {
   private id?: number;
   private code: string;
   private desc?: string | null;
   private isActive: boolean;
-  private isOutsourced: boolean;
-  private isFinishedGood: boolean;
-  private isFabric: boolean;
+  private type?: ItemCategoryType | null;
   private createdAt?: Date;
   private updatedAt?: Date;
 
@@ -16,9 +14,7 @@ export class ItemCategory {
     code: string;
     desc?: string | null;
     isActive?: boolean;
-    isOutsourced?: boolean;
-    isFinishedGood?: boolean;
-    isFabric?: boolean;
+    type?: ItemCategoryType | null;
     createdAt?: Date;
     updatedAt?: Date;
   }) {
@@ -26,14 +22,11 @@ export class ItemCategory {
     this.code = data.code;
     this.desc = data.desc;
     this.isActive = data.isActive ?? true;
-    this.isOutsourced = data.isOutsourced ?? false;
-    this.isFinishedGood = data.isFinishedGood ?? false;
-    this.isFabric = data.isFabric ?? false;
+    this.type = data.type;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
 
     this.validate();
-    this.validateFlags();
   }
 
   /**
@@ -47,20 +40,9 @@ export class ItemCategory {
       throw new Error('Item category code must not exceed 10 characters');
     }
     if (this.desc && this.desc.length > 200) {
-      throw new Error('Item category description must not exceed 200 characters');
-    }
-  }
-
-  /**
-   * Business Rule: Validate mutually exclusive flags
-   */
-  private validateFlags(): void {
-    const flagsCount = [this.isOutsourced, this.isFinishedGood, this.isFabric].filter(
-      (flag) => flag === true,
-    ).length;
-
-    if (flagsCount > 1) {
-      throw new InvalidItemCategoryFlagsException();
+      throw new Error(
+        'Item category description must not exceed 200 characters'
+      );
     }
   }
 
@@ -85,30 +67,21 @@ export class ItemCategory {
    */
   public updateDetails(data: {
     desc?: string | null;
-    isOutsourced?: boolean;
-    isFinishedGood?: boolean;
-    isFabric?: boolean;
+    type?: ItemCategoryType | null;
   }): void {
     if (data.desc !== undefined) {
       if (data.desc && data.desc.length > 200) {
-        throw new Error('Item category description must not exceed 200 characters');
+        throw new Error(
+          'Item category description must not exceed 200 characters'
+        );
       }
       this.desc = data.desc;
     }
 
-    if (data.isOutsourced !== undefined) {
-      this.isOutsourced = data.isOutsourced;
+    if (data.type !== undefined) {
+      this.type = data.type;
     }
 
-    if (data.isFinishedGood !== undefined) {
-      this.isFinishedGood = data.isFinishedGood;
-    }
-
-    if (data.isFabric !== undefined) {
-      this.isFabric = data.isFabric;
-    }
-
-    this.validateFlags();
     this.updatedAt = new Date();
   }
 
@@ -129,16 +102,8 @@ export class ItemCategory {
     return this.isActive;
   }
 
-  public getIsOutsourced(): boolean {
-    return this.isOutsourced;
-  }
-
-  public getIsFinishedGood(): boolean {
-    return this.isFinishedGood;
-  }
-
-  public getIsFabric(): boolean {
-    return this.isFabric;
+  public getType(): ItemCategoryType | null | undefined {
+    return this.type;
   }
 
   public getCreatedAt(): Date | undefined {
@@ -158,9 +123,7 @@ export class ItemCategory {
       code: this.code,
       desc: this.desc,
       isActive: this.isActive,
-      isOutsourced: this.isOutsourced,
-      isFinishedGood: this.isFinishedGood,
-      isFabric: this.isFabric,
+      type: this.type,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };
@@ -175,9 +138,7 @@ export class ItemCategory {
       code: data.code,
       desc: data.desc,
       isActive: data.isActive,
-      isOutsourced: data.isOutsourced,
-      isFinishedGood: data.isFinishedGood,
-      isFabric: data.isFabric,
+      type: data.type,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     });

@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsOptional, MaxLength, Min } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  MaxLength,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateSizeDto {

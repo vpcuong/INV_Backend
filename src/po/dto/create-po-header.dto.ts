@@ -50,12 +50,26 @@ export class CreatePOHeaderDto {
   @ApiProperty({
     description: 'PO status',
     example: 'DRAFT',
-    enum: ['DRAFT', 'APPROVED', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CLOSED', 'CANCELLED'],
+    enum: [
+      'DRAFT',
+      'APPROVED',
+      'PARTIALLY_RECEIVED',
+      'RECEIVED',
+      'CLOSED',
+      'CANCELLED',
+    ],
     required: false,
     default: 'DRAFT',
   })
   @IsOptional()
-  @IsEnum(['DRAFT', 'APPROVED', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CLOSED', 'CANCELLED'])
+  @IsEnum([
+    'DRAFT',
+    'APPROVED',
+    'PARTIALLY_RECEIVED',
+    'RECEIVED',
+    'CLOSED',
+    'CANCELLED',
+  ])
   status?: string;
 
   @ApiProperty({
@@ -80,7 +94,7 @@ export class CreatePOHeaderDto {
 
   @ApiProperty({
     description: 'Total amount',
-    example: 5000.00,
+    example: 5000.0,
   })
   @IsNumber()
   @Min(0)

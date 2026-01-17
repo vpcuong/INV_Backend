@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { Supplier } from '../domain/supplier.entity';
 import { ISupplierRepository } from '../domain/supplier.repository.interface';
 import { CreateSupplierDto } from '../dto/create-supplier.dto';
@@ -9,14 +14,18 @@ import { INJECTION_TOKENS } from '../constant/supplier.token';
 export class SupplierService {
   constructor(
     @Inject(INJECTION_TOKENS.SUPPLIER_REPOSITORY)
-    private readonly supplierRepository: ISupplierRepository,
+    private readonly supplierRepository: ISupplierRepository
   ) {}
 
   async create(createSupplierDto: CreateSupplierDto): Promise<any> {
     // Check if supplier code already exists
-    const existingSupplier = await this.supplierRepository.findByCode(createSupplierDto.code);
+    const existingSupplier = await this.supplierRepository.findByCode(
+      createSupplierDto.code
+    );
     if (existingSupplier) {
-      throw new ConflictException(`Supplier with code ${createSupplierDto.code} already exists`);
+      throw new ConflictException(
+        `Supplier with code ${createSupplierDto.code} already exists`
+      );
     }
 
     // Create supplier entity
@@ -73,13 +82,20 @@ export class SupplierService {
     }
 
     // If code is being updated, check for conflicts
-    if (updateSupplierDto.code && updateSupplierDto.code !== existingSupplier.getCode()) {
-      const supplierWithCode = await this.supplierRepository.findByCode(updateSupplierDto.code);
+    if (
+      updateSupplierDto.code &&
+      updateSupplierDto.code !== existingSupplier.getCode()
+    ) {
+      const supplierWithCode = await this.supplierRepository.findByCode(
+        updateSupplierDto.code
+      );
       if (supplierWithCode) {
-        throw new ConflictException(`Supplier with code ${updateSupplierDto.code} already exists`);
+        throw new ConflictException(
+          `Supplier with code ${updateSupplierDto.code} already exists`
+        );
       }
     }
-    console.log(updateSupplierDto)
+
     // Create updated supplier entity
     const updatedSupplier = new Supplier({
       id: existingSupplier.getId(),
@@ -92,10 +108,13 @@ export class SupplierService {
       city: updateSupplierDto.city ?? existingSupplier.getCity(),
       province: updateSupplierDto.province ?? existingSupplier.getProvince(),
       country: updateSupplierDto.country ?? existingSupplier.getCountry(),
-      postalCode: updateSupplierDto.postalCode ?? existingSupplier.getPostalCode(),
+      postalCode:
+        updateSupplierDto.postalCode ?? existingSupplier.getPostalCode(),
       taxId: updateSupplierDto.taxId ?? existingSupplier.getTaxId(),
-      contactPerson: updateSupplierDto.contactPerson ?? existingSupplier.getContactPerson(),
-      paymentTerms: updateSupplierDto.paymentTerms ?? existingSupplier.getPaymentTerms(),
+      contactPerson:
+        updateSupplierDto.contactPerson ?? existingSupplier.getContactPerson(),
+      paymentTerms:
+        updateSupplierDto.paymentTerms ?? existingSupplier.getPaymentTerms(),
       status: updateSupplierDto.status ?? existingSupplier.getStatus(),
       category: updateSupplierDto.category ?? existingSupplier.getCategory(),
       isActive: updateSupplierDto.isActive ?? existingSupplier.getIsActive(),
@@ -105,7 +124,10 @@ export class SupplierService {
     });
 
     // Update supplier in database
-    const savedSupplier = await this.supplierRepository.update(id, updatedSupplier);
+    const savedSupplier = await this.supplierRepository.update(
+      id,
+      updatedSupplier
+    );
     return savedSupplier.toPersistence();
   }
 

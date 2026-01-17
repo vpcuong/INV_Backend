@@ -20,10 +20,7 @@ export class CustomerRepository implements ICustomerRepository {
 
   async findAll(): Promise<Customer[]> {
     const customers = await this.prisma.client.customer.findMany({
-      orderBy: [
-        { sortOrder: 'asc' },
-        { customerCode: 'asc' },
-      ],
+      orderBy: [{ sortOrder: 'asc' }, { customerCode: 'asc' }],
     });
 
     return customers.map((customer) => Customer.fromPersistence(customer));

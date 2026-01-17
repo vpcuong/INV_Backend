@@ -179,7 +179,7 @@ describe('FilterDto', () => {
             field: 'testField',
             operator: op.operator,
             value: op.value,
-          })),
+          }))
         ),
       });
 
@@ -209,7 +209,9 @@ describe('FilterDto', () => {
       expect(dto.search).toBe('test');
       expect(dto.sort).toEqual([{ field: 'name', order: 'asc' }]);
       expect(dto.fields).toEqual(['id', 'name']);
-      expect(dto.filters).toEqual([{ field: 'status', operator: 'eq', value: 'Active' }]);
+      expect(dto.filters).toEqual([
+        { field: 'status', operator: 'eq', value: 'Active' },
+      ]);
     });
 
     it('should accept empty filters array', () => {

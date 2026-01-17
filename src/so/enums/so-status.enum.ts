@@ -1,0 +1,16 @@
+export enum SOStatus {
+  DRAFT = 'DRAFT',
+  OPEN = 'OPEN',
+  PARTIAL = 'PARTIAL',
+  CLOSED = 'CLOSED',
+  CANCELLED = 'CANCELLED',
+  ON_HOLD = 'ON_HOLD',
+}
+
+export enum SOLineStatus {
+  OPEN = 'OPEN',
+  PARTIAL = 'PARTIAL',
+  CLOSED = 'CLOSED',
+  CANCELLED = 'CANCELLED',
+  BACKORDERED = 'BACKORDERED',
+}

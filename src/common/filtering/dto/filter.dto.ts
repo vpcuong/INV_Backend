@@ -1,4 +1,12 @@
-import { IsOptional, IsString, IsNumber, IsEnum, IsArray, ValidateNested, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsEnum,
+  IsArray,
+  ValidateNested,
+  Min,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -41,7 +49,10 @@ export class FilterCondition {
 }
 
 export class SortCondition {
-  @ApiPropertyOptional({ description: 'Field name to sort', example: 'createdAt' })
+  @ApiPropertyOptional({
+    description: 'Field name to sort',
+    example: 'createdAt',
+  })
   @IsString()
   field!: string;
 
@@ -55,14 +66,25 @@ export class SortCondition {
 }
 
 export class PaginationDto {
-  @ApiPropertyOptional({ description: 'Page number (1-based)', example: 1, minimum: 1, default: 1 })
+  @ApiPropertyOptional({
+    description: 'Page number (1-based)',
+    example: 1,
+    minimum: 1,
+    default: 1,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)
   page?: number = 1;
 
-  @ApiPropertyOptional({ description: 'Items per page', example: 10, minimum: 1, maximum: 100, default: 10 })
+  @ApiPropertyOptional({
+    description: 'Items per page',
+    example: 10,
+    minimum: 1,
+    maximum: 100,
+    default: 10,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
@@ -75,7 +97,10 @@ export class PaginationDto {
  * Use this for custom filter DTOs that don't need advanced filters
  */
 export class BaseFilterDto extends PaginationDto {
-  @ApiPropertyOptional({ description: 'Search query (searches across multiple fields)', example: 'ABC' })
+  @ApiPropertyOptional({
+    description: 'Search query (searches across multiple fields)',
+    example: 'ABC',
+  })
   @IsOptional()
   @IsString()
   search?: string;
@@ -106,7 +131,9 @@ export class BaseFilterDto extends PaginationDto {
   })
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => (typeof value === 'string' ? value.split(',').map(f => f.trim()) : value))
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.split(',').map((f) => f.trim()) : value
+  )
   fields?: string[];
 }
 

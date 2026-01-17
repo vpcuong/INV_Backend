@@ -10,6 +10,4 @@ model Theme{
   updatedAt DateTime @updatedAt
   createdBy String?
   imgUrls String
-
-  skus ItemSKU[]
 }

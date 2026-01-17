@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateItemUomDto } from './dto/create-item-uom.dto';
 import { UpdateItemUomDto } from './dto/update-item-uom.dto';
@@ -20,7 +25,7 @@ export class ItemUomService {
     // Prevent creating ItemUOM with the same UOM as the Item's base UOM
     if (item.uomCode === createDto.uomCode) {
       throw new ConflictException(
-        `Cannot create ItemUOM with UOM ${createDto.uomCode} because it is already the base UOM of Item ${createDto.itemId}`,
+        `Cannot create ItemUOM with UOM ${createDto.uomCode} because it is already the base UOM of Item ${createDto.itemId}`
       );
     }
 
@@ -30,7 +35,9 @@ export class ItemUomService {
     });
 
     if (!uom) {
-      throw new NotFoundException(`UOM with code '${createDto.uomCode}' not found`);
+      throw new NotFoundException(
+        `UOM with code '${createDto.uomCode}' not found`
+      );
     }
 
     // Check if ItemUOM already exists
@@ -45,7 +52,7 @@ export class ItemUomService {
 
     if (existing) {
       throw new ConflictException(
-        `ItemUOM already exists for Item ${createDto.itemId} and UOM ${uom.code}`,
+        `ItemUOM already exists for Item ${createDto.itemId} and UOM ${uom.code}`
       );
     }
 
@@ -90,8 +97,16 @@ export class ItemUomService {
     isSalesUom?: boolean;
     isManufacturingUom?: boolean;
   }) {
-    const { skip, take, itemId, uomCode, isActive, isPurchasingUom, isSalesUom, isManufacturingUom } =
-      params || {};
+    const {
+      skip,
+      take,
+      itemId,
+      uomCode,
+      isActive,
+      isPurchasingUom,
+      isSalesUom,
+      isManufacturingUom,
+    } = params || {};
 
     return this.prisma.client.itemUOM.findMany({
       skip,
@@ -119,10 +134,7 @@ export class ItemUomService {
           },
         },
       },
-      orderBy: [
-        { itemId: 'asc' },
-        { toBaseFactor: 'asc' },
-      ],
+      orderBy: [{ itemId: 'asc' }, { toBaseFactor: 'asc' }],
     });
   }
 
@@ -158,7 +170,9 @@ export class ItemUomService {
     });
 
     if (!itemUom) {
-      throw new NotFoundException(`ItemUOM not found for Item ${itemId} and UOM ${uomCode}`);
+      throw new NotFoundException(
+        `ItemUOM not found for Item ${itemId} and UOM ${uomCode}`
+      );
     }
 
     return itemUom;
@@ -216,7 +230,7 @@ export class ItemUomService {
 
     if (!itemUom) {
       throw new NotFoundException(
-        `ItemUOM not found for Item ${itemId} and UOM ${uomCode}`,
+        `ItemUOM not found for Item ${itemId} and UOM ${uomCode}`
       );
     }
 
@@ -234,24 +248,23 @@ export class ItemUomService {
     });
 
     if (!itemUom) {
-      throw new NotFoundException(`ItemUOM not found for Item ${itemId} and UOM ${uomCode}`);
+      throw new NotFoundException(
+        `ItemUOM not found for Item ${itemId} and UOM ${uomCode}`
+      );
     }
     // only one itemUOM can be default
-    if(updateDto.isDefaultTransUom) {
+    if (updateDto.isDefaultTransUom) {
       const itemUoms = await this.prisma.client.itemUOM.findMany({
         where: {
           itemId: itemUom.itemId,
           isDefaultTransUom: true,
           NOT: {
-            AND: [
-              { itemId },
-              { uomCode },
-            ],
+            AND: [{ itemId }, { uomCode }],
           },
         },
-      })
+      });
 
-      if(itemUoms.length > 0) {
+      if (itemUoms.length > 0) {
         throw new BadRequestException('Only one itemUOM can be set as default');
       }
     }
@@ -293,7 +306,9 @@ export class ItemUomService {
     });
 
     if (!itemUom) {
-      throw new NotFoundException(`ItemUOM not found for Item ${itemId} and UOM ${uomCode}`);
+      throw new NotFoundException(
+        `ItemUOM not found for Item ${itemId} and UOM ${uomCode}`
+      );
     }
 
     return this.prisma.client.itemUOM.delete({
@@ -311,7 +326,7 @@ export class ItemUomService {
     itemId: number,
     fromUomCode: string,
     toUomCode: string,
-    quantity: number,
+    quantity: number
   ): Promise<number> {
     // Prevent conversion if both UOMs are the same
     if (fromUomCode === toUomCode) {

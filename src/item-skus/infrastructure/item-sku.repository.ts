@@ -9,7 +9,6 @@ export class ItemSkuRepository implements IItemSkuRepository {
 
   async create(itemSku: ItemSku): Promise<ItemSku> {
     const data = itemSku.toPersistence();
-    delete data.id;
 
     const created = await this.prisma.client.itemSKU.create({
       data,

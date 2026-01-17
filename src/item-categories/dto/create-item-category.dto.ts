@@ -1,5 +1,12 @@
-import { IsString, IsOptional, MaxLength, MinLength, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  MaxLength,
+  MinLength,
+  IsEnum,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ItemCategoryType } from '../enums/item-category-type.enum';
 
 export class CreateProductCategoryDto {
   @ApiProperty({
@@ -19,20 +26,14 @@ export class CreateProductCategoryDto {
   @IsOptional()
   @IsString()
   @MaxLength(200)
-  description?: string;
+  desc?: string;
 
-  @ApiPropertyOptional({ description: 'Category is outsourced' })
+  @ApiPropertyOptional({
+    description:
+      'Category type: OUT (Outsourced), FIG (Finished Good), FAB (Fabric)',
+    enum: ItemCategoryType,
+  })
   @IsOptional()
-  @IsBoolean()
-  isOutsourced?: boolean;
-
-  @ApiPropertyOptional({ description: 'Category is finished good' })
-  @IsOptional()
-  @IsBoolean()
-  isFinishedGood?: boolean;
-
-  @ApiPropertyOptional({ description: 'Category is fabric' })
-  @IsOptional()
-  @IsBoolean()
-  isFabric?: boolean;
+  @IsEnum(ItemCategoryType)
+  type?: ItemCategoryType;
 }

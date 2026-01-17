@@ -1,4 +1,7 @@
-import { UomRequiredWhenPriceProvidedException, InvalidThemeCodeException } from './exceptions/theme-domain.exception';
+import {
+  UomRequiredWhenPriceProvidedException,
+  InvalidThemeCodeException,
+} from './exceptions/theme-domain.exception';
 
 export interface ThemeConstructorData {
   id?: number;
@@ -7,14 +10,14 @@ export interface ThemeConstructorData {
   supplierId: number;
   colorCode: string;
   price?: number;
-  uom?: string,
+  uom?: string;
   createdAt?: Date;
   updatedAt?: Date;
   createdBy?: string;
-  imgUrls?: string
+  imgUrls?: string;
 }
 
-export class Theme{
+export class Theme {
   constructor(data: ThemeConstructorData) {
     // Business Rule: Validate theme code format
     // this.validateThemeCode(data.code);
@@ -32,7 +35,7 @@ export class Theme{
     this.createdAt = data.createdAt ?? new Date();
     this.updatedAt = data.updatedAt ?? new Date();
     this.createdBy = data.createdBy ?? '';
-    this.imgUrls = data.imgUrls ?? ''
+    this.imgUrls = data.imgUrls ?? '';
   }
 
   private id?: number;
@@ -43,9 +46,9 @@ export class Theme{
   private createdAt: Date;
   private updatedAt: Date;
   private createdBy: string;
-  private price?: number
-  private uom?: string
-  private imgUrls: string
+  private price?: number;
+  private uom?: string;
+  private imgUrls: string;
 
   /**
    * Business Rule: Theme code must be alphanumeric and 4-10 characters
@@ -78,7 +81,7 @@ export class Theme{
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       createdBy: this.createdBy,
-      imgUrls: this.imgUrls
+      imgUrls: this.imgUrls,
     };
   }
 
@@ -94,7 +97,7 @@ export class Theme{
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
       createdBy: data.createdBy,
-      imgUrls: data.imgUrls
+      imgUrls: data.imgUrls,
     });
   }
 }

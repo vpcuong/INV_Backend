@@ -25,7 +25,6 @@ export class SkuUomController {
   @ApiResponse({ status: 404, description: 'SKU or UOM not found' })
   @ApiResponse({ status: 409, description: 'SKUUOM already exists' })
   create(@Body() createSkuUomDto: CreateSkuUomDto) {
-    console.log(createSkuUomDto);
     return this.skuUomService.create(createSkuUomDto);
   }
 
@@ -48,7 +47,7 @@ export class SkuUomController {
     @Query('isActive') isActive?: string,
     @Query('isPurchasingUom') isPurchasingUom?: string,
     @Query('isSalesUom') isSalesUom?: string,
-    @Query('isManufacturingUom') isManufacturingUom?: string,
+    @Query('isManufacturingUom') isManufacturingUom?: string
   ) {
     return this.skuUomService.findAll({
       skip: skip ? parseInt(skip) : undefined,
@@ -58,7 +57,9 @@ export class SkuUomController {
       isActive: isActive ? isActive === 'true' : undefined,
       isPurchasingUom: isPurchasingUom ? isPurchasingUom === 'true' : undefined,
       isSalesUom: isSalesUom ? isSalesUom === 'true' : undefined,
-      isManufacturingUom: isManufacturingUom ? isManufacturingUom === 'true' : undefined,
+      isManufacturingUom: isManufacturingUom
+        ? isManufacturingUom === 'true'
+        : undefined,
     });
   }
 
@@ -80,7 +81,8 @@ export class SkuUomController {
 
   @Get('sku/:skuId/available-uoms')
   @ApiOperation({
-    summary: 'Get all available UOMs for a SKU (with Item UOMs inheritance logic)',
+    summary:
+      'Get all available UOMs for a SKU (with Item UOMs inheritance logic)',
     description: `
       Returns available UOMs based on business rules:
       - If Item.uomCode === SKU.uomCode: Return ItemUOMs (not overridden) + SKUUOMs
@@ -136,7 +138,7 @@ export class SkuUomController {
   @ApiResponse({ status: 404, description: 'SKUUOM not found' })
   findBySkuAndUom(
     @Param('skuId', ParseIntPipe) skuId: number,
-    @Param('uomCode') uomCode: string,
+    @Param('uomCode') uomCode: string
   ) {
     return this.skuUomService.findBySkuAndUom(skuId, uomCode);
   }
@@ -149,13 +151,13 @@ export class SkuUomController {
     @Param('skuId', ParseIntPipe) skuId: number,
     @Param('fromUomCode') fromUomCode: string,
     @Param('toUomCode') toUomCode: string,
-    @Param('quantity') quantity: string,
+    @Param('quantity') quantity: string
   ) {
     const result = await this.skuUomService.convertQuantity(
       skuId,
       fromUomCode,
       toUomCode,
-      parseFloat(quantity),
+      parseFloat(quantity)
     );
 
     return {
@@ -173,7 +175,7 @@ export class SkuUomController {
   @ApiResponse({ status: 404, description: 'SKUUOM not found' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateSkuUomDto: UpdateSkuUomDto,
+    @Body() updateSkuUomDto: UpdateSkuUomDto
   ) {
     return this.skuUomService.update(id, updateSkuUomDto);
   }

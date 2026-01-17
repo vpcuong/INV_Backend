@@ -50,7 +50,7 @@ export class GendersController {
   @ApiResponse({ status: 404, description: 'Gender not found' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateGenderDto: UpdateGenderDto,
+    @Body() updateGenderDto: UpdateGenderDto
   ) {
     return this.gendersService.update(id, updateGenderDto);
   }

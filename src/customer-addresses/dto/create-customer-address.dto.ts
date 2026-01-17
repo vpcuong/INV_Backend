@@ -1,4 +1,11 @@
-import { IsInt, IsEnum, IsString, IsBoolean, IsOptional, MaxLength } from 'class-validator';
+import {
+  IsInt,
+  IsEnum,
+  IsString,
+  IsBoolean,
+  IsOptional,
+  MaxLength,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type, Transform } from 'class-transformer';
 import { AddressType } from '../enums/address-type.enum';
@@ -6,7 +13,7 @@ import { AddressType } from '../enums/address-type.enum';
 export class CreateCustomerAddressDto {
   @ApiProperty({
     description: 'Customer ID',
-    example: 1
+    example: 1,
   })
   @Type(() => Number)
   @IsInt()
@@ -15,7 +22,7 @@ export class CreateCustomerAddressDto {
   @ApiProperty({
     description: 'Address type',
     enum: AddressType,
-    example: AddressType.HQ
+    example: AddressType.HQ,
   })
   @IsEnum(AddressType)
   addressType!: AddressType;
@@ -23,7 +30,7 @@ export class CreateCustomerAddressDto {
   @ApiProperty({
     description: 'Address line',
     example: '123 Main Street',
-    maxLength: 500
+    maxLength: 500,
   })
   @IsString()
   @MaxLength(500)
@@ -32,7 +39,7 @@ export class CreateCustomerAddressDto {
   @ApiPropertyOptional({
     description: 'Ward',
     example: 'Ward 1',
-    maxLength: 100
+    maxLength: 100,
   })
   @IsOptional()
   @IsString()
@@ -42,7 +49,7 @@ export class CreateCustomerAddressDto {
   @ApiPropertyOptional({
     description: 'District',
     example: 'District 1',
-    maxLength: 100
+    maxLength: 100,
   })
   @IsOptional()
   @IsString()
@@ -52,7 +59,7 @@ export class CreateCustomerAddressDto {
   @ApiProperty({
     description: 'City',
     example: 'Ho Chi Minh City',
-    maxLength: 100
+    maxLength: 100,
   })
   @IsString()
   @MaxLength(100)
@@ -61,7 +68,7 @@ export class CreateCustomerAddressDto {
   @ApiPropertyOptional({
     description: 'Province',
     example: 'Ho Chi Minh',
-    maxLength: 100
+    maxLength: 100,
   })
   @IsOptional()
   @IsString()
@@ -71,7 +78,7 @@ export class CreateCustomerAddressDto {
   @ApiProperty({
     description: 'Country',
     example: 'Vietnam',
-    maxLength: 100
+    maxLength: 100,
   })
   @IsString()
   @MaxLength(100)
@@ -80,7 +87,7 @@ export class CreateCustomerAddressDto {
   @ApiPropertyOptional({
     description: 'Postal code',
     example: '700000',
-    maxLength: 20
+    maxLength: 20,
   })
   @IsOptional()
   @IsString()
@@ -89,7 +96,7 @@ export class CreateCustomerAddressDto {
 
   @ApiPropertyOptional({
     description: 'Is this the default address for this type',
-    default: false
+    default: false,
   })
   @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)

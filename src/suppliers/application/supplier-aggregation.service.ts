@@ -14,13 +14,15 @@ import {
 export class SupplierAggregationService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly queryBuilder: QueryBuilderService,
+    private readonly queryBuilder: QueryBuilderService
   ) {}
 
   /**
    * Get comprehensive supplier statistics
    */
-  async getStatistics(filterDto?: SupplierAggregationRequestDto): Promise<SupplierStatisticsResponse> {
+  async getStatistics(
+    filterDto?: SupplierAggregationRequestDto
+  ): Promise<SupplierStatisticsResponse> {
     // Build base where clause from filters
     const whereClause = this.buildWhereClause(filterDto);
 
@@ -139,7 +141,11 @@ export class SupplierAggregationService {
         where: {
           ...whereClause,
           createdAt: {
-            gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
+            gte: new Date(
+              new Date().getFullYear(),
+              new Date().getMonth() - 1,
+              1
+            ),
             lt: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
           },
         },
@@ -215,7 +221,9 @@ export class SupplierAggregationService {
 
     // Remove isActive from where clause if it exists
     if (baseWhere.AND) {
-      baseWhere.AND = baseWhere.AND.filter((condition: any) => !('isActive' in condition));
+      baseWhere.AND = baseWhere.AND.filter(
+        (condition: any) => !('isActive' in condition)
+      );
       if (baseWhere.AND.length === 0) {
         delete baseWhere.AND;
       }
@@ -246,7 +254,7 @@ export class SupplierAggregationService {
    * Get custom aggregations based on groupBy and metrics
    */
   async getCustomAggregation(
-    requestDto: SupplierAggregationRequestDto,
+    requestDto: SupplierAggregationRequestDto
   ): Promise<SupplierAggregationResponse> {
     const whereClause = this.buildWhereClause(requestDto);
     const groupBy = requestDto.groupBy || [];
@@ -261,7 +269,9 @@ export class SupplierAggregationService {
     const groups = await this.executeGroupBy(whereClause, groupBy, metrics);
 
     // Get total count
-    const total = await this.prisma.client.supplier.count({ where: whereClause });
+    const total = await this.prisma.client.supplier.count({
+      where: whereClause,
+    });
 
     return {
       groups,
@@ -285,7 +295,9 @@ export class SupplierAggregationService {
       { range: '4-5', min: 4, max: 5 },
     ];
 
-    const total = await this.prisma.client.supplier.count({ where: whereClause });
+    const total = await this.prisma.client.supplier.count({
+      where: whereClause,
+    });
 
     const distribution = await Promise.all(
       ranges.map(async ({ range, min, max }) => {
@@ -301,7 +313,7 @@ export class SupplierAggregationService {
           count,
           percentage: total > 0 ? (count / total) * 100 : 0,
         };
-      }),
+      })
     );
 
     return distribution;
@@ -313,10 +325,12 @@ export class SupplierAggregationService {
   private async executeGroupBy(
     whereClause: any,
     groupBy: AggregationField[],
-    metrics: AggregationType[],
+    metrics: AggregationType[]
   ): Promise<AggregationGroup[]> {
     // Map AggregationField to actual database fields
-    const groupByFields = groupBy.map((field) => this.mapAggregationField(field));
+    const groupByFields = groupBy.map((field) =>
+      this.mapAggregationField(field)
+    );
 
     // Build aggregation operations
     const aggregations: any = {};
@@ -342,11 +356,14 @@ export class SupplierAggregationService {
     }
 
     // Execute groupBy
+    // @ts-ignore - Prisma groupBy circular reference type issue
     const results = await this.prisma.client.supplier.groupBy({
       by: groupByFields as any,
       where: whereClause,
       ...aggregations,
-      orderBy: aggregations._count ? { _count: { _all: 'desc' as const } } : undefined,
+      orderBy: aggregations._count
+        ? { _count: { _all: 'desc' as const } }
+        : undefined,
     });
 
     // Transform results to AggregationGroup format
@@ -387,10 +404,12 @@ export class SupplierAggregationService {
    */
   private async getOverallAggregation(
     whereClause: any,
-    metrics: AggregationType[],
+    metrics: AggregationType[]
   ): Promise<SupplierAggregationResponse> {
     // Get count separately
-    const count = await this.prisma.client.supplier.count({ where: whereClause });
+    const count = await this.prisma.client.supplier.count({
+      where: whereClause,
+    });
 
     const aggregations: any = {};
 
@@ -411,12 +430,13 @@ export class SupplierAggregationService {
     }
 
     // Only run aggregate if we need metrics other than count
-    const result = Object.keys(aggregations).length > 0
-      ? await this.prisma.client.supplier.aggregate({
-          where: whereClause,
-          ...aggregations,
-        })
-      : null;
+    const result =
+      Object.keys(aggregations).length > 0
+        ? await this.prisma.client.supplier.aggregate({
+            where: whereClause,
+            ...aggregations,
+          })
+        : null;
 
     const group: AggregationGroup = {
       groupBy: { overall: 'all' },
@@ -468,23 +488,33 @@ export class SupplierAggregationService {
     }
 
     if (filterDto.city) {
-      where.AND.push({ city: { contains: filterDto.city, mode: 'insensitive' } });
+      where.AND.push({
+        city: { contains: filterDto.city, mode: 'insensitive' },
+      });
     }
 
     if (filterDto.province) {
-      where.AND.push({ province: { contains: filterDto.province, mode: 'insensitive' } });
+      where.AND.push({
+        province: { contains: filterDto.province, mode: 'insensitive' },
+      });
     }
 
     if (filterDto.country) {
-      where.AND.push({ country: { contains: filterDto.country, mode: 'insensitive' } });
+      where.AND.push({
+        country: { contains: filterDto.country, mode: 'insensitive' },
+      });
     }
 
     if (filterDto.code) {
-      where.AND.push({ code: { contains: filterDto.code, mode: 'insensitive' } });
+      where.AND.push({
+        code: { contains: filterDto.code, mode: 'insensitive' },
+      });
     }
 
     if (filterDto.name) {
-      where.AND.push({ name: { contains: filterDto.name, mode: 'insensitive' } });
+      where.AND.push({
+        name: { contains: filterDto.name, mode: 'insensitive' },
+      });
     }
 
     // Apply search
@@ -495,7 +525,9 @@ export class SupplierAggregationService {
           { name: { contains: filterDto.search, mode: 'insensitive' } },
           { email: { contains: filterDto.search, mode: 'insensitive' } },
           { phone: { contains: filterDto.search, mode: 'insensitive' } },
-          { contactPerson: { contains: filterDto.search, mode: 'insensitive' } },
+          {
+            contactPerson: { contains: filterDto.search, mode: 'insensitive' },
+          },
           { taxId: { contains: filterDto.search, mode: 'insensitive' } },
         ],
       });

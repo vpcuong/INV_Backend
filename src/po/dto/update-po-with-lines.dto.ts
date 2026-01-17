@@ -39,14 +39,14 @@ export class UpdatePOWithLinesDto {
       {
         id: 1,
         orderQty: 120,
-        unitPrice: 25.00,
+        unitPrice: 25.0,
       },
       {
         // New line (no id)
         lineNum: 2,
         skuId: 5,
         orderQty: 50,
-        unitPrice: 30.00,
+        unitPrice: 30.0,
         uomCode: 'PCS',
       },
     ],

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../app.module';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -18,7 +18,7 @@ describe('Suppliers Filtering Integration Tests (e2e)', () => {
       new ValidationPipe({
         transform: true,
         whitelist: true,
-      }),
+      })
     );
 
     await app.init();
@@ -61,7 +61,9 @@ describe('Suppliers Filtering Integration Tests (e2e)', () => {
         .get('/suppliers?status=Active')
         .expect(200)
         .expect((res) => {
-          expect(res.body.data.every((s: any) => s.status === 'Active')).toBe(true);
+          expect(res.body.data.every((s: any) => s.status === 'Active')).toBe(
+            true
+          );
         });
     });
 
@@ -70,7 +72,9 @@ describe('Suppliers Filtering Integration Tests (e2e)', () => {
         .get('/suppliers?category=Fabric')
         .expect(200)
         .expect((res) => {
-          expect(res.body.data.every((s: any) => s.category === 'Fabric')).toBe(true);
+          expect(res.body.data.every((s: any) => s.category === 'Fabric')).toBe(
+            true
+          );
         });
     });
 
@@ -79,7 +83,9 @@ describe('Suppliers Filtering Integration Tests (e2e)', () => {
         .get('/suppliers?isActive=true')
         .expect(200)
         .expect((res) => {
-          expect(res.body.data.every((s: any) => s.isActive === true)).toBe(true);
+          expect(res.body.data.every((s: any) => s.isActive === true)).toBe(
+            true
+          );
         });
     });
 
@@ -88,7 +94,9 @@ describe('Suppliers Filtering Integration Tests (e2e)', () => {
         .get('/suppliers?country=Vietnam')
         .expect(200)
         .expect((res) => {
-          expect(res.body.data.every((s: any) => s.country === 'Vietnam')).toBe(true);
+          expect(res.body.data.every((s: any) => s.country === 'Vietnam')).toBe(
+            true
+          );
         });
     });
 
@@ -112,7 +120,9 @@ describe('Suppliers Filtering Integration Tests (e2e)', () => {
 
     it('should combine multiple filters', () => {
       return request(app.getHttpServer())
-        .get('/suppliers?category=Fabric&isActive=true&country=Vietnam&minRating=4')
+        .get(
+          '/suppliers?category=Fabric&isActive=true&country=Vietnam&minRating=4'
+        )
         .expect(200)
         .expect((res) => {
           expect(
@@ -121,8 +131,8 @@ describe('Suppliers Filtering Integration Tests (e2e)', () => {
                 s.category === 'Fabric' &&
                 s.isActive === true &&
                 s.country === 'Vietnam' &&
-                s.rating >= 4,
-            ),
+                s.rating >= 4
+            )
           ).toBe(true);
         });
     });
@@ -134,7 +144,9 @@ describe('Suppliers Filtering Integration Tests (e2e)', () => {
         .expect((res) => {
           expect(res.body.data.length).toBeGreaterThan(0);
           expect(
-            res.body.data.some((s: any) => s.name.includes('ABC') || s.code.includes('ABC')),
+            res.body.data.some(
+              (s: any) => s.name.includes('ABC') || s.code.includes('ABC')
+            )
           ).toBe(true);
         });
     });
@@ -276,7 +288,9 @@ describe('Suppliers Filtering Integration Tests (e2e)', () => {
   describe('GET /suppliers/aggregations/custom', () => {
     it('should group by single field', () => {
       return request(app.getHttpServer())
-        .get('/suppliers/aggregations/custom?groupBy=["category"]&metrics=["count"]')
+        .get(
+          '/suppliers/aggregations/custom?groupBy=["category"]&metrics=["count"]'
+        )
         .expect(200)
         .expect((res) => {
           expect(res.body).toHaveProperty('groups');
@@ -291,7 +305,9 @@ describe('Suppliers Filtering Integration Tests (e2e)', () => {
 
     it('should group by multiple fields', () => {
       return request(app.getHttpServer())
-        .get('/suppliers/aggregations/custom?groupBy=["category","status"]&metrics=["count"]')
+        .get(
+          '/suppliers/aggregations/custom?groupBy=["category","status"]&metrics=["count"]'
+        )
         .expect(200)
         .expect((res) => {
           expect(res.body.groups.length).toBeGreaterThanOrEqual(0);
@@ -304,7 +320,9 @@ describe('Suppliers Filtering Integration Tests (e2e)', () => {
 
     it('should apply multiple metrics', () => {
       return request(app.getHttpServer())
-        .get('/suppliers/aggregations/custom?groupBy=["category"]&metrics=["count","avg","min","max"]')
+        .get(
+          '/suppliers/aggregations/custom?groupBy=["category"]&metrics=["count","avg","min","max"]'
+        )
         .expect(200)
         .expect((res) => {
           if (res.body.groups.length > 0) {
@@ -318,7 +336,9 @@ describe('Suppliers Filtering Integration Tests (e2e)', () => {
 
     it('should combine groupBy with filters', () => {
       return request(app.getHttpServer())
-        .get('/suppliers/aggregations/custom?groupBy=["category"]&metrics=["count"]&isActive=true')
+        .get(
+          '/suppliers/aggregations/custom?groupBy=["category"]&metrics=["count"]&isActive=true'
+        )
         .expect(200)
         .expect((res) => {
           expect(res.body.groups.length).toBeGreaterThanOrEqual(0);

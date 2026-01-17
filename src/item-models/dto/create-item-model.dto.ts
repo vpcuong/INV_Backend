@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsInt, IsOptional, IsEnum, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  IsOptional,
+  IsEnum,
+  MaxLength,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateItemModelDto {
@@ -12,12 +18,12 @@ export class CreateItemModelDto {
   itemId!: number;
 
   @ApiProperty({
-    description: 'Model code (max 10 characters)',
+    description: 'Model code (max 20 characters)',
     example: 'MODEL001',
-    maxLength: 10,
+    maxLength: 20,
   })
   @IsString()
-  @MaxLength(10)
+  @MaxLength(20)
   code!: string;
 
   @ApiPropertyOptional({
@@ -25,7 +31,17 @@ export class CreateItemModelDto {
     example: 'Summer 2024 Collection',
   })
   @IsOptional()
-  @IsString()  desc?: string;
+  @IsString()
+  desc?: string;
+
+  @ApiPropertyOptional({
+    description: 'Customer ID',
+    example: 1,
+  })
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  customerId?: number;
 
   @ApiPropertyOptional({
     description: 'Status',

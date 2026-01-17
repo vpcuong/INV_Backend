@@ -50,7 +50,7 @@ export class SizesController {
   @ApiResponse({ status: 404, description: 'Size not found' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateSizeDto: UpdateSizeDto,
+    @Body() updateSizeDto: UpdateSizeDto
   ) {
     return this.sizesService.update(id, updateSizeDto);
   }

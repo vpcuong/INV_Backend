@@ -13,10 +13,9 @@ import { INJECTION_TOKENS } from './constant/theme.token';
     ThemeService,
     {
       provide: INJECTION_TOKENS.THEME_REPOSITORY,
-      useClass: ThemeRepository
-    }
+      useClass: ThemeRepository,
+    },
   ],
-  exports: [ThemeService]
+  exports: [ThemeService],
 })
-
 export class ThemeModule {}

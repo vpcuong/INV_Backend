@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { ItemType } from '../domain/item-type.entity';
 import { IItemTypeRepository } from '../domain/item-type.repository.interface';
 import { ITEM_TYPE_REPOSITORY } from '../constant/item-type.token';
@@ -9,15 +14,19 @@ import { UpdateItemTypeDto } from '../dto/update-item-type.dto';
 export class ItemTypeService {
   constructor(
     @Inject(ITEM_TYPE_REPOSITORY)
-    private readonly itemTypeRepository: IItemTypeRepository,
+    private readonly itemTypeRepository: IItemTypeRepository
   ) {}
 
   async create(createItemTypeDto: CreateItemTypeDto): Promise<ItemType> {
     // Check if code already exists (if provided)
     if (createItemTypeDto.code) {
-      const existing = await this.itemTypeRepository.findByCode(createItemTypeDto.code);
+      const existing = await this.itemTypeRepository.findByCode(
+        createItemTypeDto.code
+      );
       if (existing) {
-        throw new ConflictException(`Item type with code ${createItemTypeDto.code} already exists`);
+        throw new ConflictException(
+          `Item type with code ${createItemTypeDto.code} already exists`
+        );
       }
     }
 
@@ -41,14 +50,24 @@ export class ItemTypeService {
     return itemType;
   }
 
-  async update(id: number, updateItemTypeDto: UpdateItemTypeDto): Promise<ItemType> {
+  async update(
+    id: number,
+    updateItemTypeDto: UpdateItemTypeDto
+  ): Promise<ItemType> {
     const itemType = await this.findOne(id);
 
     // If updating code, check for conflicts
-    if (updateItemTypeDto.code && updateItemTypeDto.code !== itemType.getCode()) {
-      const existing = await this.itemTypeRepository.findByCode(updateItemTypeDto.code);
+    if (
+      updateItemTypeDto.code &&
+      updateItemTypeDto.code !== itemType.getCode()
+    ) {
+      const existing = await this.itemTypeRepository.findByCode(
+        updateItemTypeDto.code
+      );
       if (existing && existing.getId() !== id) {
-        throw new ConflictException(`Item type with code ${updateItemTypeDto.code} already exists`);
+        throw new ConflictException(
+          `Item type with code ${updateItemTypeDto.code} already exists`
+        );
       }
     }
 

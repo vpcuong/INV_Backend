@@ -170,7 +170,9 @@ describe('QueryBuilderService', () => {
       const filterDto: FilterDto = {
         page: 1,
         limit: 10,
-        filters: [{ field: 'status', operator: FilterOperator.EQUALS, value: 'Active' }],
+        filters: [
+          { field: 'status', operator: FilterOperator.EQUALS, value: 'Active' },
+        ],
       };
 
       const query = service.buildQuery(filterDto, config);
@@ -182,7 +184,13 @@ describe('QueryBuilderService', () => {
       const filterDto: FilterDto = {
         page: 1,
         limit: 10,
-        filters: [{ field: 'status', operator: FilterOperator.NOT_EQUALS, value: 'Inactive' }],
+        filters: [
+          {
+            field: 'status',
+            operator: FilterOperator.NOT_EQUALS,
+            value: 'Inactive',
+          },
+        ],
       };
 
       const query = service.buildQuery(filterDto, config);
@@ -194,7 +202,9 @@ describe('QueryBuilderService', () => {
       const filterDto: FilterDto = {
         page: 1,
         limit: 10,
-        filters: [{ field: 'rating', operator: FilterOperator.GREATER_THAN, value: 3 }],
+        filters: [
+          { field: 'rating', operator: FilterOperator.GREATER_THAN, value: 3 },
+        ],
       };
 
       const query = service.buildQuery(filterDto, {
@@ -209,7 +219,13 @@ describe('QueryBuilderService', () => {
       const filterDto: FilterDto = {
         page: 1,
         limit: 10,
-        filters: [{ field: 'rating', operator: FilterOperator.GREATER_THAN_OR_EQUALS, value: 4 }],
+        filters: [
+          {
+            field: 'rating',
+            operator: FilterOperator.GREATER_THAN_OR_EQUALS,
+            value: 4,
+          },
+        ],
       };
 
       const query = service.buildQuery(filterDto, {
@@ -224,7 +240,9 @@ describe('QueryBuilderService', () => {
       const filterDto: FilterDto = {
         page: 1,
         limit: 10,
-        filters: [{ field: 'rating', operator: FilterOperator.LESS_THAN, value: 5 }],
+        filters: [
+          { field: 'rating', operator: FilterOperator.LESS_THAN, value: 5 },
+        ],
       };
 
       const query = service.buildQuery(filterDto, {
@@ -239,7 +257,13 @@ describe('QueryBuilderService', () => {
       const filterDto: FilterDto = {
         page: 1,
         limit: 10,
-        filters: [{ field: 'rating', operator: FilterOperator.LESS_THAN_OR_EQUALS, value: 4 }],
+        filters: [
+          {
+            field: 'rating',
+            operator: FilterOperator.LESS_THAN_OR_EQUALS,
+            value: 4,
+          },
+        ],
       };
 
       const query = service.buildQuery(filterDto, {
@@ -254,7 +278,9 @@ describe('QueryBuilderService', () => {
       const filterDto: FilterDto = {
         page: 1,
         limit: 10,
-        filters: [{ field: 'name', operator: FilterOperator.CONTAINS, value: 'test' }],
+        filters: [
+          { field: 'name', operator: FilterOperator.CONTAINS, value: 'test' },
+        ],
       };
 
       const query = service.buildQuery(filterDto, {
@@ -271,7 +297,13 @@ describe('QueryBuilderService', () => {
       const filterDto: FilterDto = {
         page: 1,
         limit: 10,
-        filters: [{ field: 'email', operator: FilterOperator.STARTS_WITH, value: 'admin' }],
+        filters: [
+          {
+            field: 'email',
+            operator: FilterOperator.STARTS_WITH,
+            value: 'admin',
+          },
+        ],
       };
 
       const query = service.buildQuery(filterDto, {
@@ -288,7 +320,13 @@ describe('QueryBuilderService', () => {
       const filterDto: FilterDto = {
         page: 1,
         limit: 10,
-        filters: [{ field: 'email', operator: FilterOperator.ENDS_WITH, value: '@gmail.com' }],
+        filters: [
+          {
+            field: 'email',
+            operator: FilterOperator.ENDS_WITH,
+            value: '@gmail.com',
+          },
+        ],
       };
 
       const query = service.buildQuery(filterDto, {
@@ -348,7 +386,9 @@ describe('QueryBuilderService', () => {
       const filterDto: FilterDto = {
         page: 1,
         limit: 10,
-        filters: [{ field: 'deletedAt', operator: FilterOperator.IS_NULL, value: null }],
+        filters: [
+          { field: 'deletedAt', operator: FilterOperator.IS_NULL, value: null },
+        ],
       };
 
       const query = service.buildQuery(filterDto, {
@@ -363,7 +403,13 @@ describe('QueryBuilderService', () => {
       const filterDto: FilterDto = {
         page: 1,
         limit: 10,
-        filters: [{ field: 'deletedAt', operator: FilterOperator.IS_NOT_NULL, value: null }],
+        filters: [
+          {
+            field: 'deletedAt',
+            operator: FilterOperator.IS_NOT_NULL,
+            value: null,
+          },
+        ],
       };
 
       const query = service.buildQuery(filterDto, {
@@ -380,7 +426,11 @@ describe('QueryBuilderService', () => {
         limit: 10,
         filters: [
           { field: 'status', operator: FilterOperator.EQUALS, value: 'Active' },
-          { field: 'nonFilterableField', operator: FilterOperator.EQUALS, value: 'test' },
+          {
+            field: 'nonFilterableField',
+            operator: FilterOperator.EQUALS,
+            value: 'test',
+          },
         ],
       };
 
@@ -395,7 +445,9 @@ describe('QueryBuilderService', () => {
         page: 1,
         limit: 10,
         search: 'john',
-        filters: [{ field: 'status', operator: FilterOperator.EQUALS, value: 'Active' }],
+        filters: [
+          { field: 'status', operator: FilterOperator.EQUALS, value: 'Active' },
+        ],
       };
 
       const query = service.buildQuery(filterDto, config);
@@ -413,7 +465,11 @@ describe('QueryBuilderService', () => {
         limit: 10,
         filters: [
           { field: 'status', operator: FilterOperator.EQUALS, value: 'Active' },
-          { field: 'category', operator: FilterOperator.EQUALS, value: 'Fabric' },
+          {
+            field: 'category',
+            operator: FilterOperator.EQUALS,
+            value: 'Fabric',
+          },
           { field: 'isActive', operator: FilterOperator.EQUALS, value: true },
         ],
       };
@@ -486,7 +542,11 @@ describe('QueryBuilderService', () => {
         fields: ['id', 'name', 'email'],
         filters: [
           { field: 'status', operator: FilterOperator.EQUALS, value: 'Active' },
-          { field: 'category', operator: FilterOperator.IN, value: ['Fabric', 'Yarn'] },
+          {
+            field: 'category',
+            operator: FilterOperator.IN,
+            value: ['Fabric', 'Yarn'],
+          },
         ],
       };
 
@@ -513,12 +573,12 @@ describe('QueryBuilderService', () => {
       const response = service.buildPaginatedResponse(data, total, page, limit);
 
       expect(response.data).toEqual(data);
-      expect(response.meta.total).toBe(50);
-      expect(response.meta.page).toBe(1);
-      expect(response.meta.limit).toBe(10);
-      expect(response.meta.totalPages).toBe(5);
-      expect(response.meta.hasNextPage).toBe(true);
-      expect(response.meta.hasPreviousPage).toBe(false);
+      expect(response.pagination.total).toBe(50);
+      expect(response.pagination.page).toBe(1);
+      expect(response.pagination.limit).toBe(10);
+      expect(response.pagination.totalPages).toBe(5);
+      expect(response.pagination.hasNextPage).toBe(true);
+      expect(response.pagination.hasPreviousPage).toBe(false);
     });
 
     it('should calculate total pages correctly', () => {
@@ -529,7 +589,7 @@ describe('QueryBuilderService', () => {
 
       const response = service.buildPaginatedResponse(data, total, page, limit);
 
-      expect(response.meta.totalPages).toBe(3);
+      expect(response.pagination.totalPages).toBe(3);
     });
 
     it('should handle last page correctly', () => {
@@ -540,8 +600,8 @@ describe('QueryBuilderService', () => {
 
       const response = service.buildPaginatedResponse(data, total, page, limit);
 
-      expect(response.meta.hasNextPage).toBe(false);
-      expect(response.meta.hasPreviousPage).toBe(true);
+      expect(response.pagination.hasNextPage).toBe(false);
+      expect(response.pagination.hasPreviousPage).toBe(true);
     });
 
     it('should handle single page', () => {
@@ -552,9 +612,9 @@ describe('QueryBuilderService', () => {
 
       const response = service.buildPaginatedResponse(data, total, page, limit);
 
-      expect(response.meta.totalPages).toBe(1);
-      expect(response.meta.hasNextPage).toBe(false);
-      expect(response.meta.hasPreviousPage).toBe(false);
+      expect(response.pagination.totalPages).toBe(1);
+      expect(response.pagination.hasNextPage).toBe(false);
+      expect(response.pagination.hasPreviousPage).toBe(false);
     });
 
     it('should handle empty results', () => {
@@ -566,10 +626,10 @@ describe('QueryBuilderService', () => {
       const response = service.buildPaginatedResponse(data, total, page, limit);
 
       expect(response.data).toEqual([]);
-      expect(response.meta.total).toBe(0);
-      expect(response.meta.totalPages).toBe(0);
-      expect(response.meta.hasNextPage).toBe(false);
-      expect(response.meta.hasPreviousPage).toBe(false);
+      expect(response.pagination.total).toBe(0);
+      expect(response.pagination.totalPages).toBe(0);
+      expect(response.pagination.hasNextPage).toBe(false);
+      expect(response.pagination.hasPreviousPage).toBe(false);
     });
 
     it('should handle middle page correctly', () => {
@@ -580,8 +640,8 @@ describe('QueryBuilderService', () => {
 
       const response = service.buildPaginatedResponse(data, total, page, limit);
 
-      expect(response.meta.hasNextPage).toBe(true);
-      expect(response.meta.hasPreviousPage).toBe(true);
+      expect(response.pagination.hasNextPage).toBe(true);
+      expect(response.pagination.hasPreviousPage).toBe(true);
     });
   });
 });

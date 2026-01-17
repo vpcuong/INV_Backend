@@ -41,7 +41,7 @@ export class PoController {
     @Query('skip') skip?: string,
     @Query('take') take?: string,
     @Query('supplierId') supplierId?: string,
-    @Query('status') status?: string,
+    @Query('status') status?: string
   ) {
     return this.poService.findAll({
       skip: skip ? parseInt(skip) : undefined,
@@ -77,7 +77,7 @@ export class PoController {
   @ApiResponse({ status: 404, description: 'Purchase order not found' })
   updateWithLines(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdatePOWithLinesDto,
+    @Body() dto: UpdatePOWithLinesDto
   ) {
     return this.poService.updateWithLines(id, dto);
   }
@@ -91,7 +91,7 @@ export class PoController {
   @ApiResponse({ status: 404, description: 'Purchase order not found' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateDto: UpdatePOHeaderDto,
+    @Body() updateDto: UpdatePOHeaderDto
   ) {
     return this.poService.update(id, updateDto);
   }

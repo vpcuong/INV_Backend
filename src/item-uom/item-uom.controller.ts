@@ -47,7 +47,7 @@ export class ItemUomController {
     @Query('isActive') isActive?: string,
     @Query('isPurchasingUom') isPurchasingUom?: string,
     @Query('isSalesUom') isSalesUom?: string,
-    @Query('isManufacturingUom') isManufacturingUom?: string,
+    @Query('isManufacturingUom') isManufacturingUom?: string
   ) {
     return this.itemUomService.findAll({
       skip: skip ? parseInt(skip) : undefined,
@@ -57,7 +57,9 @@ export class ItemUomController {
       isActive: isActive ? isActive === 'true' : undefined,
       isPurchasingUom: isPurchasingUom ? isPurchasingUom === 'true' : undefined,
       isSalesUom: isSalesUom ? isSalesUom === 'true' : undefined,
-      isManufacturingUom: isManufacturingUom ? isManufacturingUom === 'true' : undefined,
+      isManufacturingUom: isManufacturingUom
+        ? isManufacturingUom === 'true'
+        : undefined,
     });
   }
 
@@ -75,7 +77,7 @@ export class ItemUomController {
   @ApiResponse({ status: 404, description: 'ItemUOM not found' })
   findByItemAndUom(
     @Param('itemId', ParseIntPipe) itemId: number,
-    @Param('uomCode') uomCode: string,
+    @Param('uomCode') uomCode: string
   ) {
     return this.itemUomService.findByItemAndUom(itemId, uomCode);
   }
@@ -88,13 +90,13 @@ export class ItemUomController {
     @Param('itemId', ParseIntPipe) itemId: number,
     @Param('fromUomCode') fromUomCode: string,
     @Param('toUomCode') toUomCode: string,
-    @Param('quantity') quantity: string,
+    @Param('quantity') quantity: string
   ) {
     const result = await this.itemUomService.convertQuantity(
       itemId,
       fromUomCode,
       toUomCode,
-      parseFloat(quantity),
+      parseFloat(quantity)
     );
 
     return {
@@ -112,7 +114,7 @@ export class ItemUomController {
   @ApiResponse({ status: 404, description: 'ItemUOM not found' })
   findOne(
     @Param('itemId', ParseIntPipe) itemId: number,
-    @Param('uomCode') uomCode: string,
+    @Param('uomCode') uomCode: string
   ) {
     return this.itemUomService.findOne(itemId, uomCode);
   }
@@ -124,7 +126,7 @@ export class ItemUomController {
   update(
     @Param('itemId', ParseIntPipe) itemId: number,
     @Param('uomCode') uomCode: string,
-    @Body() updateItemUomDto: UpdateItemUomDto,
+    @Body() updateItemUomDto: UpdateItemUomDto
   ) {
     return this.itemUomService.update(itemId, uomCode, updateItemUomDto);
   }
@@ -135,7 +137,7 @@ export class ItemUomController {
   @ApiResponse({ status: 404, description: 'ItemUOM not found' })
   remove(
     @Param('itemId', ParseIntPipe) itemId: number,
-    @Param('uomCode') uomCode: string,
+    @Param('uomCode') uomCode: string
   ) {
     return this.itemUomService.remove(itemId, uomCode);
   }

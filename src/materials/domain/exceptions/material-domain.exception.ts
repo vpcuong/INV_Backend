@@ -21,7 +21,9 @@ export class MaterialCodeAlreadyExistsException extends MaterialDomainException 
 
 export class MaterialInUseException extends MaterialDomainException {
   constructor(id: number, itemCount: number) {
-    super(`Cannot delete material with ID ${id}. It is being used by ${itemCount} item(s)`);
+    super(
+      `Cannot delete material with ID ${id}. It is being used by ${itemCount} item(s)`
+    );
     this.name = 'MaterialInUseException';
   }
 }

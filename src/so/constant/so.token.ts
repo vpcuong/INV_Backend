@@ -1,0 +1,2 @@
+export const SO_HEADER_REPOSITORY = Symbol('SO_HEADER_REPOSITORY');
+export const SO_LINE_REPOSITORY = Symbol('SO_LINE_REPOSITORY');

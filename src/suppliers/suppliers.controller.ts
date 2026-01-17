@@ -24,7 +24,7 @@ export class SuppliersController {
   constructor(
     private readonly suppliersService: SupplierService,
     private readonly supplierQueryService: SupplierQueryService,
-    private readonly supplierAggregationService: SupplierAggregationService,
+    private readonly supplierAggregationService: SupplierAggregationService
   ) {}
 
   @Post()
@@ -38,7 +38,8 @@ export class SuppliersController {
   @Get()
   @ApiOperation({
     summary: 'Get all suppliers with filtering, sorting, and pagination',
-    description: 'Supports search, filters, sorting, pagination, and field selection. Use query parameters for quick filters or advanced JSON-based filters.'
+    description:
+      'Supports search, filters, sorting, pagination, and field selection. Use query parameters for quick filters or advanced JSON-based filters.',
   })
   @ApiResponse({
     status: 200,
@@ -54,7 +55,7 @@ export class SuppliersController {
             status: 'Active',
             category: 'Fabric',
             isActive: true,
-          }
+          },
         ],
         meta: {
           total: 50,
@@ -62,10 +63,10 @@ export class SuppliersController {
           limit: 10,
           totalPages: 5,
           hasNextPage: true,
-          hasPreviousPage: false
-        }
-      }
-    }
+          hasPreviousPage: false,
+        },
+      },
+    },
   })
   findAll(@Query() filterDto: SupplierFilterDto) {
     return this.supplierQueryService.findAllWithFilters(filterDto);
@@ -85,7 +86,7 @@ export class SuppliersController {
   @ApiResponse({ status: 404, description: 'Supplier not found' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateSupplierDto: UpdateSupplierDto,
+    @Body() updateSupplierDto: UpdateSupplierDto
   ) {
     return this.suppliersService.update(id, updateSupplierDto);
   }
@@ -108,7 +109,10 @@ export class SuppliersController {
 
   @Patch(':id/deactivate')
   @ApiOperation({ summary: 'Deactivate a supplier' })
-  @ApiResponse({ status: 200, description: 'Supplier deactivated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Supplier deactivated successfully',
+  })
   @ApiResponse({ status: 404, description: 'Supplier not found' })
   deactivate(@Param('id', ParseIntPipe) id: number) {
     return this.suppliersService.deactivate(id);
@@ -117,7 +121,8 @@ export class SuppliersController {
   @Get('filter/active')
   @ApiOperation({
     summary: 'Get active suppliers only',
-    description: 'Returns only active suppliers (isActive = true) with filtering support'
+    description:
+      'Returns only active suppliers (isActive = true) with filtering support',
   })
   @ApiResponse({ status: 200, description: 'Return active suppliers' })
   findActive(@Query() filterDto: SupplierFilterDto) {
@@ -128,12 +133,13 @@ export class SuppliersController {
   @Get('filter/category/:category')
   @ApiOperation({
     summary: 'Get suppliers by category',
-    description: 'Filter suppliers by specific category (Fabric, Accessories, Packaging, Yarn)'
+    description:
+      'Filter suppliers by specific category (Fabric, Accessories, Packaging, Yarn)',
   })
   @ApiResponse({ status: 200, description: 'Return suppliers by category' })
   findByCategory(
     @Param('category') category: string,
-    @Query() filterDto: SupplierFilterDto,
+    @Query() filterDto: SupplierFilterDto
   ) {
     filterDto.category = category as any;
     return this.supplierQueryService.findAllWithFilters(filterDto);
@@ -142,7 +148,8 @@ export class SuppliersController {
   @Get('aggregations/active-status')
   @ApiOperation({
     summary: 'Get active/inactive supplier counts',
-    description: 'Returns count and percentage of active (isActive=true) and inactive (isActive=false) suppliers. Supports all quick filters except isActive.'
+    description:
+      'Returns count and percentage of active (isActive=true) and inactive (isActive=false) suppliers. Supports all quick filters except isActive.',
   })
   @ApiResponse({
     status: 200,
@@ -153,9 +160,9 @@ export class SuppliersController {
         active: 120,
         inactive: 30,
         activePercentage: 80.0,
-        inactivePercentage: 20.0
-      }
-    }
+        inactivePercentage: 20.0,
+      },
+    },
   })
   getActiveStatusStatistics(@Query() filterDto: SupplierAggregationRequestDto) {
     return this.supplierAggregationService.getActiveStatusStatistics(filterDto);
@@ -164,7 +171,8 @@ export class SuppliersController {
   @Get('aggregations/statistics')
   @ApiOperation({
     summary: 'Get comprehensive supplier statistics',
-    description: 'Returns detailed statistics including counts, ratings, distributions by category/status/country, and time-based metrics. Supports all quick filters from SupplierFilterDto.'
+    description:
+      'Returns detailed statistics including counts, ratings, distributions by category/status/country, and time-based metrics. Supports all quick filters from SupplierFilterDto.',
   })
   @ApiResponse({
     status: 200,
@@ -183,24 +191,24 @@ export class SuppliersController {
         byCategory: [
           { category: 'Fabric', count: 80, percentage: 53.33 },
           { category: 'Accessories', count: 40, percentage: 26.67 },
-          { category: 'Yarn', count: 30, percentage: 20.0 }
+          { category: 'Yarn', count: 30, percentage: 20.0 },
         ],
         byStatus: [
           { status: 'Active', count: 120, percentage: 80.0 },
-          { status: 'Inactive', count: 25, percentage: 16.67 }
+          { status: 'Inactive', count: 25, percentage: 16.67 },
         ],
         byCountry: [
           { country: 'Vietnam', count: 100, percentage: 66.67 },
-          { country: 'China', count: 50, percentage: 33.33 }
+          { country: 'China', count: 50, percentage: 33.33 },
         ],
         ratingDistribution: [
           { range: '4-5', count: 90, percentage: 60.0 },
-          { range: '3-4', count: 40, percentage: 26.67 }
+          { range: '3-4', count: 40, percentage: 26.67 },
         ],
         createdThisMonth: 5,
-        createdThisYear: 45
-      }
-    }
+        createdThisYear: 45,
+      },
+    },
   })
   getStatistics(@Query() filterDto: SupplierAggregationRequestDto) {
     return this.supplierAggregationService.getStatistics(filterDto);
@@ -209,7 +217,8 @@ export class SuppliersController {
   @Get('aggregations/custom')
   @ApiOperation({
     summary: 'Get custom aggregations with groupBy and metrics',
-    description: 'Flexible aggregation endpoint. Group by fields (category, status, country, etc.) and apply metrics (count, avg, sum, min, max). Supports all quick filters.'
+    description:
+      'Flexible aggregation endpoint. Group by fields (category, status, country, etc.) and apply metrics (count, avg, sum, min, max). Supports all quick filters.',
   })
   @ApiResponse({
     status: 200,
@@ -222,23 +231,23 @@ export class SuppliersController {
             count: 70,
             avg: { rating: 4.5 },
             min: { rating: 3.0 },
-            max: { rating: 5.0 }
+            max: { rating: 5.0 },
           },
           {
             groupBy: { category: 'Accessories', status: 'Active' },
             count: 35,
             avg: { rating: 4.2 },
             min: { rating: 2.5 },
-            max: { rating: 5.0 }
-          }
+            max: { rating: 5.0 },
+          },
         ],
         total: 150,
         appliedFilters: {
           groupBy: ['category', 'status'],
-          metrics: ['count', 'avg', 'min', 'max']
-        }
-      }
-    }
+          metrics: ['count', 'avg', 'min', 'max'],
+        },
+      },
+    },
   })
   getCustomAggregation(@Query() requestDto: SupplierAggregationRequestDto) {
     return this.supplierAggregationService.getCustomAggregation(requestDto);

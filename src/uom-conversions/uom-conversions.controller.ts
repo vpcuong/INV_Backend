@@ -22,7 +22,10 @@ export class UomConversionsController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new UOM conversion' })
-  @ApiResponse({ status: 201, description: 'UOM conversion created successfully' })
+  @ApiResponse({
+    status: 201,
+    description: 'UOM conversion created successfully',
+  })
   @ApiResponse({ status: 404, description: 'From or To UOM not found' })
   @ApiResponse({ status: 409, description: 'Conversion already exists' })
   create(@Body() createUomConversionDto: CreateUomConversionDto) {
@@ -37,26 +40,35 @@ export class UomConversionsController {
   }
 
   @Get(':uomClassCode/:uomCode')
-  @ApiOperation({ summary: 'Get UOM conversion by UOM Class Code and UOM Code' })
+  @ApiOperation({
+    summary: 'Get UOM conversion by UOM Class Code and UOM Code',
+  })
   @ApiResponse({ status: 200, description: 'Returns the UOM conversion' })
   @ApiResponse({ status: 404, description: 'UOM conversion not found' })
   findOne(
     @Param('uomClassCode') uomClassCode: string,
-    @Param('uomCode') uomCode: string,
+    @Param('uomCode') uomCode: string
   ) {
     return this.uomConversionsService.findOne(uomClassCode, uomCode);
   }
 
   @Patch(':uomClassCode/:uomCode')
   @ApiOperation({ summary: 'Update UOM conversion' })
-  @ApiResponse({ status: 200, description: 'UOM conversion updated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'UOM conversion updated successfully',
+  })
   @ApiResponse({ status: 404, description: 'UOM conversion or UOM not found' })
   update(
     @Param('uomClassCode') uomClassCode: string,
     @Param('uomCode') uomCode: string,
-    @Body() updateUomConversionDto: UpdateUomConversionDto,
+    @Body() updateUomConversionDto: UpdateUomConversionDto
   ) {
-    return this.uomConversionsService.update(uomClassCode, uomCode, updateUomConversionDto);
+    return this.uomConversionsService.update(
+      uomClassCode,
+      uomCode,
+      updateUomConversionDto
+    );
   }
 
   @Delete(':uomClassCode/:uomCode')
@@ -66,7 +78,7 @@ export class UomConversionsController {
   @ApiResponse({ status: 404, description: 'UOM conversion not found' })
   remove(
     @Param('uomClassCode') uomClassCode: string,
-    @Param('uomCode') uomCode: string,
+    @Param('uomCode') uomCode: string
   ) {
     return this.uomConversionsService.remove(uomClassCode, uomCode);
   }
@@ -77,7 +89,7 @@ export class UomConversionsController {
   @ApiResponse({ status: 404, description: 'UOM conversion not found' })
   activate(
     @Param('uomClassCode') uomClassCode: string,
-    @Param('uomCode') uomCode: string,
+    @Param('uomCode') uomCode: string
   ) {
     return this.uomConversionsService.activate(uomClassCode, uomCode);
   }
@@ -88,7 +100,7 @@ export class UomConversionsController {
   @ApiResponse({ status: 404, description: 'UOM conversion not found' })
   deactivate(
     @Param('uomClassCode') uomClassCode: string,
-    @Param('uomCode') uomCode: string,
+    @Param('uomCode') uomCode: string
   ) {
     return this.uomConversionsService.deactivate(uomClassCode, uomCode);
   }

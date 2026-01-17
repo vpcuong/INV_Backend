@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { FileEntity } from '../domain/file.entity';
-import { FileFilter, IFileRepository } from '../domain/file.repository.interface';
+import {
+  FileFilter,
+  IFileRepository,
+} from '../domain/file.repository.interface';
 
 @Injectable()
 export class FileRepository implements IFileRepository {
@@ -41,7 +44,7 @@ export class FileRepository implements IFileRepository {
       orderBy: { displayOrder: 'asc' },
     });
 
-    return files.map(f => FileEntity.fromPersistence(f));
+    return files.map((f) => FileEntity.fromPersistence(f));
   }
 
   async findByPath(path: string): Promise<FileEntity | null> {
@@ -55,7 +58,10 @@ export class FileRepository implements IFileRepository {
     return file ? FileEntity.fromPersistence(file) : null;
   }
 
-  async findPrimaryFile(contextType: string, contextId: number): Promise<FileEntity | null> {
+  async findPrimaryFile(
+    contextType: string,
+    contextId: number
+  ): Promise<FileEntity | null> {
     const file = await this.prisma.client.file.findFirst({
       where: {
         contextType,
@@ -81,7 +87,7 @@ export class FileRepository implements IFileRepository {
       orderBy: { displayOrder: 'asc' },
     });
 
-    return files.map(f => FileEntity.fromPersistence(f));
+    return files.map((f) => FileEntity.fromPersistence(f));
   }
 
   async update(id: number, data: Partial<FileEntity>): Promise<FileEntity> {
@@ -116,7 +122,11 @@ export class FileRepository implements IFileRepository {
     });
   }
 
-  async setPrimaryFile(id: number, contextType: string, contextId: number): Promise<void> {
+  async setPrimaryFile(
+    id: number,
+    contextType: string,
+    contextId: number
+  ): Promise<void> {
     await this.prisma.$transaction([
       // Unset all primary flags for this context
       this.prisma.client.file.updateMany({
@@ -151,6 +161,6 @@ export class FileRepository implements IFileRepository {
       },
     });
 
-    return files.map(f => FileEntity.fromPersistence(f));
+    return files.map((f) => FileEntity.fromPersistence(f));
   }
 }
