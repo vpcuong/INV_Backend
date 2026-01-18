@@ -12,7 +12,7 @@ export class SOHeaderRepository implements ISOHeaderRepository {
   constructor(private prisma: PrismaService) {}
 
   private getDb(transaction?: PrismaTransaction) {
-    return transaction || this.prisma.client;
+    return transaction ||this.prisma.client;
   }
 
   async create(
@@ -94,6 +94,43 @@ export class SOHeaderRepository implements ISOHeaderRepository {
             lineNum: 'asc',
           },
         },
+      },
+    });
+
+    if (!header) {
+      return null;
+    }
+
+    return SOHeader.fromPersistence(header);
+  }
+
+  async findByPublicId(
+    publicId: string,
+    transaction?: PrismaTransaction
+  ): Promise<SOHeader | null> {
+    const db = this.getDb(transaction);
+    const header = await db.sOHeader.findUnique({
+      where: { publicId: publicId },
+      include: {
+        lines: {
+          include: {
+            item: true,
+            itemSku: {
+              include: {
+                color: true,
+                gender: true,
+                size: true,
+              },
+            },
+            uom: true,
+          },
+          orderBy: {
+            lineNum: 'asc',
+          },
+        },
+        customer: true,
+        billingAddress: true,
+        shippingAddress: true,
       },
     });
 

@@ -479,7 +479,7 @@ describe('QueryBuilderService', () => {
       expect(query.where.AND?.length).toBe(3);
     });
 
-    it('should include relations when specified', () => {
+    it('should include flat relations when specified', () => {
       const configWithRelations: FilterConfig = {
         ...config,
         relations: ['items', 'orders'],
@@ -496,6 +496,76 @@ describe('QueryBuilderService', () => {
         items: true,
         orders: true,
       });
+    });
+
+    it('should include nested relations when specified', () => {
+      const configWithNestedRelations: FilterConfig = {
+        ...config,
+        relations: [
+          'customer',
+          {
+            lines: {
+              include: {
+                item: true,
+                itemSku: {
+                  include: {
+                    color: true,
+                    size: true,
+                  },
+                },
+              },
+              orderBy: {
+                lineNum: 'asc',
+              },
+            },
+          },
+        ],
+      };
+
+      const filterDto: FilterDto = {
+        page: 1,
+        limit: 10,
+      };
+
+      const query = service.buildQuery(filterDto, configWithNestedRelations);
+
+      expect(query.include.customer).toBe(true);
+      expect(query.include.lines).toBeDefined();
+      expect(query.include.lines.include).toBeDefined();
+      expect(query.include.lines.include.item).toBe(true);
+      expect(query.include.lines.include.itemSku).toBeDefined();
+      expect(query.include.lines.include.itemSku.include.color).toBe(true);
+      expect(query.include.lines.include.itemSku.include.size).toBe(true);
+      expect(query.include.lines.orderBy).toEqual({ lineNum: 'asc' });
+    });
+
+    it('should handle mixed flat and nested relations', () => {
+      const configWithMixedRelations: FilterConfig = {
+        ...config,
+        relations: [
+          'customer',
+          'billingAddress',
+          {
+            lines: {
+              include: {
+                item: true,
+              },
+            },
+          },
+        ],
+      };
+
+      const filterDto: FilterDto = {
+        page: 1,
+        limit: 10,
+      };
+
+      const query = service.buildQuery(filterDto, configWithMixedRelations);
+
+      expect(query.include.customer).toBe(true);
+      expect(query.include.billingAddress).toBe(true);
+      expect(query.include.lines).toBeDefined();
+      expect(query.include.lines.include.item).toBe(true);
     });
 
     it('should not include relations when not specified', () => {

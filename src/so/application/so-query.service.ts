@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { QueryBuilderService } from '@/common/filtering';
+import { QueryBuilderService, RelationConfig } from '@/common/filtering';
 import { SOFilterDto } from '../dto/so-filter.dto';
 
 @Injectable()
@@ -98,29 +98,48 @@ export class SOQueryService {
 
   /**
    * Build relations to include
+   * Now supports nested relations with full Prisma include syntax
    */
-  private buildRelations(filterDto: SOFilterDto): any {
-    return {
-      customer: true,
-      billingAddress: true,
-      shippingAddress: true,
-      lines: {
-        include: {
-          item: true,
-          itemSku: {
-            include: {
-              color: true,
-              gender: true,
-              size: true,
+  private buildRelations(filterDto: SOFilterDto): RelationConfig[] {
+    return [
+      'customer',
+      'billingAddress',
+      'shippingAddress',
+      {
+        lines: {
+          include: {
+            item: true,
+            itemSku: {
+              include: {
+                color: true,
+                gender: true,
+                size: true,
+              },
             },
+            uom: true,
           },
-          uom: true,
-        },
-        orderBy: {
-          lineNum: 'asc',
+          orderBy: {
+            lineNum: 'asc',
+          },
         },
       },
-    };
+    ];
+  }
+
+  /**
+   * Convert RelationConfig array to Prisma include object
+   * Helper for direct Prisma queries (not using query builder)
+   */
+  private relationsToInclude(relations: RelationConfig[]): any {
+    const include: any = {};
+    relations.forEach((relation) => {
+      if (typeof relation === 'string') {
+        include[relation] = true;
+      } else {
+        Object.assign(include, relation);
+      }
+    });
+    return include;
   }
 
   /**
@@ -202,9 +221,10 @@ export class SOQueryService {
       where.customerId = customerId;
     }
 
+    const relations = this.buildRelations({} as SOFilterDto);
     const data = await this.prisma.client.sOHeader.findMany({
       where,
-      include: this.buildRelations({} as SOFilterDto),
+      include: this.relationsToInclude(relations),
       orderBy: [
         { orderDate: 'desc' },
         { soNum: 'desc' },

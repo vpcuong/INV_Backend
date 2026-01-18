@@ -7,6 +7,7 @@ import { SOLine } from './so-line.entity';
 
 export interface SOHeaderConstructorData {
   id?: number;
+  publicId?: string;
   soNum: string;
   customerId: number;
   orderDate?: Date;
@@ -52,7 +53,8 @@ export class SOHeader {
     private readonly createdBy: string,
     private readonly createdAt: Date,
     private readonly updatedAt: Date,
-    private readonly id?: number
+    private readonly id?: number,
+    private readonly publicId?: string
   ) {
     this.validateBasicData();
   }
@@ -108,13 +110,18 @@ export class SOHeader {
       data.createdBy,
       data.createdAt || new Date(),
       data.updatedAt || new Date(),
-      data.id
+      data.id,
+      data.publicId
     );
   }
 
   // Essential getters only
   public getId(): number | undefined {
     return this.id;
+  }
+
+  public getPublicId(): string | undefined {
+    return this.publicId;
   }
 
   public getSONum(): string {
@@ -201,7 +208,8 @@ export class SOHeader {
       this.createdBy,
       this.createdAt,
       new Date(),
-      this.id
+      this.id,
+      this.publicId
     );
   }
 
@@ -235,7 +243,8 @@ export class SOHeader {
       this.createdBy,
       this.createdAt,
       new Date(),
-      this.id
+      this.id,
+      this.publicId
     );
   }
 
@@ -259,7 +268,8 @@ export class SOHeader {
       this.createdBy,
       this.createdAt,
       new Date(),
-      this.id
+      this.id,
+      this.publicId
     );
   }
 
@@ -280,7 +290,8 @@ export class SOHeader {
       this.createdBy,
       this.createdAt,
       new Date(),
-      this.id
+      this.id,
+      this.publicId
     );
   }
 
@@ -307,7 +318,8 @@ export class SOHeader {
       this.createdBy,
       this.createdAt,
       new Date(),
-      this.id
+      this.id,
+      this.publicId
     );
   }
 
@@ -334,7 +346,8 @@ export class SOHeader {
       this.createdBy,
       this.createdAt,
       new Date(),
-      this.id
+      this.id,
+      this.publicId
     );
   }
 
@@ -358,7 +371,8 @@ export class SOHeader {
       this.createdBy,
       this.createdAt,
       new Date(),
-      this.id
+      this.id,
+      this.publicId
     );
   }
 
@@ -378,7 +392,8 @@ export class SOHeader {
       this.createdBy,
       this.createdAt,
       new Date(),
-      this.id
+      this.id,
+      this.publicId
     );
   }
 
@@ -404,6 +419,7 @@ export class SOHeader {
   public toPersistence(): any {
     return {
       id: this.id,
+      publicId: this.publicId,
       soNum: this.soNum,
       customerId: this.customerId,
       orderDate: this.orderDate,
@@ -441,7 +457,8 @@ export class SOHeader {
       data.createdBy,
       new Date(data.createdAt),
       new Date(data.updatedAt),
-      data.id
+      data.id,
+      data.publicId
     );
   }
 }

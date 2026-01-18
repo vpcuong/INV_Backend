@@ -62,8 +62,6 @@ export class QueryBuilderService {
         query.where.AND = filterConditions;
       }
     }
-    console.log(`=== query-bulider.service:filters ===`);
-    console.log(filterDto.filters);
 
     // Sort
     if (filterDto.sort && filterDto.sort.length > 0) {
@@ -76,11 +74,18 @@ export class QueryBuilderService {
       query.orderBy = defaultSort.map((s) => ({ [s.field]: s.order }));
     }
 
-    // Relations
+    // Relations - support both flat strings and nested objects
     if (relations.length > 0) {
       query.include = {};
       relations.forEach((relation) => {
-        query.include[relation] = true;
+        if (typeof relation === 'string') {
+          // Flat relation: 'customer' -> { customer: true }
+          query.include[relation] = true;
+        } else {
+          // Nested relation: { lines: { include: {...} } }
+          // Merge the nested object into query.include
+          Object.assign(query.include, relation);
+        }
       });
     }
 
@@ -91,6 +96,9 @@ export class QueryBuilderService {
         query.select[field] = true;
       });
     }
+
+    console.log(`=== query-bulider.service:query ===`);
+    console.log(query);
 
     return query;
   }

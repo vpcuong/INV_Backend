@@ -1,5 +1,6 @@
 model SOHeader {
   id                    Int              @id @default(autoincrement())
+  publicId              String           @unique @default(ulid()) @db.Char(26)
   soNum                 String           @unique @db.VarChar(50)
   customerId            Int
   customerPoNum         String?          @db.VarChar(100)
@@ -35,6 +36,7 @@ model SOHeader {
   customer              Customer         @relation(fields: [customerId], references: [id])
   shippingAddress       CustomerAddress? @relation("SOShippingAddress", fields: [shippingAddressId], references: [id])
 
+  @@index([publicId])
   @@index([customerId])
   @@index([orderStatus])
   @@index([orderDate])
@@ -45,6 +47,7 @@ model SOHeader {
 
 model SODetail {
   id                  Int          @id @default(autoincrement())
+  publicId            String       @unique @default(ulid()) @db.Char(26)
   soHeaderId          Int
   lineNum             Int
   itemId              Int?
@@ -73,6 +76,7 @@ model SODetail {
   uom                 UOM          @relation(fields: [uomCode], references: [code])
 
   @@unique([soHeaderId, lineNum])
+  @@index([publicId])
   @@index([itemId])
   @@index([itemSkuId])
   @@index([lineStatus])

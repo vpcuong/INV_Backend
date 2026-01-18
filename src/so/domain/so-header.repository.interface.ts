@@ -16,6 +16,10 @@ export interface ISOHeaderRepository {
     soNum: string,
     transaction?: PrismaTransaction
   ): Promise<SOHeader | null>;
+  findByPublicId(
+    publicId: string,
+    transaction?: PrismaTransaction
+  ): Promise<SOHeader | null>;
   findOneWithRelations(
     id: number,
     transaction?: PrismaTransaction

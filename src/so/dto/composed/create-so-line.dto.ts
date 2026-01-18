@@ -111,37 +111,38 @@ export class CreateSOLineDto {
   @IsOptional()
   pricing?: LinePricingDto;
 
-  @ApiProperty({
-    description: 'Line total (calculated if not provided)',
-    example: 255.0,
-    required: false,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  lineTotal?: number;
+  // @ApiProperty({
+  //   description: 'Line total (calculated if not provided)',
+  //   example: 255.0,
+  //   required: false,
+  // })
+  // @IsOptional()
+  // @IsNumber()
+  // @Min(0)
+  // lineTotal?: number;
 
   @ApiProperty({ description: 'Need by date', required: false })
   @IsOptional()
+  @Type(() => Date)
   @IsDate()
   needByDate?: Date;
 
-  @ApiProperty({ description: 'Line status', example: 'OPEN', required: false })
-  @IsOptional()
-  @IsString()
-  lineStatus?: string;
+  // @ApiProperty({ description: 'Line status', example: 'OPEN', required: false })
+  // @IsOptional()
+  // @IsString()
+  // lineStatus?: string;
 
-  @ApiProperty({ description: 'Open quantity', example: 10, required: false })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  openQty?: number;
+  // @ApiProperty({ description: 'Open quantity', example: 10, required: false })
+  // @IsOptional()
+  // @IsNumber()
+  // @Min(0)
+  // openQty?: number;
 
-  @ApiProperty({ description: 'Shipped quantity', example: 0, required: false })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  shippedQty?: number;
+  // @ApiProperty({ description: 'Shipped quantity', example: 0, required: false })
+  // @IsOptional()
+  // @IsNumber()
+  // @Min(0)
+  // shippedQty?: number;
 
   @ApiProperty({ description: 'Warehouse code', required: false })
   @IsOptional()

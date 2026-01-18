@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsString,
   IsEnum,
+  IsDate,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -103,6 +104,8 @@ export class UpdateSOLineDto {
     example: '2024-12-31T00:00:00.000Z',
   })
   @IsOptional()
+  @Type(() => Date)
+  @IsDate()
   needByDate?: Date;
 
   @ApiPropertyOptional({

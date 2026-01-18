@@ -7,6 +7,7 @@ import {
 
 export interface SOLineConstructorData {
   id?: number;
+  publicId?: string;
   soHeaderId?: number;
   lineNum: number;
   itemId?: number | null;
@@ -33,6 +34,7 @@ export interface SOLineConstructorData {
 
 export class SOLine {
   private id?: number;
+  private publicId?: string;
   private soHeaderId?: number;
   private lineNum: number;
   private itemId?: number | null;
@@ -62,6 +64,7 @@ export class SOLine {
     this.validateAmounts(data);
 
     this.id = data.id;
+    this.publicId = data.publicId;
     this.soHeaderId = data.soHeaderId;
     this.lineNum = data.lineNum;
     this.itemId = data.itemId;
@@ -241,6 +244,9 @@ export class SOLine {
   public getId(): number | undefined {
     return this.id;
   }
+  public getPublicId(): string | undefined {
+    return this.publicId;
+  }
   public getSOHeaderId(): number | undefined {
     return this.soHeaderId;
   }
@@ -314,6 +320,7 @@ export class SOLine {
   public toPersistence(): any {
     return {
       id: this.id,
+      publicId: this.publicId,
       soHeaderId: this.soHeaderId,
       lineNum: this.lineNum,
       itemId: this.itemId,
@@ -345,6 +352,7 @@ export class SOLine {
   public static fromPersistence(data: any): SOLine {
     return new SOLine({
       id: data.id,
+      publicId: data.publicId,
       soHeaderId: data.soHeaderId,
       lineNum: data.lineNum,
       itemId: data.itemId,
