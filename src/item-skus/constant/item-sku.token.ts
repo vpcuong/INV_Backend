@@ -1,1 +1,0 @@
-export const ITEM_SKU_REPOSITORY = Symbol('ITEM_SKU_REPOSITORY');

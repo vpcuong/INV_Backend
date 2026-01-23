@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QueryBuilderService } from '@/common/filtering';
 import { ItemFilterDto } from '../dto/item-filter.dto';
+import { ModelFilterDto } from '../dto/model-filter.dto';
+import { SkuFilterDto } from '../dto/sku-filter.dto';
 
 @Injectable()
 export class ItemQueryService {
@@ -339,5 +341,353 @@ export class ItemQueryService {
     } else {
       return { data, total };
     }
+  }
+
+  // ==================== MODEL QUERIES ====================
+
+  async findModelsByItemId(itemId: number, filterDto?: ModelFilterDto) {
+    const where: any = { itemId };
+
+    if (filterDto?.status) {
+      where.status = filterDto.status;
+    }
+
+    if (filterDto?.search) {
+      where.OR = [
+        { code: { contains: filterDto.search, mode: 'insensitive' } },
+        { desc: { contains: filterDto.search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (filterDto?.customerId !== undefined) {
+      where.customerId = filterDto.customerId;
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.client.itemModel.findMany({
+        where,
+        include: {
+          customer: true,
+          item: {
+            select: { id: true, code: true },
+          },
+        },
+        orderBy: { id: 'desc' },
+        skip: filterDto?.page && filterDto?.limit
+          ? (filterDto.page - 1) * filterDto.limit
+          : undefined,
+        take: filterDto?.limit,
+      }),
+      this.prisma.client.itemModel.count({ where }),
+    ]);
+
+    if (filterDto?.limit) {
+      return this.queryBuilder.buildPaginatedResponse(
+        data,
+        total,
+        filterDto.page || 1,
+        filterDto.limit
+      );
+    }
+
+    return { data, total };
+  }
+
+  async findModelById(modelId: number) {
+    const model = await this.prisma.client.itemModel.findUnique({
+      where: { id: modelId },
+      include: {
+        customer: true,
+        item: {
+          select: { id: true, code: true },
+        },
+        skus: {
+          include: {
+            color: true,
+            size: true,
+            gender: true,
+          },
+        },
+      },
+    });
+
+    if (!model) {
+      throw new NotFoundException(`Model with ID ${modelId} not found`);
+    }
+
+    return model;
+  }
+
+  async findAllModels(filterDto?: ModelFilterDto) {
+    const where: any = {};
+
+    if (filterDto?.status) {
+      where.status = filterDto.status;
+    }
+
+    if (filterDto?.search) {
+      where.OR = [
+        { code: { contains: filterDto.search, mode: 'insensitive' } },
+        { desc: { contains: filterDto.search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (filterDto?.customerId !== undefined) {
+      where.customerId = filterDto.customerId;
+    }
+
+    if (filterDto?.itemId !== undefined) {
+      where.itemId = filterDto.itemId;
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.client.itemModel.findMany({
+        where,
+        include: {
+          customer: true,
+          item: {
+            select: { id: true, code: true },
+          },
+        },
+        orderBy: { id: 'desc' },
+        skip: filterDto?.page && filterDto?.limit
+          ? (filterDto.page - 1) * filterDto.limit
+          : undefined,
+        take: filterDto?.limit,
+      }),
+      this.prisma.client.itemModel.count({ where }),
+    ]);
+
+    if (filterDto?.limit) {
+      return this.queryBuilder.buildPaginatedResponse(
+        data,
+        total,
+        filterDto.page || 1,
+        filterDto.limit
+      );
+    }
+
+    return { data, total };
+  }
+
+  // ==================== SKU QUERIES ====================
+
+  async findSkusByItemId(itemId: number, filterDto?: SkuFilterDto) {
+    const where: any = { itemId };
+
+    this.applySkuFilters(where, filterDto);
+
+    const [data, total] = await Promise.all([
+      this.prisma.client.itemSKU.findMany({
+        where,
+        include: this.getSkuIncludes(),
+        orderBy: { id: 'desc' },
+        skip: filterDto?.page && filterDto?.limit
+          ? (filterDto.page - 1) * filterDto.limit
+          : undefined,
+        take: filterDto?.limit,
+      }),
+      this.prisma.client.itemSKU.count({ where }),
+    ]);
+
+    if (filterDto?.limit) {
+      return this.queryBuilder.buildPaginatedResponse(
+        data,
+        total,
+        filterDto.page || 1,
+        filterDto.limit
+      );
+    }
+
+    return { data, total };
+  }
+
+  async findSkusByModelId(modelId: number, filterDto?: SkuFilterDto) {
+    const where: any = { modelId };
+
+    this.applySkuFilters(where, filterDto);
+
+    const [data, total] = await Promise.all([
+      this.prisma.client.itemSKU.findMany({
+        where,
+        include: this.getSkuIncludes(),
+        orderBy: { id: 'desc' },
+        skip: filterDto?.page && filterDto?.limit
+          ? (filterDto.page - 1) * filterDto.limit
+          : undefined,
+        take: filterDto?.limit,
+      }),
+      this.prisma.client.itemSKU.count({ where }),
+    ]);
+
+    if (filterDto?.limit) {
+      return this.queryBuilder.buildPaginatedResponse(
+        data,
+        total,
+        filterDto.page || 1,
+        filterDto.limit
+      );
+    }
+
+    return { data, total };
+  }
+
+  async findSkuById(skuId: number) {
+    const sku = await this.prisma.client.itemSKU.findUnique({
+      where: { id: skuId },
+      include: {
+        ...this.getSkuIncludes(),
+        skuUoms: {
+          include: { uom: true },
+        },
+      },
+    });
+
+    if (!sku) {
+      throw new NotFoundException(`SKU with ID ${skuId} not found`);
+    }
+
+    return sku;
+  }
+
+  async findAllSkus(filterDto?: SkuFilterDto) {
+    const where: any = {};
+
+    if (filterDto?.itemId !== undefined) {
+      where.itemId = filterDto.itemId;
+    }
+
+    if (filterDto?.modelId !== undefined) {
+      where.modelId = filterDto.modelId;
+    }
+
+    this.applySkuFilters(where, filterDto);
+
+    const [data, total] = await Promise.all([
+      this.prisma.client.itemSKU.findMany({
+        where,
+        include: this.getSkuIncludes(),
+        orderBy: { id: 'desc' },
+        skip: filterDto?.page && filterDto?.limit
+          ? (filterDto.page - 1) * filterDto.limit
+          : undefined,
+        take: filterDto?.limit,
+      }),
+      this.prisma.client.itemSKU.count({ where }),
+    ]);
+
+    if (filterDto?.limit) {
+      return this.queryBuilder.buildPaginatedResponse(
+        data,
+        total,
+        filterDto.page || 1,
+        filterDto.limit
+      );
+    }
+
+    return { data, total };
+  }
+
+  private applySkuFilters(where: any, filterDto?: SkuFilterDto) {
+    if (!filterDto) return;
+
+    if (filterDto.status) {
+      where.status = filterDto.status;
+    }
+
+    if (filterDto.colorId !== undefined) {
+      where.colorId = filterDto.colorId;
+    }
+
+    if (filterDto.genderId !== undefined) {
+      where.genderId = filterDto.genderId;
+    }
+
+    if (filterDto.sizeId !== undefined) {
+      where.sizeId = filterDto.sizeId;
+    }
+
+    if (filterDto.supplierId !== undefined) {
+      where.supplierId = filterDto.supplierId;
+    }
+
+    if (filterDto.customerId !== undefined) {
+      where.customerId = filterDto.customerId;
+    }
+
+    if (filterDto.search) {
+      where.OR = [
+        { skuCode: { contains: filterDto.search, mode: 'insensitive' } },
+        { desc: { contains: filterDto.search, mode: 'insensitive' } },
+        { pattern: { contains: filterDto.search, mode: 'insensitive' } },
+      ];
+    }
+  }
+
+  private getSkuIncludes() {
+    return {
+      item: {
+        select: { id: true, code: true },
+      },
+      model: {
+        select: { id: true, code: true },
+      },
+      color: true,
+      gender: true,
+      size: true,
+      uom: true,
+    };
+  }
+
+  // ==================== UOM QUERIES ====================
+
+  async findUomsByItemId(itemId: number) {
+    const item = await this.prisma.client.item.findUnique({
+      where: { id: itemId },
+      select: { id: true, code: true, uomCode: true },
+    });
+
+    if (!item) {
+      throw new NotFoundException(`Item with ID ${itemId} not found`);
+    }
+
+    const uoms = await this.prisma.client.itemUOM.findMany({
+      where: { itemId },
+      include: {
+        uom: true,
+      },
+      orderBy: { toBaseFactor: 'asc' },
+    });
+
+    return {
+      item: {
+        id: item.id,
+        code: item.code,
+        baseUomCode: item.uomCode,
+      },
+      uoms,
+    };
+  }
+
+  async findUomByItemAndCode(itemId: number, uomCode: string) {
+    const uom = await this.prisma.client.itemUOM.findUnique({
+      where: {
+        itemId_uomCode: { itemId, uomCode },
+      },
+      include: {
+        uom: true,
+        item: {
+          select: { id: true, code: true, uomCode: true },
+        },
+      },
+    });
+
+    if (!uom) {
+      throw new NotFoundException(
+        `UOM ${uomCode} not found for item ${itemId}`
+      );
+    }
+
+    return uom;
   }
 }

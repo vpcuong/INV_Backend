@@ -49,7 +49,8 @@ export class SOQueryService {
 
     // Apply quick filters
     this.applyQuickFilters(query, filterDto);
-
+    console.log('query');
+    console.log(query);
     // Execute queries in parallel
     const [data, total] = await Promise.all([
       this.prisma.client.sOHeader.findMany(query),
@@ -108,7 +109,6 @@ export class SOQueryService {
       {
         lines: {
           include: {
-            item: true,
             itemSku: {
               include: {
                 color: true,
@@ -222,6 +222,7 @@ export class SOQueryService {
     }
 
     const relations = this.buildRelations({} as SOFilterDto);
+    console.log(relations);
     const data = await this.prisma.client.sOHeader.findMany({
       where,
       include: this.relationsToInclude(relations),

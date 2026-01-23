@@ -111,7 +111,6 @@ export class SOHeaderRepository implements ISOHeaderRepository {
       include: {
         lines: {
           include: {
-            item: true,
             itemSku: {
               include: {
                 color: true,
@@ -260,7 +259,6 @@ export class SOHeaderRepository implements ISOHeaderRepository {
         shippingAddress: true,
         lines: {
           include: {
-            item: true,
             itemSku: {
               include: {
                 color: true,
