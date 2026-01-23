@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { QueryBuilderService, RelationConfig } from '@/common/filtering';
+import { QueryBuilderService, RelationConfig } from '../../common/filtering';
 import { SOFilterDto } from '../dto/so-filter.dto';
 
 @Injectable()
@@ -33,7 +33,7 @@ export class SOQueryService {
       sortableFields: [
         'soNum',
         'orderDate',
-        'orderTotal',
+        'totalAmount',
         'createdAt',
         'updatedAt',
       ],
@@ -86,12 +86,12 @@ export class SOQueryService {
       filterDto.minOrderTotal !== undefined ||
       filterDto.maxOrderTotal !== undefined
     ) {
-      where.orderTotal = {};
+      where.totalAmount = {};
       if (filterDto.minOrderTotal !== undefined) {
-        where.orderTotal.gte = filterDto.minOrderTotal;
+        where.totalAmount.gte = filterDto.minOrderTotal;
       }
       if (filterDto.maxOrderTotal !== undefined) {
-        where.orderTotal.lte = filterDto.maxOrderTotal;
+        where.totalAmount.lte = filterDto.maxOrderTotal;
       }
     }
   }
@@ -188,19 +188,19 @@ export class SOQueryService {
       }),
       this.prisma.client.sOHeader.aggregate({
         where,
-        _sum: { orderTotal: true },
+        _sum: { totalAmount: true },
       }),
       this.prisma.client.sOHeader.aggregate({
         where: { ...where, orderStatus: 'OPEN' },
-        _sum: { openAmount: true },
+        _sum: { totalAmount: true },
       }),
     ]);
 
     return {
       totalOrders,
       openOrders,
-      totalValue: totalValue._sum.orderTotal || 0,
-      openValue: openValue._sum.openAmount || 0,
+      totalValue: totalValue._sum.totalAmount || 0,
+      openValue: openValue._sum.totalAmount || 0,
     };
   }
 

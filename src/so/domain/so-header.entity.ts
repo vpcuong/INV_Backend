@@ -14,15 +14,16 @@ export interface SOHeaderConstructorData {
   requestDate?: Date | null;
   needByDate?: Date | null;
   orderStatus?: string;
-  totalLineAmount?: number;
-  headerDiscount?: number;
-  headerDiscountPercent?: number;
-  lineDiscounts?: number[];
-  taxes?: number[];
-  charges?: number[];
-  openAmount?: number;
+  // Pricing fields - Simplified
+  discountPercent?: number;
+  discountAmount?: number;
+  taxPercent?: number;
+  taxAmount?: number;
+  totalAmount?: number;
+  // Relations
   billingAddressId?: number | null;
   shippingAddressId?: number | null;
+  // Metadata
   channel?: string | null;
   fobCode?: string | null;
   shipViaCode?: string | null;
@@ -70,26 +71,41 @@ export class SOHeader {
 
   public static create(data: SOHeaderConstructorData): SOHeader {
     const status = SOStatus.create(data.orderStatus || 'OPEN');
-    const pricing = SOPricing.create({
-      totalLineAmount: data.totalLineAmount || 0,
-      headerDiscount: data.headerDiscount || 0,
-      headerDiscountPercent: data.headerDiscountPercent || 0,
-      lineDiscounts: data.lineDiscounts || [],
-      taxes: data.taxes || [],
-      charges: data.charges || [],
-      openAmount: data.openAmount,
+    
+    // Initial lines
+    const lines = data.lines || [];
+
+    // Calculate initial base total from lines
+    const totalLinesAmount = lines.reduce(
+        (sum, line) => sum + line.getTotalAmount(),
+        0
+    );
+
+    // Create pricing object using new logic
+    // We create a temp object first, then recalculate to ensure consistency
+    let pricing = SOPricing.create({
+      discountPercent: data.discountPercent,
+      discountAmount: data.discountAmount,
+      taxPercent: data.taxPercent,
+      taxAmount: data.taxAmount,
+      totalAmount: data.totalAmount, // This might be ignored by recalculate, used for initial
     });
+    
+    // Enforce consistency: Base + Recalc
+    pricing = pricing.recalculate(totalLinesAmount);
+
     const addresses = SOAddresses.create({
       billingAddressId: data.billingAddressId,
       shippingAddressId: data.shippingAddressId,
     });
+
     const metadata = SOMetadata.create({
       channel: data.channel,
       fobCode: data.fobCode,
       shipViaCode: data.shipViaCode,
       paymentTermCode: data.paymentTermCode,
-      currencyCode: data.currencyCode,
-      exchangeRate: data.exchangeRate,
+      currencyCode: data.currencyCode ?? 'VND',
+      exchangeRate: data.exchangeRate ?? 1,
       customerPoNum: data.customerPoNum,
       headerNote: data.headerNote,
       internalNote: data.internalNote,
@@ -106,7 +122,7 @@ export class SOHeader {
       pricing,
       addresses,
       metadata,
-      data.lines || [],
+      lines,
       data.createdBy,
       data.createdAt || new Date(),
       data.updatedAt || new Date(),
@@ -192,7 +208,16 @@ export class SOHeader {
     if (this.status.isClosed()) {
       throw new InvalidSOException('Cannot cancel closed order');
     }
-    const cancelledLines = this.lines.map((line) => line.cancel());
+    const cancelledLines = this.lines.map((line) => {
+      line.cancel();
+      return line;
+    });
+    
+    // No need to recalculate pricing for cancellation status change?
+    // Actually if lines are cancelled, their totals might change?
+    // In this system, line.cancel() changes status but does it change amounts?
+    // Assuming amounts stay same for record keeping, just status changes.
+    
     return new SOHeader(
       this.soNum,
       this.customerId,
@@ -203,7 +228,6 @@ export class SOHeader {
       this.pricing,
       this.addresses,
       this.metadata,
-      // @ts-ignore - void[] to SOLine[]
       cancelledLines,
       this.createdBy,
       this.createdAt,
@@ -214,7 +238,12 @@ export class SOHeader {
   }
 
   public close(): SOHeader {
-    if (this.lines.some((line) => line.getOpenQty() > 0)) {
+    // Check if all lines are closed or cancelled
+    const hasOpenLines = this.lines.some(
+      (line) => line.getStatus() === 'OPEN' || line.getStatus() === 'PARTIAL'
+    );
+    
+    if (hasOpenLines) {
       throw new InvalidSOException('Cannot close order with open lines');
     }
     return this.withStatus(this.status.toClosed());
@@ -273,8 +302,12 @@ export class SOHeader {
     );
   }
 
-  public updateDiscount(headerDiscount: number): SOHeader {
-    const updatedPricing = this.pricing.addHeaderDiscount(headerDiscount);
+  /**
+   * Update discount by amount - auto-syncs percent
+   * @param discountAmount - Discount amount in currency
+   */
+  public updateDiscountAmount(discountAmount: number): SOHeader {
+    const updatedPricing = this.pricing.setDiscountAmount(discountAmount);
 
     return new SOHeader(
       this.soNum,
@@ -293,6 +326,39 @@ export class SOHeader {
       this.id,
       this.publicId
     );
+  }
+
+  /**
+   * Update discount by percent - auto-syncs amount
+   * @param discountPercent - Discount percent (0-100)
+   */
+  public updateDiscountPercent(discountPercent: number): SOHeader {
+    const updatedPricing = this.pricing.setDiscountPercent(discountPercent);
+
+    return new SOHeader(
+      this.soNum,
+      this.customerId,
+      this.orderDate,
+      this.requestDate,
+      this.needByDate,
+      this.status,
+      updatedPricing,
+      this.addresses,
+      this.metadata,
+      this.lines,
+      this.createdBy,
+      this.createdAt,
+      new Date(),
+      this.id,
+      this.publicId
+    );
+  }
+  
+  /**
+   * @deprecated Use updateDiscountAmount instead
+   */
+  public updateDiscount(headerDiscount: number): SOHeader {
+    return this.updateDiscountAmount(headerDiscount);
   }
 
   public updateAddresses(
@@ -376,6 +442,56 @@ export class SOHeader {
     );
   }
 
+  public updateMetadata(data: any): SOHeader {
+    const updatedMetadata = this.metadata.update(data);
+
+    return new SOHeader(
+      this.soNum,
+      this.customerId,
+      this.orderDate,
+      this.requestDate,
+      this.needByDate,
+      this.status,
+      this.pricing,
+      this.addresses,
+      updatedMetadata,
+      this.lines,
+      this.createdBy,
+      this.createdAt,
+      new Date(),
+      this.id,
+      this.publicId
+    );
+  }
+
+  public updateDates(data: {
+    orderDate?: Date;
+    requestDate?: Date | null;
+    needByDate?: Date | null;
+  }): SOHeader {
+    return new SOHeader(
+      this.soNum,
+      this.customerId,
+      data.orderDate || this.orderDate,
+      data.requestDate !== undefined ? data.requestDate : this.requestDate,
+      data.needByDate !== undefined ? data.needByDate : this.needByDate,
+      this.status,
+      this.pricing,
+      this.addresses,
+      this.metadata,
+      this.lines,
+      this.createdBy,
+      this.createdAt,
+      new Date(),
+      this.id,
+      this.publicId
+    );
+  }
+
+  public updateStatus(status: string): SOHeader {
+    return this.withStatus(SOStatus.create(status));
+  }
+
   // Private helper methods
   private withStatus(newStatus: SOStatus): SOHeader {
     return new SOHeader(
@@ -398,21 +514,14 @@ export class SOHeader {
   }
 
   private recalculatePricing(lines: SOLine[]): SOPricing {
-    const totalLineAmount = lines.reduce(
-      (sum, line) => sum + line.getLineTotal(),
+    // 1. Calculate sum of lines
+    const sumLineTotal = lines.reduce(
+      (sum, line) => sum + line.getTotalAmount(),
       0
     );
-    const lineDiscounts = lines.map(
-      (line) => line.getLineDiscountAmount() || 0
-    );
 
-    return SOPricing.create({
-      totalLineAmount,
-      headerDiscount: this.pricing.getHeaderDiscount(),
-      lineDiscounts,
-      taxes: this.pricing.getTaxes(),
-      charges: this.pricing.getCharges(),
-    });
+    // 2. Delegate to proper VO method
+    return this.pricing.recalculate(sumLineTotal);
   }
 
   // Persistence methods
@@ -426,6 +535,7 @@ export class SOHeader {
       requestDate: this.requestDate,
       needByDate: this.needByDate,
       orderStatus: this.status.getValue(),
+      // Spread pricing fields directly
       ...this.pricing.toPersistence(),
       ...this.addresses.toPersistence(),
       ...this.metadata.toPersistence(),

@@ -47,55 +47,51 @@ export class SOMetadata {
   }
 
   // Business methods
+  public update(data: {
+    channel?: string | null;
+    fobCode?: string | null;
+    shipViaCode?: string | null;
+    paymentTermCode?: string | null;
+    currencyCode?: string | null;
+    exchangeRate?: number;
+    customerPoNum?: string | null;
+    headerNote?: string | null;
+    internalNote?: string | null;
+  }): SOMetadata {
+    return new SOMetadata(
+      data.channel !== undefined ? data.channel : this.channel,
+      data.fobCode !== undefined ? data.fobCode : this.fobCode,
+      data.shipViaCode !== undefined ? data.shipViaCode : this.shipViaCode,
+      data.paymentTermCode !== undefined
+        ? data.paymentTermCode
+        : this.paymentTermCode,
+      data.currencyCode !== undefined ? data.currencyCode : this.currencyCode,
+      data.exchangeRate !== undefined ? data.exchangeRate : this.exchangeRate,
+      data.customerPoNum !== undefined
+        ? data.customerPoNum
+        : this.customerPoNum,
+      data.headerNote !== undefined ? data.headerNote : this.headerNote,
+      data.internalNote !== undefined ? data.internalNote : this.internalNote,
+      this.createdBy
+    );
+  }
+
   public updateShippingDetails(
     shipViaCode: string | null,
     fobCode: string | null
   ): SOMetadata {
-    return new SOMetadata(
-      this.channel,
-      fobCode,
-      shipViaCode,
-      this.paymentTermCode,
-      this.currencyCode,
-      this.exchangeRate,
-      this.customerPoNum,
-      this.headerNote,
-      this.internalNote,
-      this.createdBy
-    );
+    return this.update({ shipViaCode, fobCode });
   }
 
   public updateNotes(
     headerNote: string | null,
     internalNote: string | null
   ): SOMetadata {
-    return new SOMetadata(
-      this.channel,
-      this.fobCode,
-      this.shipViaCode,
-      this.paymentTermCode,
-      this.currencyCode,
-      this.exchangeRate,
-      this.customerPoNum,
-      headerNote,
-      internalNote,
-      this.createdBy
-    );
+    return this.update({ headerNote, internalNote });
   }
 
   public updateExchangeRate(exchangeRate: number): SOMetadata {
-    return new SOMetadata(
-      this.channel,
-      this.fobCode,
-      this.shipViaCode,
-      this.paymentTermCode,
-      this.currencyCode,
-      exchangeRate,
-      this.customerPoNum,
-      this.headerNote,
-      this.internalNote,
-      this.createdBy
-    );
+    return this.update({ exchangeRate });
   }
 
   // Getters
@@ -162,7 +158,7 @@ export class SOMetadata {
       data.shipViaCode || null,
       data.paymentTermCode || null,
       data.currencyCode || null,
-      data.exchangeRate || 1,
+      Number(data.exchangeRate) || 1,
       data.customerPoNum || null,
       data.headerNote || null,
       data.internalNote || null,

@@ -8,8 +8,6 @@ import {
   Delete,
   ParseIntPipe,
   Query,
-  NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { SOService } from './application/so.service';
@@ -18,6 +16,7 @@ import { CreateSOHeaderDto } from './dto/create-so-header.dto';
 import { UpdateSOHeaderDto } from './dto/update-so-header.dto';
 import { UpdateSOWithLinesDto } from './dto/update-so-with-lines.dto';
 import { SOFilterDto } from './dto/so-filter.dto';
+import { CreateSOLineDto } from './dto/composed/create-so-line.dto';
 import { ULIDValidationPipe } from '../common/pipes/ulid-validation.pipe';
 
 @ApiTags('Sales Orders')
@@ -109,15 +108,8 @@ export class SalesOrdersController {
     return this.soQueryService.getSummary(customerId);
   }
 
-  // ========================================
-  // NEW SECURE API ENDPOINTS (using publicId)
-  // ========================================
-
-  @Get('public/:publicId')
-  @ApiOperation({
-    summary: 'Get sales order by public ID (RECOMMENDED)',
-    description: 'Use public ID (ULID) instead of sequential ID for better security'
-  })
+  @Get(':publicId')
+  @ApiOperation({ summary: 'Get sales order by public ID' })
   @ApiResponse({ status: 200, description: 'Returns sales order' })
   @ApiResponse({ status: 404, description: 'Sales order not found' })
   @ApiResponse({ status: 400, description: 'Invalid ULID format' })
@@ -125,11 +117,8 @@ export class SalesOrdersController {
     return this.soService.findByPublicId(publicId);
   }
 
-  @Patch('public/:publicId')
-  @ApiOperation({
-    summary: 'Update sales order by public ID (RECOMMENDED)',
-    description: 'Use public ID (ULID) instead of sequential ID for better security'
-  })
+  @Patch(':publicId')
+  @ApiOperation({ summary: 'Update sales order by public ID' })
   @ApiResponse({ status: 200, description: 'Sales order updated successfully' })
   @ApiResponse({ status: 404, description: 'Sales order not found' })
   @ApiResponse({ status: 400, description: 'Invalid ULID format or data' })
@@ -140,77 +129,7 @@ export class SalesOrdersController {
     return this.soService.updateByPublicId(publicId, updateDto);
   }
 
-  @Delete('public/:publicId/lines/:linePublicId')
-  @ApiOperation({
-    summary: 'Delete sales order line by public IDs (RECOMMENDED)',
-    description: 'Use public IDs (ULID) for both SO and line for better security'
-  })
-  @ApiResponse({ status: 200, description: 'Line deleted successfully' })
-  @ApiResponse({ status: 404, description: 'Sales order or line not found' })
-  @ApiResponse({ status: 400, description: 'Invalid ULID format' })
-  async deleteLineByPublicId(
-    @Param('publicId', ULIDValidationPipe) publicId: string,
-    @Param('linePublicId', ULIDValidationPipe) linePublicId: string
-  ) {
-    return this.soService.deleteLineByPublicId(publicId, linePublicId);
-  }
-
-  // ========================================
-  // OLD API ENDPOINTS (using sequential ID)
-  // For backwards compatibility - consider deprecating
-  // ========================================
-
-  @Get('sonum/:soNum')
-  @ApiOperation({ summary: 'Get sales order by SO number' })
-  @ApiResponse({ status: 200, description: 'Returns sales order' })
-  @ApiResponse({ status: 404, description: 'Sales order not found' })
-  async findBySONum(@Param('soNum') soNum: string) {
-    const result = await this.soService.findBySONum(soNum);
-    if (result.isFailure()) {
-      throw new NotFoundException(result.getError()?.message);
-    }
-    return result.getValue();
-  }
-
-  @Get(':id')
-  @ApiOperation({
-    summary: 'Get sales order by ID',
-    deprecated: true,
-    description: 'DEPRECATED: Use GET /so/public/:publicId instead for better security'
-  })
-  @ApiResponse({ status: 200, description: 'Returns sales order' })
-  @ApiResponse({ status: 404, description: 'Sales order not found' })
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.soService.findOne(id);
-  }
-
-  @Patch(':id')
-  @ApiOperation({
-    summary: 'Update a sales order',
-    deprecated: true,
-    description: 'DEPRECATED: Use PATCH /so/public/:publicId instead for better security'
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Sales order updated successfully',
-  })
-  @ApiResponse({ status: 404, description: 'Sales order not found' })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid data or business rule violation',
-  })
-  async update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateDto: UpdateSOHeaderDto
-  ) {
-    const result = await this.soService.update(id, updateDto);
-    if (result.isFailure()) {
-      throw new BadRequestException(result.getError()?.message);
-    }
-    return result.getValue();
-  }
-
-  @Patch(':id/with-lines')
+  @Patch(':publicId/with-lines')
   @ApiOperation({
     summary: 'Update sales order header and lines together',
     description: `
@@ -230,19 +149,35 @@ export class SalesOrdersController {
     status: 400,
     description: 'Invalid data or business rule violation',
   })
-  async updateWithLines(
-    @Param('id', ParseIntPipe) id: number,
+  async updateWithLinesByPublicId(
+    @Param('publicId', ULIDValidationPipe) publicId: string,
     @Body() dto: UpdateSOWithLinesDto
   ) {
-    const result = await this.soService.updateWithLines(id, dto);
-    if (result.isFailure()) {
-      throw new BadRequestException(result.getError()?.message);
-    }
-    return result.getValue();
+    return this.soService.updateWithLinesByPublicId(publicId, dto);
   }
 
-  // Status management endpoints
-  @Patch(':id/cancel')
+  @Post(':publicId/lines')
+  @ApiOperation({
+    summary: 'Add a new line to existing sales order',
+    description: 'Add a single line to an existing SO. Line number will be auto-generated if not provided.'
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Line added successfully',
+  })
+  @ApiResponse({ status: 404, description: 'Sales order not found' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid data or business rule violation',
+  })
+  async addLineByPublicId(
+    @Param('publicId', ULIDValidationPipe) publicId: string,
+    @Body() lineDto: CreateSOLineDto
+  ) {
+    return this.soService.addLineByPublicId(publicId, lineDto);
+  }
+
+  @Patch(':publicId/cancel')
   @ApiOperation({ summary: 'Cancel a sales order' })
   @ApiResponse({
     status: 200,
@@ -253,15 +188,11 @@ export class SalesOrdersController {
     status: 400,
     description: 'Cannot cancel order in current status',
   })
-  async cancel(@Param('id', ParseIntPipe) id: number) {
-    const result = await this.soService.cancel(id);
-    if (result.isFailure()) {
-      throw new BadRequestException(result.getError()?.message);
-    }
-    return result.getValue();
+  async cancelByPublicId(@Param('publicId', ULIDValidationPipe) publicId: string) {
+    return this.soService.cancelByPublicId(publicId);
   }
 
-  @Patch(':id/complete')
+  @Patch(':publicId/complete')
   @ApiOperation({ summary: 'Complete a sales order' })
   @ApiResponse({
     status: 200,
@@ -272,15 +203,11 @@ export class SalesOrdersController {
     status: 400,
     description: 'Cannot complete order with open lines',
   })
-  async complete(@Param('id', ParseIntPipe) id: number) {
-    const result = await this.soService.complete(id);
-    if (result.isFailure()) {
-      throw new BadRequestException(result.getError()?.message);
-    }
-    return result.getValue();
+  async completeByPublicId(@Param('publicId', ULIDValidationPipe) publicId: string) {
+    return this.soService.completeByPublicId(publicId);
   }
 
-  @Patch(':id/hold')
+  @Patch(':publicId/hold')
   @ApiOperation({ summary: 'Put sales order on hold' })
   @ApiResponse({
     status: 200,
@@ -291,58 +218,35 @@ export class SalesOrdersController {
     status: 400,
     description: 'Cannot hold order in current status',
   })
-  async hold(@Param('id', ParseIntPipe) id: number) {
-    const result = await this.soService.hold(id);
-    if (result.isFailure()) {
-      throw new BadRequestException(result.getError()?.message);
-    }
-    return result.getValue();
+  async holdByPublicId(@Param('publicId', ULIDValidationPipe) publicId: string) {
+    return this.soService.holdByPublicId(publicId);
   }
 
-  @Patch(':id/release')
+  @Patch(':publicId/release')
   @ApiOperation({ summary: 'Release sales order from hold' })
   @ApiResponse({
     status: 200,
     description: 'Sales order released successfully',
   })
-  @ApiResponse({ status: 404, description: 'Sales order not found' })
-  @ApiResponse({ status: 400, description: 'Order is not on hold' })
-  async release(@Param('id', ParseIntPipe) id: number) {
-    const result = await this.soService.release(id);
-    if (result.isFailure()) {
-      throw new BadRequestException(result.getError()?.message);
-    }
-    return result.getValue();
+  @ApiResponse({ status: 404, description: 'Order is not on hold' })
+  async releaseByPublicId(@Param('publicId', ULIDValidationPipe) publicId: string) {
+    return this.soService.releaseByPublicId(publicId);
   }
 
-  @Delete(':id/lines/:lineNum')
-  @ApiOperation({
-    summary: 'Delete a sales order line',
-    deprecated: true,
-    description: 'DEPRECATED: Use DELETE /so/public/:publicId/lines/:linePublicId instead for better security'
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Sales order line deleted successfully',
-  })
+  @Delete(':publicId/lines/:linePublicId')
+  @ApiOperation({ summary: 'Delete sales order line by public IDs' })
+  @ApiResponse({ status: 200, description: 'Line deleted successfully' })
   @ApiResponse({ status: 404, description: 'Sales order or line not found' })
-  @ApiResponse({
-    status: 400,
-    description: 'Cannot delete line from order in current status',
-  })
-  async deleteLine(
-    @Param('id', ParseIntPipe) id: number,
-    @Param('lineNum', ParseIntPipe) lineNum: number
+  @ApiResponse({ status: 400, description: 'Invalid ULID format' })
+  async deleteLineByPublicId(
+    @Param('publicId', ULIDValidationPipe) publicId: string,
+    @Param('linePublicId', ULIDValidationPipe) linePublicId: string
   ) {
-    return this.soService.deleteLine(id, lineNum);
+    return this.soService.deleteLineByPublicId(publicId, linePublicId);
   }
 
-  @Delete(':id')
-  @ApiOperation({
-    summary: 'Delete a sales order',
-    deprecated: true,
-    description: 'DEPRECATED: Sequential ID endpoints expose business information'
-  })
+  @Delete(':publicId')
+  @ApiOperation({ summary: 'Delete a sales order' })
   @ApiResponse({
     status: 200,
     description: 'Sales order deleted successfully',
@@ -352,11 +256,15 @@ export class SalesOrdersController {
     status: 400,
     description: 'Cannot delete order in current status',
   })
-  async remove(@Param('id', ParseIntPipe) id: number) {
-    const result = await this.soService.remove(id);
-    if (result.isFailure()) {
-      throw new BadRequestException(result.getError()?.message);
-    }
-    return result.getValue();
+  async removeByPublicId(@Param('publicId', ULIDValidationPipe) publicId: string) {
+    return this.soService.removeByPublicId(publicId);
+  }
+
+  @Get('sonum/:soNum')
+  @ApiOperation({ summary: 'Get sales order by SO number' })
+  @ApiResponse({ status: 200, description: 'Returns sales order' })
+  @ApiResponse({ status: 404, description: 'Sales order not found' })
+  async findBySONum(@Param('soNum') soNum: string) {
+    return this.soService.findBySONum(soNum);
   }
 }

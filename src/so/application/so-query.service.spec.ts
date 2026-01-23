@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SOQueryService } from './so-query.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { QueryBuilderService } from '@/common/filtering';
+import { QueryBuilderService } from '../../common/filtering';
 
 describe('SOQueryService', () => {
   let service: SOQueryService;
@@ -14,8 +14,7 @@ describe('SOQueryService', () => {
     customerId: 1,
     orderDate: new Date('2026-01-01'),
     orderStatus: 'OPEN',
-    orderTotal: 1000,
-    openAmount: 1000,
+    totalAmount: 1000,
     customer: { id: 1, name: 'Test Customer' },
     billingAddress: null,
     shippingAddress: null,
@@ -271,8 +270,8 @@ describe('SOQueryService', () => {
         .mockResolvedValueOnce(50); // open orders
 
       (prismaService.client.sOHeader.aggregate as jest.Mock)
-        .mockResolvedValueOnce({ _sum: { orderTotal: 100000 } }) // total value
-        .mockResolvedValueOnce({ _sum: { openAmount: 50000 } }); // open value
+        .mockResolvedValueOnce({ _sum: { totalAmount: 100000 } }) // total value
+        .mockResolvedValueOnce({ _sum: { totalAmount: 50000 } }); // open value
 
       const result = await service.getSummary();
 
@@ -288,8 +287,8 @@ describe('SOQueryService', () => {
         .mockResolvedValueOnce(10);
 
       (prismaService.client.sOHeader.aggregate as jest.Mock)
-        .mockResolvedValueOnce({ _sum: { orderTotal: 20000 } })
-        .mockResolvedValueOnce({ _sum: { openAmount: 10000 } });
+        .mockResolvedValueOnce({ _sum: { totalAmount: 20000 } })
+        .mockResolvedValueOnce({ _sum: { totalAmount: 10000 } });
 
       const result = await service.getSummary(1);
 
@@ -303,8 +302,8 @@ describe('SOQueryService', () => {
         .mockResolvedValueOnce(0);
 
       (prismaService.client.sOHeader.aggregate as jest.Mock)
-        .mockResolvedValueOnce({ _sum: { orderTotal: null } })
-        .mockResolvedValueOnce({ _sum: { openAmount: null } });
+        .mockResolvedValueOnce({ _sum: { totalAmount: null } })
+        .mockResolvedValueOnce({ _sum: { totalAmount: null } });
 
       const result = await service.getSummary();
 

@@ -29,14 +29,6 @@ export class UpdateSOHeaderDto {
   customerId?: number;
 
   @ApiPropertyOptional({
-    description: 'Customer PO Number',
-    example: 'PO-CUST-12345',
-  })
-  @IsOptional()
-  @IsString()
-  customerPoNum?: string;
-
-  @ApiPropertyOptional({
     description: 'Order date',
     example: '2024-12-15T00:00:00.000Z',
   })
@@ -80,7 +72,7 @@ export class UpdateSOHeaderDto {
   @IsNumber()
   @Min(0)
   @Type(() => Number)
-  headerDiscountPercent?: number;
+  discountPercent?: number;
 
   @ApiPropertyOptional({
     description: 'Header discount amount',
@@ -90,67 +82,7 @@ export class UpdateSOHeaderDto {
   @IsNumber()
   @Min(0)
   @Type(() => Number)
-  headerDiscountAmount?: number;
-
-  @ApiPropertyOptional({
-    description: 'Total line amount (calculated)',
-    example: 2599.0,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  totalLineAmount?: number;
-
-  @ApiPropertyOptional({
-    description: 'Total discount (calculated)',
-    example: 100.0,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  totalDiscount?: number;
-
-  @ApiPropertyOptional({
-    description: 'Total tax (calculated)',
-    example: 246.91,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  totalTax?: number;
-
-  @ApiPropertyOptional({
-    description: 'Total charges',
-    example: 50.0,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  totalCharges?: number;
-
-  @ApiPropertyOptional({
-    description: 'Order total (calculated)',
-    example: 2795.91,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  orderTotal?: number;
-
-  @ApiPropertyOptional({
-    description: 'Open amount',
-    example: 2795.91,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  openAmount?: number;
+  discountAmount?: number;
 
   @ApiPropertyOptional({
     description: 'Addresses information (billing and shipping)',

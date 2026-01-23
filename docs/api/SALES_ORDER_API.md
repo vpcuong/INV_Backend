@@ -27,8 +27,8 @@ Tạo mới một đơn hàng bán hàng (Sales Order) với các line items.
   "paymentTermCode": "NET30",
   "currencyCode": "VND",
   "exchangeRate": 1,
-  "headerDiscountPercent": 5.00,
-  "headerDiscountAmount": 150000,
+  "discountPercent": 5.00,
+  "discountAmount": 150000,
   "totalLineAmount": 3000000,
   "totalDiscount": 150000,
   "totalTax": 285000,
@@ -104,8 +104,8 @@ Tạo mới một đơn hàng bán hàng (Sales Order) với các line items.
   "paymentTermCode": "NET30",
   "currencyCode": "VND",
   "exchangeRate": 1,
-  "headerDiscountPercent": 5.00,
-  "headerDiscountAmount": 150000,
+  "discountPercent": 5.00,
+  "discountAmount": 150000,
   "totalLineAmount": 3000000,
   "totalDiscount": 150000,
   "totalTax": 285000,
@@ -395,8 +395,8 @@ GET /so-headers/1
   "paymentTermCode": "NET30",
   "currencyCode": "VND",
   "exchangeRate": 1,
-  "headerDiscountPercent": 5.00,
-  "headerDiscountAmount": 150000,
+  "discountPercent": 5.00,
+  "discountAmount": 150000,
   "totalLineAmount": 3000000,
   "totalDiscount": 150000,
   "totalTax": 285000,
@@ -785,10 +785,10 @@ lineTotal = lineAfterDiscount + lineTaxAmount
 
 // Header Level
 totalLineAmount = SUM(all lines lineTotal)
-headerDiscountAmount = totalLineAmount * (headerDiscountPercent / 100)
-totalDiscount = headerDiscountAmount + SUM(all lines lineDiscountAmount)
+discountAmount = totalLineAmount * (discountPercent / 100)
+totalDiscount = discountAmount + SUM(all lines lineDiscountAmount)
 totalTax = SUM(all lines lineTaxAmount)
-orderTotal = totalLineAmount - headerDiscountAmount + totalTax + totalCharges
+orderTotal = totalLineAmount - discountAmount + totalTax + totalCharges
 openAmount = orderTotal (initially, decreases as order is fulfilled)
 ```
 

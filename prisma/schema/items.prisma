@@ -64,7 +64,7 @@ model Item {
   skus           ItemSKU[]
 
   itemUoms       ItemUOM[]
-  soDetails      SODetail[]
+  //soDetails      SODetail[]
   suppliers      SupplierItem[]
 }
 

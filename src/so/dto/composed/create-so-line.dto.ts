@@ -65,22 +65,9 @@ export class CreateSOLineDto {
   @IsPositive()
   lineNum?: number;
 
-  @ApiProperty({ description: 'Item ID', example: 123, required: false })
-  @IsOptional()
+  @ApiProperty({ description: 'Item SKU ID', example: 456 })
   @IsNumber()
-  itemId?: number;
-
-  @ApiProperty({ description: 'Item SKU ID', example: 456, required: false })
-  @IsOptional()
-  @IsNumber()
-  itemSkuId?: number;
-
-  @ApiProperty({
-    description: 'Item code (required for new items)',
-    example: 'ITEM-001',
-  })
-  @IsString()
-  itemCode: string;
+  itemSkuId: number;
 
   @ApiProperty({ description: 'Item description', required: false })
   @IsOptional()
@@ -106,43 +93,21 @@ export class CreateSOLineDto {
   @IsPositive()
   unitPrice: number;
 
-  @ValidateNested()
+  @ApiProperty({
+    description: 'pricing information',
+    type: LinePricingDto,
+    required: false,
+  })
+  @ValidateNested({ each: true })
   @Type(() => LinePricingDto)
   @IsOptional()
   pricing?: LinePricingDto;
-
-  // @ApiProperty({
-  //   description: 'Line total (calculated if not provided)',
-  //   example: 255.0,
-  //   required: false,
-  // })
-  // @IsOptional()
-  // @IsNumber()
-  // @Min(0)
-  // lineTotal?: number;
 
   @ApiProperty({ description: 'Need by date', required: false })
   @IsOptional()
   @Type(() => Date)
   @IsDate()
   needByDate?: Date;
-
-  // @ApiProperty({ description: 'Line status', example: 'OPEN', required: false })
-  // @IsOptional()
-  // @IsString()
-  // lineStatus?: string;
-
-  // @ApiProperty({ description: 'Open quantity', example: 10, required: false })
-  // @IsOptional()
-  // @IsNumber()
-  // @Min(0)
-  // openQty?: number;
-
-  // @ApiProperty({ description: 'Shipped quantity', example: 0, required: false })
-  // @IsOptional()
-  // @IsNumber()
-  // @Min(0)
-  // shippedQty?: number;
 
   @ApiProperty({ description: 'Warehouse code', required: false })
   @IsOptional()

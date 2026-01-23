@@ -63,14 +63,6 @@ export class UpdateSOLineDto {
   uomCode?: string;
 
   @ApiPropertyOptional({
-    description: 'Unit of Measure ID',
-    example: 1,
-  })
-  @IsOptional()
-  @IsNumber()
-  uomId?: number;
-
-  @ApiPropertyOptional({
     description: 'Unit price',
     example: 25.99,
   })
@@ -90,16 +82,6 @@ export class UpdateSOLineDto {
   pricing?: LinePricingDto;
 
   @ApiPropertyOptional({
-    description: 'Line total (calculated)',
-    example: 2599.0,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  lineTotal?: number;
-
-  @ApiPropertyOptional({
     description: 'Need by date',
     example: '2024-12-31T00:00:00.000Z',
   })
@@ -116,26 +98,6 @@ export class UpdateSOLineDto {
   @IsOptional()
   @IsEnum(['OPEN', 'PARTIAL', 'CLOSED', 'CANCELLED', 'BACKORDERED'])
   lineStatus?: string;
-
-  @ApiPropertyOptional({
-    description: 'Open quantity',
-    example: 100,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  openQty?: number;
-
-  @ApiPropertyOptional({
-    description: 'Shipped quantity',
-    example: 50,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  shippedQty?: number;
 
   @ApiPropertyOptional({
     description: 'Warehouse code',

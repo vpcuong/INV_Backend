@@ -25,7 +25,7 @@ Tạo một Sales Order mới với header và lines. API này hỗ trợ tạo 
 | `orderDate` | string (ISO Date) | NO | ✅ Default now | Ngày tạo order | `"2024-12-15T00:00:00.000Z"` |
 | `requestDate` | string (ISO Date) | NO | ❌ | Ngày yêu cầu | `"2024-12-20T00:00:00.000Z"` |
 | `needByDate` | string (ISO Date) | NO | ❌ | Ngày cần có hàng | `"2024-12-25T00:00:00.000Z"` |
-| `headerDiscountPercent` | number | NO | ❌ | Phần trăm discount ở header (≥ 0) | `5.0` |
+| `discountPercent` | number | NO | ❌ | Phần trăm discount ở header (≥ 0) | `5.0` |
 | `billingAddressId` | number | NO | ❌ | ID địa chỉ billing | `1` |
 | `shippingAddressId` | number | NO | ❌ | ID địa chỉ shipping | `2` |
 | `headerNote` | string | NO | ❌ | Ghi chú hiển thị cho khách hàng | `"Special handling"` |
@@ -47,9 +47,9 @@ Các field sau **KHÔNG** được gửi từ frontend nữa. Backend sẽ tự 
 | `soNum` | Backend | Auto-generated: `SO{YEAR}{SEQUENCE}` (e.g., `SO2026000001`) |
 | `orderStatus` | Backend | Default: `"OPEN"` |
 | `exchangeRate` | Backend | Fetched based on `currencyCode` |
-| `headerDiscountAmount` | Backend | `totalLineAmount * headerDiscountPercent / 100` |
+| `discountAmount` | Backend | `totalLineAmount * discountPercent / 100` |
 | `totalLineAmount` | Backend | Sum of all `lineTotal` from lines |
-| `totalDiscount` | Backend | `headerDiscountAmount + sum(lineDiscountAmount)` |
+| `totalDiscount` | Backend | `discountAmount + sum(lineDiscountAmount)` |
 | `totalTax` | Backend | Sum of all `lineTaxAmount` from lines |
 | `totalCharges` | Backend | Sum of charges (currently 0) |
 | `orderTotal` | Backend | `totalLineAmount - totalDiscount + totalTax + totalCharges` |
@@ -169,7 +169,7 @@ Danh sách các line items (sản phẩm) trong order.
   "orderDate": "2024-12-15T00:00:00.000Z",
   "requestDate": "2024-12-20T00:00:00.000Z",
   "needByDate": "2024-12-25T00:00:00.000Z",
-  "headerDiscountPercent": 5.0,
+  "discountPercent": 5.0,
   "billingAddressId": 1,
   "shippingAddressId": 2,
   "headerNote": "Please deliver before Christmas",
@@ -231,8 +231,8 @@ Danh sách các line items (sản phẩm) trong order.
   "needByDate": "2024-12-25T00:00:00.000Z",
   "orderStatus": "OPEN",
   "totalLineAmount": 3899.0,
-  "headerDiscountAmount": 194.95,
-  "headerDiscountPercent": 5.0,
+  "discountAmount": 194.95,
+  "discountPercent": 5.0,
   "totalDiscount": 524.83,
   "totalTax": 299.87,
   "totalCharges": 0,
@@ -344,8 +344,8 @@ Backend tự động generate/calculate các field sau:
 
 **Header Level:**
 - `totalLineAmount` = Sum of all line totals
-- `headerDiscountAmount` = `totalLineAmount * headerDiscountPercent / 100`
-- `totalDiscount` = `headerDiscountAmount + sum(lineDiscountAmount)`
+- `discountAmount` = `totalLineAmount * discountPercent / 100`
+- `totalDiscount` = `discountAmount + sum(lineDiscountAmount)`
 - `totalTax` = Sum of all line tax amounts
 - `orderTotal` = `totalLineAmount - totalDiscount + totalTax + totalCharges`
 - `openAmount` = `orderTotal` (initially)
@@ -389,7 +389,7 @@ curl -X POST http://localhost:3000/so \
     "customerId": 1,
     "createdBy": "admin",
     "orderDate": "2024-12-15T00:00:00.000Z",
-    "headerDiscountPercent": 5.0,
+    "discountPercent": 5.0,
     "billingAddressId": 1,
     "shippingAddressId": 2,
     "channel": "ONLINE",
@@ -443,14 +443,14 @@ curl -X POST http://localhost:3000/so \
 - "soNum": "SO-2024-001",              // ❌ Auto-generated
 - "orderStatus": "OPEN",               // ❌ Default to OPEN
 - "exchangeRate": 1.0,                 // ❌ Auto-fetched
-- "headerDiscountAmount": 50.0,        // ❌ Calculated from percent
+- "discountAmount": 50.0,        // ❌ Calculated from percent
 - "totalLineAmount": 1000.0,           // ❌ Sum from lines
 - "totalDiscount": 50.0,               // ❌ Calculated
 - "totalTax": 100.0,                   // ❌ Sum from lines
 - "totalCharges": 25.0,                // ❌ Calculated
 - "orderTotal": 1075.0,                // ❌ Calculated
 - "openAmount": 1075.0,                // ❌ Equals orderTotal initially
-+ "headerDiscountPercent": 5.0,        // ✅ SEND percent instead of amount
++ "discountPercent": 5.0,        // ✅ SEND percent instead of amount
   "lines": [
     {
       "itemCode": "ITEM-001",
@@ -467,7 +467,7 @@ curl -X POST http://localhost:3000/so \
 
 ### ✅ **Key Changes**
 
-1. **Header discount**: Send `headerDiscountPercent` instead of `headerDiscountAmount`
+1. **Header discount**: Send `discountPercent` instead of `discountAmount`
 2. **No calculated fields**: Backend tính toán tất cả totals, amounts, quantities
 3. **Simpler structure**: Chỉ gửi user input, không gửi derived data
 4. **Auto-generation**: `soNum`, `lineNum` tự động generate

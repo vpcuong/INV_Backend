@@ -20,14 +20,14 @@ export class SOHeaderRepository implements ISOHeaderRepository {
     transaction?: PrismaTransaction
   ): Promise<SOHeader> {
     const db = this.getDb(transaction);
-    const data = soHeader.toPersistence();
+    const { id, publicId, createdAt, updatedAt, ...headerData } = soHeader.toPersistence();
     const lines = soHeader.getLines().map((line) => line.toPersistence());
 
     const created = await db.sOHeader.create({
       data: {
-        ...data,
+        ...headerData,
         lines: {
-          create: lines.map(({ id, soHeaderId, ...lineData }) => lineData),
+          create: lines.map(({ id, publicId, soHeaderId, createdAt: lCreatedAt, updatedAt: lUpdatedAt, ...lineData }) => lineData),
         },
       },
       include: {
@@ -58,10 +58,7 @@ export class SOHeaderRepository implements ISOHeaderRepository {
     return headers.map((header) => SOHeader.fromPersistence(header));
   }
 
-  async findOne(
-    id: number,
-    transaction?: PrismaTransaction
-  ): Promise<SOHeader | null> {
+  async findOne(id: number, transaction?: PrismaTransaction): Promise<SOHeader | null> {
     const db = this.getDb(transaction);
     const header = await db.sOHeader.findUnique({
       where: { id },
@@ -147,7 +144,7 @@ export class SOHeaderRepository implements ISOHeaderRepository {
     transaction?: PrismaTransaction
   ): Promise<SOHeader> {
     const db = this.getDb(transaction);
-    const data = soHeader.toPersistence();
+    // const data = soHeader.toPersistence();
     const lines = soHeader.getLines();
 
     // Get existing lines
@@ -171,10 +168,18 @@ export class SOHeaderRepository implements ISOHeaderRepository {
     );
 
     // Update header and lines
+    const {
+      id: rootId,
+      publicId,
+      createdAt,
+      updatedAt,
+      ...headerData
+    } = soHeader.toPersistence();
+
     const updated = await db.sOHeader.update({
       where: { id },
       data: {
-        ...data,
+        ...headerData,
         lines: {
           // Delete removed lines
           deleteMany:
@@ -184,15 +189,32 @@ export class SOHeaderRepository implements ISOHeaderRepository {
           // Update existing lines
           updateMany: lines
             .filter((line) => line.getId())
-            .map((line) => ({
-              where: { id: line.getId()! },
-              data: line.toPersistence(),
-            })),
+            .map((line) => {
+              const {
+                id: lineId,
+                publicId: linePublicId,
+                soHeaderId,
+                createdAt: lineCreatedAt,
+                updatedAt: lineUpdatedAt,
+                ...lineData
+              } = line.toPersistence();
+              return {
+                where: { id: lineId! },
+                data: lineData,
+              };
+            }),
           // Create new lines
           create: lines
             .filter((line) => !line.getId())
             .map((line) => {
-              const { id, soHeaderId, ...lineData } = line.toPersistence();
+              const {
+                id: lineId,
+                publicId: linePublicId,
+                soHeaderId,
+                createdAt: lineCreatedAt,
+                updatedAt: lineUpdatedAt,
+                ...lineData
+              } = line.toPersistence();
               return lineData;
             }),
         },

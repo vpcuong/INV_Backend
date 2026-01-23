@@ -13,15 +13,15 @@ model SOHeader {
   shipViaCode           String?          @db.VarChar(20)
   paymentTermCode       PaymentTermCode?
   currencyCode          String           @db.VarChar(3)
-  exchangeRate          Decimal          @default(1) @db.Decimal(18, 6)
-  headerDiscountPercent Decimal          @default(0) @db.Decimal(5, 2)
-  headerDiscountAmount  Decimal          @default(0) @db.Decimal(18, 2)
-  totalLineAmount       Decimal          @default(0) @db.Decimal(18, 2)
-  totalDiscount         Decimal          @default(0) @db.Decimal(18, 2)
-  totalTax              Decimal          @default(0) @db.Decimal(18, 2)
-  totalCharges          Decimal          @default(0) @db.Decimal(18, 2)
-  orderTotal            Decimal          @default(0) @db.Decimal(18, 2)
-  openAmount            Decimal          @default(0) @db.Decimal(18, 2)
+  // Discount
+  discountPercent Decimal          @default(0) @db.Decimal(5, 2)
+  discountAmount  Decimal          @default(0) @db.Decimal(18, 2)
+  // Tax
+  taxPercent      Decimal @default(0) @db.Decimal(5, 2)
+  taxAmount       Decimal      @default(0) @db.Decimal(18, 2)
+  // Total
+  totalAmount     Decimal @default(0) @db.Decimal(18, 2)
+  //
   billingAddressId      Int?
   shippingAddressId     Int?
   headerNote            String?
@@ -29,8 +29,6 @@ model SOHeader {
   createdBy             String           @db.VarChar(100)
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
-  deletedAt             DateTime?
-  deletedBy             String?          @db.VarChar(100)
   lines                 SODetail[]
   billingAddress        CustomerAddress? @relation("SOBillingAddress", fields: [billingAddressId], references: [id])
   customer              Customer         @relation(fields: [customerId], references: [id])
@@ -41,7 +39,6 @@ model SOHeader {
   @@index([orderStatus])
   @@index([orderDate])
   @@index([soNum])
-  @@index([deletedAt])
   @@map("SOHeader")
 }
 
@@ -50,36 +47,36 @@ model SODetail {
   publicId            String       @unique @default(ulid()) @db.Char(26)
   soHeaderId          Int
   lineNum             Int
-  itemId              Int?
-  itemSkuId           Int?
-  itemCode            String       @db.VarChar(50)
+  
+  itemSkuId           Int
   description         String?      @db.VarChar(500)
   orderQty            Decimal      @db.Decimal(18, 4)
   unitPrice           Decimal      @db.Decimal(18, 4)
-  lineDiscountPercent Decimal      @default(0) @db.Decimal(5, 2)
-  lineDiscountAmount  Decimal      @default(0) @db.Decimal(18, 2)
-  lineTaxPercent      Decimal      @default(0) @db.Decimal(5, 2)
-  lineTaxAmount       Decimal      @default(0) @db.Decimal(18, 2)
-  lineTotal           Decimal      @default(0) @db.Decimal(18, 2)
+  // Discount
+  discountPercent     Decimal      @default(0) @db.Decimal(5, 2)
+  discountAmount      Decimal      @default(0) @db.Decimal(18, 2)
+  // Tax
+  taxPercent          Decimal      @default(0) @db.Decimal(5, 2)
+  taxAmount           Decimal      @default(0) @db.Decimal(18, 2)
+  // Total
+  totalAmount         Decimal      @default(0) @db.Decimal(18, 2)
+
   needByDate          DateTime?
-  lineStatus          SOLineStatus @default(OPEN)
-  openQty             Decimal      @db.Decimal(18, 4)
-  shippedQty          Decimal      @default(0) @db.Decimal(18, 4)
+  status          SOLineStatus @default(OPEN)
   warehouseCode       String?      @db.VarChar(20)
   lineNote            String?
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
   uomCode             String       @db.VarChar(50)
-  item                Item?        @relation(fields: [itemId], references: [id])
+  
   itemSku             ItemSKU?     @relation(fields: [itemSkuId], references: [id])
   header              SOHeader     @relation(fields: [soHeaderId], references: [id], onDelete: Cascade)
   uom                 UOM          @relation(fields: [uomCode], references: [code])
 
   @@unique([soHeaderId, lineNum])
   @@index([publicId])
-  @@index([itemId])
   @@index([itemSkuId])
-  @@index([lineStatus])
+  @@index([status])
   @@map("SODetail")
 }
 
