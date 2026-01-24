@@ -47,7 +47,6 @@ export interface UpdateItemSkuData {
   heightCm?: number | null;
   weightG?: number | null;
   desc?: string | null;
-  status?: string;
   costPrice?: number | null;
   sellingPrice?: number | null;
   uomCode?: string | null;
@@ -118,6 +117,11 @@ export class ItemSku {
     }
   }
 
+  /**
+   * validate prices
+   * @param costPrice 
+   * @param sellingPrice 
+   */
   private validatePrices(
     costPrice?: number | null,
     sellingPrice?: number | null,
@@ -132,8 +136,22 @@ export class ItemSku {
     ) {
       throw new InvalidPriceException('Selling price', sellingPrice);
     }
+
+    if(
+      sellingPrice !== undefined &&
+      sellingPrice !== null &&
+      costPrice !== undefined &&
+      costPrice !== null &&
+      sellingPrice < costPrice
+    ) {
+      throw new InvalidPriceException('Selling price can not be less than cost price', sellingPrice);
+    }
   }
 
+  /**
+   * validate dimensions
+   * @param data 
+   */
   private validateDimensions(data: {
     lengthCm?: number | null;
     widthCm?: number | null;
@@ -170,6 +188,10 @@ export class ItemSku {
     }
   }
 
+  /**
+   * update
+   * @param data 
+   */
   public update(data: UpdateItemSkuData): void {
     if (data.costPrice !== undefined || data.sellingPrice !== undefined) {
       this.validatePrices(
@@ -200,15 +222,6 @@ export class ItemSku {
     if (data.costPrice !== undefined) this.costPrice = data.costPrice;
     if (data.sellingPrice !== undefined) this.sellingPrice = data.sellingPrice;
     if (data.uomCode !== undefined) this.uomCode = data.uomCode;
-    if (data.status !== undefined) {
-      if (
-        data.status !== ItemSkuStatus.ACTIVE &&
-        data.status !== ItemSkuStatus.INACTIVE
-      ) {
-        throw new InvalidItemSkuException(`Invalid status: ${data.status}`);
-      }
-      this.status = data.status;
-    }
 
     this.updatedAt = new Date();
   }
@@ -227,7 +240,7 @@ export class ItemSku {
     return this.status === ItemSkuStatus.ACTIVE;
   }
 
-  // Getters
+  //#region Getters
   public getId(): number | undefined {
     return this.id;
   }
@@ -316,6 +329,8 @@ export class ItemSku {
     return this.updatedAt;
   }
 
+  //#endregion
+
   public toPersistence(): any {
     return {
       id: this.id || undefined,
@@ -369,4 +384,6 @@ export class ItemSku {
       updatedAt: data.updatedAt,
     });
   }
+
+
 }

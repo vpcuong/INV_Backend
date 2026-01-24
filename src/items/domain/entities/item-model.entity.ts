@@ -24,7 +24,6 @@ export interface UpdateItemModelData {
   code?: string;
   desc?: string | null;
   customerId?: number | null;
-  status?: string;
 }
 
 /**
@@ -109,9 +108,7 @@ export class ItemModel {
     if (data.customerId !== undefined) {
       this.customerId = data.customerId;
     }
-    if (data.status !== undefined) {
-      this.status = data.status;
-    }
+   
     this.updatedAt = new Date();
   }
 
@@ -119,7 +116,7 @@ export class ItemModel {
     return this.status === ItemModelStatus.ACTIVE;
   }
 
-  // Getters
+  //#region  Getters
   public getId(): number | undefined {
     return this.id;
   }
@@ -129,7 +126,7 @@ export class ItemModel {
   }
 
   public getCode(): string {
-    return this.code;
+    return this.code.trim();
   }
 
   public getDesc(): string | null | undefined {
@@ -151,6 +148,8 @@ export class ItemModel {
   public getUpdatedAt(): Date | undefined {
     return this.updatedAt;
   }
+
+  //#endregion
 
   public toPersistence(): any {
     return {

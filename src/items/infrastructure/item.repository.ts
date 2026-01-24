@@ -25,7 +25,7 @@ export class ItemRepository implements IItemRepository {
         uom: true,
       },
     });
-
+    
     return data ? Item.fromPersistence(data) : null;
   }
 

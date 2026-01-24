@@ -1,6 +1,11 @@
 import { Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { ItemsController } from './items.controller';
+import {
+  ItemsController,
+  ItemModelsController,
+  ItemSkusController,
+  ItemUomsController,
+} from './controllers';
 import { ItemAggregateService } from './application/item-aggregate.service';
 import { ItemQueryService } from './application/item-query.service';
 import { ItemRepository } from './infrastructure/item.repository';
@@ -13,7 +18,12 @@ import { FilteringModule } from '@/common/filtering';
     FilteringModule,
     EventEmitterModule.forRoot(),
   ],
-  controllers: [ItemsController],
+  controllers: [
+    ItemsController,
+    ItemModelsController,
+    ItemSkusController,
+    ItemUomsController,
+  ],
   providers: [
     ItemAggregateService,
     ItemQueryService,

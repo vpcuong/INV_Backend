@@ -117,8 +117,36 @@ export interface CreateUomData {
   isActive?: boolean;
   desc?: string;
 }
+
 /**
- * Item Entity
+ * Item Aggregate Root
+ *
+ * Đây là Aggregate Root quản lý toàn bộ lifecycle của Item và các entities con:
+ * - ItemModel: Các model/biến thể của Item
+ * - ItemSku: Các SKU (Stock Keeping Unit) của Item
+ * - ItemUOM: Các đơn vị đo lường của Item
+ *
+ * Tất cả thay đổi đối với Model, SKU, UOM phải đi qua Aggregate Root này
+ * để đảm bảo tính nhất quán và business rules được enforce.
+ *
+ * @example
+ * ```typescript
+ * // Tạo Item mới
+ * const item = new Item({
+ *   code: 'ITEM001',
+ *   categoryId: 1,
+ *   itemTypeId: 1,
+ * });
+ *
+ * // Thêm Model vào Item
+ * const model = item.addModel({ code: 'MODEL001', desc: 'Model 1' });
+ *
+ * // Thêm SKU vào Model
+ * const sku = item.addSku(model.getId(), { skuCode: 'SKU001', colorId: 1 });
+ *
+ * // Lấy domain events sau khi thực hiện các operations
+ * const events = item.getDomainEvents();
+ * ```
  */
 export class Item {
   private id?: number;
@@ -263,6 +291,31 @@ export class Item {
 
   // ==================== MODEL OPERATIONS ====================
 
+  /**
+   * Thêm Model mới vào Item
+   *
+   * Model đại diện cho một biến thể/phiên bản của Item, thường được dùng
+   * để phân biệt các dòng sản phẩm theo khách hàng hoặc đặc điểm riêng.
+   *
+   * @param data - Dữ liệu để tạo Model mới
+   * @param data.code - Mã Model (bắt buộc, phải unique trong Item)
+   * @param data.desc - Mô tả Model
+   * @param data.customerId - ID khách hàng liên kết (nếu có)
+   * @param data.status - Trạng thái Model (mặc định: 'active')
+   * @returns ItemModel - Model vừa được tạo
+   * @throws DuplicateItemModelCodeException - Khi mã Model đã tồn tại trong Item
+   *
+   * @emits ItemModelAddedEvent - Event được phát ra sau khi thêm Model thành công
+   *
+   * @example
+   * ```typescript
+   * const model = item.addModel({
+   *   code: 'MODEL-ABC',
+   *   desc: 'Model cho khách hàng ABC',
+   *   customerId: 123,
+   * });
+   * ```
+   */
   public addModel(data: CreateModelData): ItemModel {
     // Check for duplicate code
     if (this.models.some((m) => m.getCode() === data.code)) {
@@ -288,6 +341,27 @@ export class Item {
     return model;
   }
 
+  /**
+   * Cập nhật thông tin Model đã tồn tại
+   *
+   * @param modelId - ID của Model cần cập nhật
+   * @param data - Dữ liệu cần cập nhật
+   * @param data.code - Mã Model mới (nếu thay đổi, phải unique)
+   * @param data.desc - Mô tả mới
+   * @param data.customerId - ID khách hàng mới
+   * @param data.status - Trạng thái mới
+   * @returns ItemModel - Model sau khi cập nhật
+   * @throws ItemModelNotFoundException - Khi không tìm thấy Model với ID đã cho
+   * @throws DuplicateItemModelCodeException - Khi mã Model mới đã tồn tại trong Item
+   *
+   * @example
+   * ```typescript
+   * const updatedModel = item.updateModel(1, {
+   *   desc: 'Mô tả mới',
+   *   status: 'inactive',
+   * });
+   * ```
+   */
   public updateModel(modelId: number, data: UpdateItemModelData): ItemModel {
     const model = this.findModel(modelId);
     if (!model) {
@@ -306,6 +380,29 @@ export class Item {
     return model;
   }
 
+  /**
+   * Xóa Model khỏi Item
+   *
+   * Lưu ý: Không thể xóa Model nếu còn SKU liên kết với Model đó.
+   * Phải xóa tất cả SKU trước khi xóa Model.
+   *
+   * @param modelId - ID của Model cần xóa
+   * @throws ItemModelNotFoundException - Khi không tìm thấy Model với ID đã cho
+   * @throws InvalidItemException - Khi Model còn SKU liên kết
+   *
+   * @emits ItemModelRemovedEvent - Event được phát ra sau khi xóa Model thành công
+   *
+   * @example
+   * ```typescript
+   * // Xóa tất cả SKU của Model trước
+   * item.getSkus()
+   *   .filter(sku => sku.getModelId() === modelId)
+   *   .forEach(sku => item.removeSku(sku.getId()));
+   *
+   * // Sau đó mới xóa Model
+   * item.removeModel(modelId);
+   * ```
+   */
   public removeModel(modelId: number): void {
     const modelIndex = this.models.findIndex((m) => m.getId() === modelId);
     if (modelIndex === -1) {
@@ -331,16 +428,67 @@ export class Item {
     );
   }
 
+  /**
+   * findModel by modelId
+   * @param modelId 
+   * @returns ItemModel | undefined
+   */
   public findModel(modelId: number): ItemModel | undefined {
     return this.models.find((m) => m.getId() === modelId);
   }
 
+  /**
+   * findModel by code
+   * @param code 
+   * @returns ItemModel | undefined
+   */
   public findModelByCode(code: string): ItemModel | undefined {
     return this.models.find((m) => m.getCode() === code);
   }
 
   // ==================== SKU OPERATIONS ====================
 
+  /**
+   * Thêm SKU mới vào Item
+   *
+   * SKU (Stock Keeping Unit) là đơn vị quản lý kho, đại diện cho một
+   * biến thể cụ thể của sản phẩm với các thuộc tính như màu sắc, size, v.v.
+   *
+   * SKU có thể thuộc về một Model cụ thể hoặc không (modelId = null).
+   *
+   * @param modelId - ID của Model chứa SKU (null nếu SKU không thuộc Model nào)
+   * @param data - Dữ liệu để tạo SKU mới
+   * @param data.skuCode - Mã SKU (bắt buộc, phải unique trong Item)
+   * @param data.colorId - ID màu sắc (bắt buộc)
+   * @param data.genderId - ID giới tính
+   * @param data.sizeId - ID size
+   * @param data.supplierId - ID nhà cung cấp
+   * @param data.costPrice - Giá vốn
+   * @param data.sellingPrice - Giá bán
+   * @returns ItemSku - SKU vừa được tạo
+   * @throws ItemModelNotFoundException - Khi modelId được cung cấp nhưng không tìm thấy Model
+   * @throws DuplicateSkuCodeException - Khi mã SKU đã tồn tại trong Item
+   *
+   * @emits ItemSkuAddedEvent - Event được phát ra sau khi thêm SKU thành công
+   *
+   * @example
+   * ```typescript
+   * // Thêm SKU vào Model
+   * const sku = item.addSku(modelId, {
+   *   skuCode: 'SKU-RED-M',
+   *   colorId: 1,
+   *   sizeId: 2,
+   *   costPrice: 100000,
+   *   sellingPrice: 150000,
+   * });
+   *
+   * // Thêm SKU không thuộc Model nào
+   * const sku2 = item.addSku(null, {
+   *   skuCode: 'SKU-DEFAULT',
+   *   colorId: 1,
+   * });
+   * ```
+   */
   public addSku(modelId: number | null, data: CreateSkuData): ItemSku {
     // Validate model exists if modelId is provided
     if (modelId !== null) {
@@ -393,6 +541,23 @@ export class Item {
     return sku;
   }
 
+  /**
+   * Cập nhật thông tin SKU đã tồn tại
+   *
+   * @param skuId - ID của SKU cần cập nhật
+   * @param data - Dữ liệu cần cập nhật
+   * @returns ItemSku - SKU sau khi cập nhật
+   * @throws ItemSkuNotFoundException - Khi không tìm thấy SKU với ID đã cho
+   *
+   * @example
+   * ```typescript
+   * const updatedSku = item.updateSku(1, {
+   *   costPrice: 120000,
+   *   sellingPrice: 180000,
+   *   status: 'inactive',
+   * });
+   * ```
+   */
   public updateSku(skuId: number, data: UpdateItemSkuData): ItemSku {
     const sku = this.findSku(skuId);
     if (!sku) {
@@ -404,6 +569,19 @@ export class Item {
     return sku;
   }
 
+  /**
+   * Xóa SKU khỏi Item
+   *
+   * @param skuId - ID của SKU cần xóa
+   * @throws ItemSkuNotFoundException - Khi không tìm thấy SKU với ID đã cho
+   *
+   * @emits ItemSkuRemovedEvent - Event được phát ra sau khi xóa SKU thành công
+   *
+   * @example
+   * ```typescript
+   * item.removeSku(1);
+   * ```
+   */
   public removeSku(skuId: number): void {
     const skuIndex = this.skus.findIndex((s) => s.getId() === skuId);
     if (skuIndex === -1) {
@@ -420,16 +598,60 @@ export class Item {
     );
   }
 
+  /**
+   * Tìm SKU theo ID
+   *
+   * @param skuId - ID của SKU cần tìm
+   * @returns ItemSku | undefined - SKU tìm được hoặc undefined nếu không tồn tại
+   */
   public findSku(skuId: number): ItemSku | undefined {
     return this.skus.find((s) => s.getId() === skuId);
   }
 
+  /**
+   * Tìm SKU theo mã SKU
+   *
+   * @param code - Mã SKU cần tìm
+   * @returns ItemSku | undefined - SKU tìm được hoặc undefined nếu không tồn tại
+   */
   public findSkuByCode(code: string): ItemSku | undefined {
     return this.skus.find((s) => s.getSkuCode() === code);
   }
 
   // ==================== UOM OPERATIONS ====================
 
+  /**
+   * Thêm đơn vị đo lường (UOM) mới vào Item
+   *
+   * UOM được sử dụng để quản lý các đơn vị đo lường khác nhau của Item,
+   * cho phép chuyển đổi giữa các đơn vị (ví dụ: từ Hộp sang Cái).
+   *
+   * Lưu ý: Không thể thêm UOM trùng với base UOM của Item.
+   *
+   * @param data - Dữ liệu để tạo UOM mới
+   * @param data.uomCode - Mã UOM (bắt buộc, phải unique và khác base UOM)
+   * @param data.toBaseFactor - Hệ số chuyển đổi sang base UOM (bắt buộc)
+   * @param data.roundingPrecision - Độ chính xác làm tròn
+   * @param data.isDefaultTransUom - Có phải UOM giao dịch mặc định không
+   * @param data.isPurchasingUom - Có phải UOM mua hàng không
+   * @param data.isSalesUom - Có phải UOM bán hàng không
+   * @param data.isManufacturingUom - Có phải UOM sản xuất không
+   * @returns ItemUOM - UOM vừa được tạo
+   * @throws InvalidItemException - Khi thêm UOM trùng với base UOM
+   * @throws DuplicateItemUOMException - Khi mã UOM đã tồn tại trong Item
+   *
+   * @emits ItemUomAddedEvent - Event được phát ra sau khi thêm UOM thành công
+   *
+   * @example
+   * ```typescript
+   * // Item có base UOM là 'PCS' (cái)
+   * const boxUom = item.addUOM({
+   *   uomCode: 'BOX',
+   *   toBaseFactor: 12, // 1 BOX = 12 PCS
+   *   isPurchasingUom: true,
+   * });
+   * ```
+   */
   public addUOM(data: CreateUomData): ItemUOM {
     // Check if base UOM
     if (data.uomCode === this.uomCode) {
@@ -463,6 +685,19 @@ export class Item {
     return uom;
   }
 
+  /**
+   * Xóa UOM khỏi Item
+   *
+   * @param uomCode - Mã UOM cần xóa
+   * @throws ItemUOMNotFoundException - Khi không tìm thấy UOM với mã đã cho
+   *
+   * @emits ItemUomRemovedEvent - Event được phát ra sau khi xóa UOM thành công
+   *
+   * @example
+   * ```typescript
+   * item.removeUOM('BOX');
+   * ```
+   */
   public removeUOM(uomCode: string): void {
     const index = this.itemUoms.findIndex((u) => u.getUomCode() === uomCode);
     if (index === -1) {
@@ -476,14 +711,45 @@ export class Item {
     this.domainEvents.push(new ItemUomRemovedEvent(this.id!, uomCode));
   }
 
+  /**
+   * Kiểm tra Item có UOM với mã đã cho không
+   *
+   * @param uomCode - Mã UOM cần kiểm tra
+   * @returns boolean - true nếu tồn tại, false nếu không
+   */
   public hasUOM(uomCode: string): boolean {
     return this.itemUoms.some((u) => u.getUomCode() === uomCode);
   }
 
+  /**
+   * Tìm UOM theo mã
+   *
+   * @param uomCode - Mã UOM cần tìm
+   * @returns ItemUOM | undefined - UOM tìm được hoặc undefined nếu không tồn tại
+   */
   public findUOM(uomCode: string): ItemUOM | undefined {
     return this.itemUoms.find((u) => u.getUomCode() === uomCode);
   }
 
+  /**
+   * Chuyển đổi số lượng giữa hai đơn vị đo lường
+   *
+   * Sử dụng để chuyển đổi số lượng từ UOM này sang UOM khác dựa trên
+   * hệ số chuyển đổi (toBaseFactor) đã được định nghĩa.
+   *
+   * @param fromUomCode - Mã UOM nguồn
+   * @param toUomCode - Mã UOM đích
+   * @param quantity - Số lượng cần chuyển đổi
+   * @returns number - Số lượng sau khi chuyển đổi
+   * @throws ItemUOMNotFoundException - Khi không tìm thấy UOM nguồn hoặc đích
+   *
+   * @example
+   * ```typescript
+   * // 1 BOX = 12 PCS, 1 CARTON = 10 BOX = 120 PCS
+   * const pcsQuantity = item.convertQuantity('BOX', 'PCS', 5); // = 60
+   * const cartonQuantity = item.convertQuantity('PCS', 'CARTON', 240); // = 2
+   * ```
+   */
   public convertQuantity(
     fromUomCode: string,
     toUomCode: string,
@@ -508,10 +774,38 @@ export class Item {
 
   // ==================== DOMAIN EVENTS ====================
 
+  /**
+   * Lấy danh sách Domain Events đã được phát sinh
+   *
+   * Domain Events được tạo ra khi có các thay đổi quan trọng trong Aggregate
+   * (thêm/xóa Model, SKU, UOM). Events này nên được publish sau khi
+   * persist Aggregate thành công.
+   *
+   * @returns DomainEvent[] - Danh sách các events (bản copy, không phải reference)
+   *
+   * @example
+   * ```typescript
+   * const item = await repository.findById(1);
+   * item.addModel({ code: 'MODEL001' });
+   * await repository.saveWithChildren(item);
+   *
+   * // Publish events sau khi save thành công
+   * for (const event of item.getDomainEvents()) {
+   *   eventBus.emit(event.constructor.name, event);
+   * }
+   * item.clearDomainEvents();
+   * ```
+   */
   public getDomainEvents(): DomainEvent[] {
     return [...this.domainEvents];
   }
 
+  /**
+   * Xóa tất cả Domain Events đã được phát sinh
+   *
+   * Nên gọi method này sau khi đã publish tất cả events để tránh
+   * publish trùng lặp trong các lần save tiếp theo.
+   */
   public clearDomainEvents(): void {
     this.domainEvents = [];
   }
@@ -612,6 +906,15 @@ export class Item {
 
   // ==================== PERSISTENCE ====================
 
+  /**
+   * Chuyển đổi Aggregate thành dạng plain object để lưu vào database
+   *
+   * Method này chỉ serialize các field của Item, không bao gồm
+   * các child collections (models, skus, uoms). Các children được
+   * sync riêng trong repository.
+   *
+   * @returns Plain object chứa dữ liệu Item để persist
+   */
   public toPersistence(): any {
     return {
       id: this.id,
@@ -637,6 +940,24 @@ export class Item {
     };
   }
 
+  /**
+   * Khôi phục Aggregate từ dữ liệu database
+   *
+   * Factory method để tạo Item instance từ dữ liệu đã được load từ database.
+   * Bao gồm cả việc khôi phục các child collections (models, skus, uoms).
+   *
+   * @param data - Dữ liệu từ database (bao gồm cả relations)
+   * @returns Item - Instance của Item Aggregate được khôi phục
+   *
+   * @example
+   * ```typescript
+   * const data = await prisma.item.findUnique({
+   *   where: { id: 1 },
+   *   include: { models: true, skus: true, itemUoms: true },
+   * });
+   * const item = Item.fromPersistence(data);
+   * ```
+   */
   public static fromPersistence(data: any): Item {
     return new Item({
       id: data.id,

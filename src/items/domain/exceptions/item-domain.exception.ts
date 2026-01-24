@@ -1,4 +1,4 @@
-import { DomainException } from '@/common/exception-filters/domain-exception.filter';
+import { DomainException } from '../../../common/exception-filters/domain-exception.filter';
 
 // Base exception for Item Aggregate
 export class ItemDomainException extends DomainException {
