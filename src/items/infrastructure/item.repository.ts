@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ulid } from 'ulid';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Item } from '../domain/aggregates/item.aggregate';
 import { ItemModel } from '../domain/entities/item-model.entity';
@@ -25,7 +26,50 @@ export class ItemRepository implements IItemRepository {
         uom: true,
       },
     });
-    
+
+    return data ? Item.fromPersistence(data) : null;
+  }
+
+  async findByPublicId(publicId: string): Promise<Item | null> {
+    const data = await this.prisma.client.item.findUnique({
+      where: { publicId },
+      include: {
+        itemUoms: true,
+        category: true,
+        itemType: true,
+        material: true,
+        uom: true,
+      },
+    });
+
+    return data ? Item.fromPersistence(data) : null;
+  }
+
+  async findByPublicIdComplete(publicId: string): Promise<Item | null> {
+    const data = await this.prisma.client.item.findUnique({
+      where: { publicId },
+      include: {
+        itemUoms: true,
+        models: {
+          include: {
+            customer: true,
+          },
+        },
+        skus: {
+          include: {
+            color: true,
+            gender: true,
+            size: true,
+            skuUoms: true,
+          },
+        },
+        category: true,
+        itemType: true,
+        material: true,
+        uom: true,
+      },
+    });
+
     return data ? Item.fromPersistence(data) : null;
   }
 
@@ -147,11 +191,15 @@ export class ItemRepository implements IItemRepository {
 
       let savedItem;
       if (itemId) {
+        // Don't update publicId on existing items
+        delete itemData.publicId;
         savedItem = await tx.item.update({
           where: { id: itemId },
           data: itemData,
         });
       } else {
+        // Generate ULID for new items
+        itemData.publicId = itemData.publicId || ulid();
         savedItem = await tx.item.create({
           data: itemData,
         });
@@ -217,11 +265,15 @@ export class ItemRepository implements IItemRepository {
       modelData.itemId = itemId;
 
       if (model.getId()) {
+        // Don't update publicId on existing models
+        delete modelData.publicId;
         await tx.itemModel.update({
           where: { id: model.getId() },
           data: modelData,
         });
       } else {
+        // Generate ULID for new models
+        modelData.publicId = modelData.publicId || ulid();
         await tx.itemModel.create({
           data: modelData,
         });
@@ -261,11 +313,15 @@ export class ItemRepository implements IItemRepository {
       skuData.itemId = itemId;
 
       if (sku.getId()) {
+        // Don't update publicId on existing SKUs
+        delete skuData.publicId;
         await tx.itemSKU.update({
           where: { id: sku.getId() },
           data: skuData,
         });
       } else {
+        // Generate ULID for new SKUs
+        skuData.publicId = skuData.publicId || ulid();
         await tx.itemSKU.create({
           data: skuData,
         });

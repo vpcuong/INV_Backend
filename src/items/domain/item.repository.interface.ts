@@ -42,6 +42,16 @@ export interface IItemRepository {
   findById(id: number): Promise<Item | null>;
 
   /**
+   * Find item by public ID
+   */
+  findByPublicId(publicId: string): Promise<Item | null>;
+
+  /**
+   * Find item by public ID with all children loaded
+   */
+  findByPublicIdComplete(publicId: string): Promise<Item | null>;
+
+  /**
    * Find item by ID with models loaded
    */
   findByIdWithModels(id: number): Promise<Item | null>;

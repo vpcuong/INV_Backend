@@ -32,6 +32,7 @@ model ItemType {
 
 model Item {
   id             Int            @id @default(autoincrement())
+  publicId       String         @unique @db.Char(26)
   code           String?        @db.Char(20) @unique
   categoryId     Int
   itemTypeId     Int
@@ -70,6 +71,7 @@ model Item {
 
 model ItemModel {
   id          Int       @id @default(autoincrement())
+  publicId    String    @unique @db.Char(26)
   itemId      Int
   code        String    @db.Char(20) @unique
   desc        String?
@@ -87,6 +89,7 @@ model ItemModel {
 
 model ItemSKU {
   id           Int          @id @default(autoincrement())
+  publicId     String       @unique @db.Char(26)
   skuCode      String       @unique
   itemId       Int?
   modelId      Int?

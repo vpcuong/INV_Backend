@@ -162,6 +162,177 @@ export class ItemQueryService {
   }
 
   /**
+   * Tìm Item theo ID
+   *
+   * @param id - ID của Item
+   * @param includeRelations - Có include các relations không (default: true)
+   * @returns Item với các relations cơ bản
+   * @throws NotFoundException - Khi không tìm thấy Item
+   */
+  async findById(id: number, includeRelations: boolean = true) {
+    const item = await this.prisma.client.item.findUnique({
+      where: { id },
+      include: includeRelations
+        ? {
+            category: true,
+            itemType: true,
+            uom: true,
+            material: true,
+            fabricCustomer: true,
+          }
+        : undefined,
+    });
+
+    if (!item) {
+      throw new NotFoundException(`Item with ID ${id} not found`);
+    }
+
+    return item;
+  }
+
+  /**
+   * Tìm Item theo publicId
+   *
+   * @param publicId - Public ID (ULID) của Item
+   * @returns Item với các relations cơ bản
+   * @throws NotFoundException - Khi không tìm thấy Item
+   */
+  async findByPublicId(publicId: string) {
+    const item = await this.prisma.client.item.findUnique({
+      where: { publicId },
+      include: {
+        category: true,
+        itemType: true,
+        uom: true,
+        material: true,
+        fabricCustomer: true,
+      },
+    });
+
+    if (!item) {
+      throw new NotFoundException(`Item not found`);
+    }
+
+    return item;
+  }
+
+  /**
+   * Tìm Item với đầy đủ thông tin (models, skus, uoms) theo publicId
+   *
+   * @param publicId - Public ID (ULID) của Item
+   * @returns Item với tất cả children (models, skus, uoms) và relations
+   * @throws NotFoundException - Khi không tìm thấy Item
+   */
+  async findCompleteByPublicId(publicId: string) {
+    const item = await this.prisma.client.item.findUnique({
+      where: { publicId },
+      include: {
+        category: true,
+        itemType: true,
+        uom: true,
+        material: true,
+        fabricCustomer: true,
+        models: {
+          include: {
+            customer: true,
+            skus: {
+              include: {
+                color: true,
+                size: true,
+                gender: true,
+                uom: true,
+              },
+            },
+          },
+          orderBy: { id: 'asc' },
+        },
+        skus: {
+          include: {
+            color: true,
+            size: true,
+            gender: true,
+            uom: true,
+            model: {
+              select: { id: true, publicId: true, code: true },
+            },
+          },
+          orderBy: { id: 'asc' },
+        },
+        itemUoms: {
+          include: {
+            uom: true,
+          },
+          orderBy: { toBaseFactor: 'asc' },
+        },
+      },
+    });
+
+    if (!item) {
+      throw new NotFoundException(`Item not found`);
+    }
+
+    return item;
+  }
+
+  /**
+   * Tìm Item với đầy đủ thông tin (models, skus, uoms)
+   *
+   * @param id - ID của Item
+   * @returns Item với tất cả children (models, skus, uoms) và relations
+   * @throws NotFoundException - Khi không tìm thấy Item
+   */
+  async findComplete(id: number) {
+    const item = await this.prisma.client.item.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        itemType: true,
+        uom: true,
+        material: true,
+        fabricCustomer: true,
+        models: {
+          include: {
+            customer: true,
+            skus: {
+              include: {
+                color: true,
+                size: true,
+                gender: true,
+                uom: true,
+              },
+            },
+          },
+          orderBy: { id: 'asc' },
+        },
+        skus: {
+          include: {
+            color: true,
+            size: true,
+            gender: true,
+            uom: true,
+            model: {
+              select: { id: true, code: true },
+            },
+          },
+          orderBy: { id: 'asc' },
+        },
+        itemUoms: {
+          include: {
+            uom: true,
+          },
+          orderBy: { toBaseFactor: 'asc' },
+        },
+      },
+    });
+
+    if (!item) {
+      throw new NotFoundException(`Item with ID ${id} not found`);
+    }
+
+    return item;
+  }
+
+  /**
    * Build relations to include based on filter options
    */
   private buildRelations(filterDto: ItemFilterDto): string[] {
@@ -345,6 +516,22 @@ export class ItemQueryService {
 
   // ==================== MODEL QUERIES ====================
 
+  async findModelsByItemPublicId(
+    itemPublicId: string,
+    filterDto?: ModelFilterDto,
+  ) {
+    const item = await this.prisma.client.item.findUnique({
+      where: { publicId: itemPublicId },
+      select: { id: true },
+    });
+
+    if (!item) {
+      throw new NotFoundException(`Item not found`);
+    }
+
+    return this.findModelsByItemId(item.id, filterDto);
+  }
+
   async findModelsByItemId(itemId: number, filterDto?: ModelFilterDto) {
     const where: any = { itemId };
 
@@ -369,7 +556,7 @@ export class ItemQueryService {
         include: {
           customer: true,
           item: {
-            select: { id: true, code: true },
+            select: { id: true, publicId: true, code: true },
           },
         },
         orderBy: { id: 'desc' },
@@ -399,7 +586,7 @@ export class ItemQueryService {
       include: {
         customer: true,
         item: {
-          select: { id: true, code: true },
+          select: { id: true, publicId: true, code: true },
         },
         skus: {
           include: {
@@ -413,6 +600,31 @@ export class ItemQueryService {
 
     if (!model) {
       throw new NotFoundException(`Model with ID ${modelId} not found`);
+    }
+
+    return model;
+  }
+
+  async findModelByPublicId(publicId: string) {
+    const model = await this.prisma.client.itemModel.findUnique({
+      where: { publicId },
+      include: {
+        customer: true,
+        item: {
+          select: { id: true, publicId: true, code: true },
+        },
+        skus: {
+          include: {
+            color: true,
+            size: true,
+            gender: true,
+          },
+        },
+      },
+    });
+
+    if (!model) {
+      throw new NotFoundException(`Model not found`);
     }
 
     return model;
@@ -550,6 +762,53 @@ export class ItemQueryService {
     return sku;
   }
 
+  async findSkuByPublicId(publicId: string) {
+    const sku = await this.prisma.client.itemSKU.findUnique({
+      where: { publicId },
+      include: {
+        ...this.getSkuIncludes(),
+        skuUoms: {
+          include: { uom: true },
+        },
+      },
+    });
+
+    if (!sku) {
+      throw new NotFoundException(`SKU not found`);
+    }
+
+    return sku;
+  }
+
+  async findSkusByItemPublicId(itemPublicId: string, filterDto?: SkuFilterDto) {
+    const item = await this.prisma.client.item.findUnique({
+      where: { publicId: itemPublicId },
+      select: { id: true },
+    });
+
+    if (!item) {
+      throw new NotFoundException(`Item not found`);
+    }
+
+    return this.findSkusByItemId(item.id, filterDto);
+  }
+
+  async findSkusByModelPublicId(
+    modelPublicId: string,
+    filterDto?: SkuFilterDto,
+  ) {
+    const model = await this.prisma.client.itemModel.findUnique({
+      where: { publicId: modelPublicId },
+      select: { id: true },
+    });
+
+    if (!model) {
+      throw new NotFoundException(`Model not found`);
+    }
+
+    return this.findSkusByModelId(model.id, filterDto);
+  }
+
   async findAllSkus(filterDto?: SkuFilterDto) {
     const where: any = {};
 
@@ -627,10 +886,10 @@ export class ItemQueryService {
   private getSkuIncludes() {
     return {
       item: {
-        select: { id: true, code: true },
+        select: { id: true, publicId: true, code: true },
       },
       model: {
-        select: { id: true, code: true },
+        select: { id: true, publicId: true, code: true },
       },
       color: true,
       gender: true,
@@ -641,10 +900,39 @@ export class ItemQueryService {
 
   // ==================== UOM QUERIES ====================
 
+  async findUomsByItemPublicId(itemPublicId: string) {
+    const item = await this.prisma.client.item.findUnique({
+      where: { publicId: itemPublicId },
+      select: { id: true, publicId: true, code: true, uomCode: true },
+    });
+
+    if (!item) {
+      throw new NotFoundException(`Item not found`);
+    }
+
+    const uoms = await this.prisma.client.itemUOM.findMany({
+      where: { itemId: item.id },
+      include: {
+        uom: true,
+      },
+      orderBy: { toBaseFactor: 'asc' },
+    });
+
+    return {
+      item: {
+        id: item.id,
+        publicId: item.publicId,
+        code: item.code,
+        baseUomCode: item.uomCode,
+      },
+      uoms,
+    };
+  }
+
   async findUomsByItemId(itemId: number) {
     const item = await this.prisma.client.item.findUnique({
       where: { id: itemId },
-      select: { id: true, code: true, uomCode: true },
+      select: { id: true, publicId: true, code: true, uomCode: true },
     });
 
     if (!item) {
@@ -662,6 +950,7 @@ export class ItemQueryService {
     return {
       item: {
         id: item.id,
+        publicId: item.publicId,
         code: item.code,
         baseUomCode: item.uomCode,
       },
@@ -689,5 +978,18 @@ export class ItemQueryService {
     }
 
     return uom;
+  }
+
+  async findUomByItemPublicIdAndCode(itemPublicId: string, uomCode: string) {
+    const item = await this.prisma.client.item.findUnique({
+      where: { publicId: itemPublicId },
+      select: { id: true },
+    });
+
+    if (!item) {
+      throw new NotFoundException(`Item not found`);
+    }
+
+    return this.findUomByItemAndCode(item.id, uomCode);
   }
 }

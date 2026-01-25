@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  ParseIntPipe,
   Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
@@ -18,15 +17,15 @@ import { SkuFilterDto } from '../dto/sku-filter.dto';
  * Controller xử lý các endpoints liên quan đến Item SKUs
  *
  * Nested routes:
- * - /items/:itemId/skus/* (SKU trực tiếp của Item)
- * - /items/:itemId/models/:modelId/skus/* (SKU thuộc Model)
+ * - /items/:itemPublicId/skus/* (SKU trực tiếp của Item)
+ * - /items/:itemPublicId/models/:modelPublicId/skus/* (SKU thuộc Model)
  *
  * Bao gồm:
  * - CRUD operations cho SKU
  * - Status management (activate, deactivate)
  */
 @ApiTags('Item SKUs')
-@Controller('items/:itemId')
+@Controller('items/:itemPublicId')
 export class ItemSkusController {
   constructor(
     private readonly itemAggregateService: ItemAggregateService,
@@ -37,103 +36,103 @@ export class ItemSkusController {
 
   @Post('skus')
   @ApiOperation({ summary: 'Add SKU directly to item (without model)' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
   createForItem(
-    @Param('itemId', ParseIntPipe) itemId: number,
+    @Param('itemPublicId') itemPublicId: string,
     @Body() dto: CreateSkuDto,
   ) {
-    return this.itemAggregateService.addSkuToItem(itemId, null, dto);
+    return this.itemAggregateService.addSkuToItemByPublicId(itemPublicId, null, dto);
   }
 
   @Get('skus')
   @ApiOperation({ summary: 'Get all SKUs for item' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
   findAllByItem(
-    @Param('itemId', ParseIntPipe) itemId: number,
+    @Param('itemPublicId') itemPublicId: string,
     @Query() filterDto: SkuFilterDto,
   ) {
-    return this.itemQueryService.findSkusByItemId(itemId, filterDto);
+    return this.itemQueryService.findSkusByItemPublicId(itemPublicId, filterDto);
   }
 
-  @Get('skus/:skuId')
+  @Get('skus/:skuPublicId')
   @ApiOperation({ summary: 'Get specific SKU' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
-  @ApiParam({ name: 'skuId', description: 'SKU ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
+  @ApiParam({ name: 'skuPublicId', description: 'SKU Public ID (ULID)' })
   findOne(
-    @Param('itemId', ParseIntPipe) itemId: number,
-    @Param('skuId', ParseIntPipe) skuId: number,
+    @Param('itemPublicId') itemPublicId: string,
+    @Param('skuPublicId') skuPublicId: string,
   ) {
-    return this.itemQueryService.findSkuById(skuId);
+    return this.itemQueryService.findSkuByPublicId(skuPublicId);
   }
 
-  @Patch('skus/:skuId')
+  @Patch('skus/:skuPublicId')
   @ApiOperation({ summary: 'Update SKU' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
-  @ApiParam({ name: 'skuId', description: 'SKU ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
+  @ApiParam({ name: 'skuPublicId', description: 'SKU Public ID (ULID)' })
   update(
-    @Param('itemId', ParseIntPipe) itemId: number,
-    @Param('skuId', ParseIntPipe) skuId: number,
+    @Param('itemPublicId') itemPublicId: string,
+    @Param('skuPublicId') skuPublicId: string,
     @Body() dto: UpdateSkuDto,
   ) {
-    return this.itemAggregateService.updateSku(itemId, skuId, dto);
+    return this.itemAggregateService.updateSkuByPublicId(itemPublicId, skuPublicId, dto);
   }
 
-  @Delete('skus/:skuId')
+  @Delete('skus/:skuPublicId')
   @ApiOperation({ summary: 'Remove SKU' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
-  @ApiParam({ name: 'skuId', description: 'SKU ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
+  @ApiParam({ name: 'skuPublicId', description: 'SKU Public ID (ULID)' })
   remove(
-    @Param('itemId', ParseIntPipe) itemId: number,
-    @Param('skuId', ParseIntPipe) skuId: number,
+    @Param('itemPublicId') itemPublicId: string,
+    @Param('skuPublicId') skuPublicId: string,
   ) {
-    return this.itemAggregateService.removeSku(itemId, skuId);
+    return this.itemAggregateService.removeSkuByPublicId(itemPublicId, skuPublicId);
   }
 
-  @Patch('skus/:skuId/activate')
+  @Patch('skus/:skuPublicId/activate')
   @ApiOperation({ summary: 'Activate SKU' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
-  @ApiParam({ name: 'skuId', description: 'SKU ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
+  @ApiParam({ name: 'skuPublicId', description: 'SKU Public ID (ULID)' })
   activate(
-    @Param('itemId', ParseIntPipe) itemId: number,
-    @Param('skuId', ParseIntPipe) skuId: number,
+    @Param('itemPublicId') itemPublicId: string,
+    @Param('skuPublicId') skuPublicId: string,
   ) {
-    return this.itemAggregateService.activateSku(itemId, skuId);
+    return this.itemAggregateService.activateSkuByPublicId(itemPublicId, skuPublicId);
   }
 
-  @Patch('skus/:skuId/deactivate')
+  @Patch('skus/:skuPublicId/deactivate')
   @ApiOperation({ summary: 'Deactivate SKU' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
-  @ApiParam({ name: 'skuId', description: 'SKU ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
+  @ApiParam({ name: 'skuPublicId', description: 'SKU Public ID (ULID)' })
   deactivate(
-    @Param('itemId', ParseIntPipe) itemId: number,
-    @Param('skuId', ParseIntPipe) skuId: number,
+    @Param('itemPublicId') itemPublicId: string,
+    @Param('skuPublicId') skuPublicId: string,
   ) {
-    return this.itemAggregateService.deactivateSku(itemId, skuId);
+    return this.itemAggregateService.deactivateSkuByPublicId(itemPublicId, skuPublicId);
   }
 
   // ==================== SKU thuộc Model ====================
 
-  @Post('models/:modelId/skus')
+  @Post('models/:modelPublicId/skus')
   @ApiOperation({ summary: 'Add SKU to model' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
-  @ApiParam({ name: 'modelId', description: 'Model ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
+  @ApiParam({ name: 'modelPublicId', description: 'Model Public ID (ULID)' })
   createForModel(
-    @Param('itemId', ParseIntPipe) itemId: number,
-    @Param('modelId', ParseIntPipe) modelId: number,
+    @Param('itemPublicId') itemPublicId: string,
+    @Param('modelPublicId') modelPublicId: string,
     @Body() dto: CreateSkuDto,
   ) {
-    return this.itemAggregateService.addSkuToItem(itemId, modelId, dto);
+    return this.itemAggregateService.addSkuToItemByPublicId(itemPublicId, modelPublicId, dto);
   }
 
-  @Get('models/:modelId/skus')
+  @Get('models/:modelPublicId/skus')
   @ApiOperation({ summary: 'Get all SKUs for model' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
-  @ApiParam({ name: 'modelId', description: 'Model ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
+  @ApiParam({ name: 'modelPublicId', description: 'Model Public ID (ULID)' })
   findAllByModel(
-    @Param('itemId', ParseIntPipe) itemId: number,
-    @Param('modelId', ParseIntPipe) modelId: number,
+    @Param('itemPublicId') itemPublicId: string,
+    @Param('modelPublicId') modelPublicId: string,
     @Query() filterDto: SkuFilterDto,
   ) {
-    return this.itemQueryService.findSkusByModelId(modelId, filterDto);
+    return this.itemQueryService.findSkusByModelPublicId(modelPublicId, filterDto);
   }
 }

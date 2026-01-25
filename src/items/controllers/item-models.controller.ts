@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  ParseIntPipe,
   Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
@@ -17,14 +16,14 @@ import { ModelFilterDto } from '../dto/model-filter.dto';
 /**
  * Controller xử lý các endpoints liên quan đến Item Models
  *
- * Nested routes: /items/:itemId/models/*
+ * Nested routes: /items/:itemPublicId/models/*
  *
  * Bao gồm:
  * - CRUD operations cho Model
  * - Status management (activate, deactivate)
  */
 @ApiTags('Item Models')
-@Controller('items/:itemId/models')
+@Controller('items/:itemPublicId/models')
 export class ItemModelsController {
   constructor(
     private readonly itemAggregateService: ItemAggregateService,
@@ -33,77 +32,77 @@ export class ItemModelsController {
 
   @Post()
   @ApiOperation({ summary: 'Add model to item' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
   create(
-    @Param('itemId', ParseIntPipe) itemId: number,
+    @Param('itemPublicId') itemPublicId: string,
     @Body() dto: CreateModelDto,
   ) {
-    return this.itemAggregateService.addModelToItem(itemId, dto);
+    return this.itemAggregateService.addModelToItemByPublicId(itemPublicId, dto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all models for item' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
   findAll(
-    @Param('itemId', ParseIntPipe) itemId: number,
+    @Param('itemPublicId') itemPublicId: string,
     @Query() filterDto: ModelFilterDto,
   ) {
-    return this.itemQueryService.findModelsByItemId(itemId, filterDto);
+    return this.itemQueryService.findModelsByItemPublicId(itemPublicId, filterDto);
   }
 
-  @Get(':modelId')
+  @Get(':modelPublicId')
   @ApiOperation({ summary: 'Get specific model' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
-  @ApiParam({ name: 'modelId', description: 'Model ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
+  @ApiParam({ name: 'modelPublicId', description: 'Model Public ID (ULID)' })
   findOne(
-    @Param('itemId', ParseIntPipe) itemId: number,
-    @Param('modelId', ParseIntPipe) modelId: number,
+    @Param('itemPublicId') itemPublicId: string,
+    @Param('modelPublicId') modelPublicId: string,
   ) {
-    return this.itemQueryService.findModelById(modelId);
+    return this.itemQueryService.findModelByPublicId(modelPublicId);
   }
 
-  @Patch(':modelId')
+  @Patch(':modelPublicId')
   @ApiOperation({ summary: 'Update model' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
-  @ApiParam({ name: 'modelId', description: 'Model ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
+  @ApiParam({ name: 'modelPublicId', description: 'Model Public ID (ULID)' })
   update(
-    @Param('itemId', ParseIntPipe) itemId: number,
-    @Param('modelId', ParseIntPipe) modelId: number,
+    @Param('itemPublicId') itemPublicId: string,
+    @Param('modelPublicId') modelPublicId: string,
     @Body() dto: UpdateModelDto,
   ) {
-    return this.itemAggregateService.updateModel(itemId, modelId, dto);
+    return this.itemAggregateService.updateModelByPublicId(itemPublicId, modelPublicId, dto);
   }
 
-  @Delete(':modelId')
+  @Delete(':modelPublicId')
   @ApiOperation({ summary: 'Remove model from item' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
-  @ApiParam({ name: 'modelId', description: 'Model ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
+  @ApiParam({ name: 'modelPublicId', description: 'Model Public ID (ULID)' })
   remove(
-    @Param('itemId', ParseIntPipe) itemId: number,
-    @Param('modelId', ParseIntPipe) modelId: number,
+    @Param('itemPublicId') itemPublicId: string,
+    @Param('modelPublicId') modelPublicId: string,
   ) {
-    return this.itemAggregateService.removeModel(itemId, modelId);
+    return this.itemAggregateService.removeModelByPublicId(itemPublicId, modelPublicId);
   }
 
-  @Patch(':modelId/activate')
+  @Patch(':modelPublicId/activate')
   @ApiOperation({ summary: 'Activate model' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
-  @ApiParam({ name: 'modelId', description: 'Model ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
+  @ApiParam({ name: 'modelPublicId', description: 'Model Public ID (ULID)' })
   activate(
-    @Param('itemId', ParseIntPipe) itemId: number,
-    @Param('modelId', ParseIntPipe) modelId: number,
+    @Param('itemPublicId') itemPublicId: string,
+    @Param('modelPublicId') modelPublicId: string,
   ) {
-    return this.itemAggregateService.activateModel(itemId, modelId);
+    return this.itemAggregateService.activateModelByPublicId(itemPublicId, modelPublicId);
   }
 
-  @Patch(':modelId/deactivate')
+  @Patch(':modelPublicId/deactivate')
   @ApiOperation({ summary: 'Deactivate model' })
-  @ApiParam({ name: 'itemId', description: 'Item ID' })
-  @ApiParam({ name: 'modelId', description: 'Model ID' })
+  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
+  @ApiParam({ name: 'modelPublicId', description: 'Model Public ID (ULID)' })
   deactivate(
-    @Param('itemId', ParseIntPipe) itemId: number,
-    @Param('modelId', ParseIntPipe) modelId: number,
+    @Param('itemPublicId') itemPublicId: string,
+    @Param('modelPublicId') modelPublicId: string,
   ) {
-    return this.itemAggregateService.deactivateModel(itemId, modelId);
+    return this.itemAggregateService.deactivateModelByPublicId(itemPublicId, modelPublicId);
   }
 }

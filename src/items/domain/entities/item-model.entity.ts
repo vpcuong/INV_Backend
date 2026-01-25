@@ -11,6 +11,7 @@ export enum ItemModelStatus {
 
 export interface ItemModelConstructorData {
   id?: number;
+  publicId?: string;
   itemId: number;
   code: string;
   desc?: string | null;
@@ -31,6 +32,7 @@ export interface UpdateItemModelData {
  */
 export class ItemModel {
   private id?: number;
+  private publicId?: string;
   private itemId: number;
   private code: string;
   private desc?: string | null;
@@ -43,6 +45,7 @@ export class ItemModel {
     this.validateRequiredFields(data);
 
     this.id = data.id;
+    this.publicId = data.publicId;
     this.itemId = data.itemId;
     this.code = data.code;
     this.desc = data.desc;
@@ -121,6 +124,10 @@ export class ItemModel {
     return this.id;
   }
 
+  public getPublicId(): string | undefined {
+    return this.publicId;
+  }
+
   public getItemId(): number {
     return this.itemId;
   }
@@ -154,6 +161,7 @@ export class ItemModel {
   public toPersistence(): any {
     return {
       id: this.id,
+      publicId: this.publicId,
       itemId: this.itemId,
       code: this.code,
       desc: this.desc,
@@ -167,6 +175,7 @@ export class ItemModel {
   public static fromPersistence(data: any): ItemModel {
     return new ItemModel({
       id: data.id,
+      publicId: data.publicId,
       itemId: data.itemId,
       code: data.code,
       desc: data.desc,

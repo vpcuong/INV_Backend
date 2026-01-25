@@ -36,6 +36,7 @@ export enum ItemStatus {
 
 export interface ItemConstructorData {
   id?: number;
+  publicId?: string;
   code: string;
   categoryId: number;
   itemTypeId: number;
@@ -150,6 +151,7 @@ export interface CreateUomData {
  */
 export class Item {
   private id?: number;
+  private publicId?: string;
   private code: string;
   private categoryId: number;
   private itemTypeId: number;
@@ -182,6 +184,7 @@ export class Item {
     this.validateRequiredFields(data);
 
     this.id = data.id;
+    this.publicId = data.publicId;
     this.code = data.code;
     this.categoryId = data.categoryId;
     this.itemTypeId = data.itemTypeId;
@@ -439,11 +442,20 @@ export class Item {
 
   /**
    * findModel by code
-   * @param code 
+   * @param code
    * @returns ItemModel | undefined
    */
   public findModelByCode(code: string): ItemModel | undefined {
     return this.models.find((m) => m.getCode() === code);
+  }
+
+  /**
+   * findModel by publicId
+   * @param publicId - ULID public identifier
+   * @returns ItemModel | undefined
+   */
+  public findModelByPublicId(publicId: string): ItemModel | undefined {
+    return this.models.find((m) => m.getPublicId() === publicId);
   }
 
   // ==================== SKU OPERATIONS ====================
@@ -616,6 +628,16 @@ export class Item {
    */
   public findSkuByCode(code: string): ItemSku | undefined {
     return this.skus.find((s) => s.getSkuCode() === code);
+  }
+
+  /**
+   * Tìm SKU theo publicId
+   *
+   * @param publicId - ULID public identifier
+   * @returns ItemSku | undefined - SKU tìm được hoặc undefined nếu không tồn tại
+   */
+  public findSkuByPublicId(publicId: string): ItemSku | undefined {
+    return this.skus.find((s) => s.getPublicId() === publicId);
   }
 
   // ==================== UOM OPERATIONS ====================
@@ -816,6 +838,10 @@ export class Item {
     return this.id;
   }
 
+  public getPublicId(): string | undefined {
+    return this.publicId;
+  }
+
   public getCode(): string {
     return this.code;
   }
@@ -918,6 +944,7 @@ export class Item {
   public toPersistence(): any {
     return {
       id: this.id,
+      publicId: this.publicId,
       code: this.code,
       categoryId: this.categoryId,
       itemTypeId: this.itemTypeId,
@@ -961,6 +988,7 @@ export class Item {
   public static fromPersistence(data: any): Item {
     return new Item({
       id: data.id,
+      publicId: data.publicId,
       code: data.code,
       categoryId: data.categoryId,
       itemTypeId: data.itemTypeId,

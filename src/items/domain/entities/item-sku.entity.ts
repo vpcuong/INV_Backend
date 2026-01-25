@@ -11,6 +11,7 @@ export enum ItemSkuStatus {
 
 export interface ItemSkuConstructorData {
   id?: number;
+  publicId?: string;
   skuCode: string;
   itemId?: number | null;
   modelId?: number | null;
@@ -57,6 +58,7 @@ export interface UpdateItemSkuData {
  */
 export class ItemSku {
   private id?: number;
+  private publicId?: string;
   private skuCode: string;
   private itemId?: number | null;
   private modelId?: number | null;
@@ -85,6 +87,7 @@ export class ItemSku {
     this.validateDimensions(data);
 
     this.id = data.id;
+    this.publicId = data.publicId;
     this.skuCode = data.skuCode;
     this.itemId = data.itemId;
     this.modelId = data.modelId;
@@ -245,6 +248,10 @@ export class ItemSku {
     return this.id;
   }
 
+  public getPublicId(): string | undefined {
+    return this.publicId;
+  }
+
   public getSkuCode(): string {
     return this.skuCode;
   }
@@ -334,6 +341,7 @@ export class ItemSku {
   public toPersistence(): any {
     return {
       id: this.id || undefined,
+      publicId: this.publicId,
       skuCode: this.skuCode,
       itemId: this.itemId,
       modelId: this.modelId,
@@ -361,6 +369,7 @@ export class ItemSku {
   public static fromPersistence(data: any): ItemSku {
     return new ItemSku({
       id: data.id,
+      publicId: data.publicId,
       skuCode: data.skuCode,
       itemId: data.itemId,
       modelId: data.modelId,
