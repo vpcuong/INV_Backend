@@ -22,6 +22,8 @@ import {
   ItemSkuNotFoundException,
 } from '../domain/exceptions/item-domain.exception';
 
+import { ItemQueryService } from './item-query.service';
+
 export interface CreateItemDto {
   code: string;
   categoryId: number;
@@ -143,11 +145,12 @@ export class ItemAggregateService {
     @Inject('IItemRepository')
     private readonly repository: IItemRepository,
     private readonly eventEmitter: EventEmitter2,
+    private readonly queryService: ItemQueryService
   ) {}
 
   // ==================== ITEM OPERATIONS ====================
 
-  async createItem(dto: CreateItemDto): Promise<Item> {
+  async createItem(dto: CreateItemDto): Promise<any> {
     // Check for duplicate code
     const exists = await this.repository.existsByCode(dto.code);
     if (exists) {
@@ -176,7 +179,8 @@ export class ItemAggregateService {
 
     const savedItem = await this.repository.save(item);
     await this.publishEvents(savedItem);
-    return savedItem;
+
+    return this.queryService.findById((savedItem.getId()));
   }
 
   async updateItem(id: number, dto: UpdateItemDto): Promise<Item> {

@@ -4,6 +4,14 @@ import { QueryBuilderService } from '@/common/filtering';
 import { ItemFilterDto } from '../dto/item-filter.dto';
 import { ModelFilterDto } from '../dto/model-filter.dto';
 import { SkuFilterDto } from '../dto/sku-filter.dto';
+import {
+  mapItemResponse,
+  mapItemsResponse,
+  mapModelResponse,
+  mapModelsResponse,
+  mapSkuResponse,
+  mapSkusResponse,
+} from '@/common/utils/response-mapper.util';
 
 @Injectable()
 export class ItemQueryService {
@@ -213,7 +221,7 @@ export class ItemQueryService {
       throw new NotFoundException(`Item not found`);
     }
 
-    return item;
+    return mapItemResponse(item);
   }
 
   /**
@@ -271,7 +279,7 @@ export class ItemQueryService {
       throw new NotFoundException(`Item not found`);
     }
 
-    return item;
+    return mapItemResponse(item);
   }
 
   /**
@@ -529,7 +537,14 @@ export class ItemQueryService {
       throw new NotFoundException(`Item not found`);
     }
 
-    return this.findModelsByItemId(item.id, filterDto);
+    const result = await this.findModelsByItemId(item.id, filterDto);
+
+    // Transform data in paginated response
+    if (result.data) {
+      result.data = mapModelsResponse(result.data);
+    }
+
+    return result;
   }
 
   async findModelsByItemId(itemId: number, filterDto?: ModelFilterDto) {
@@ -627,7 +642,7 @@ export class ItemQueryService {
       throw new NotFoundException(`Model not found`);
     }
 
-    return model;
+    return mapModelResponse(model);
   }
 
   async findAllModels(filterDto?: ModelFilterDto) {
@@ -777,7 +792,7 @@ export class ItemQueryService {
       throw new NotFoundException(`SKU not found`);
     }
 
-    return sku;
+    return mapSkuResponse(sku);
   }
 
   async findSkusByItemPublicId(itemPublicId: string, filterDto?: SkuFilterDto) {
@@ -790,7 +805,14 @@ export class ItemQueryService {
       throw new NotFoundException(`Item not found`);
     }
 
-    return this.findSkusByItemId(item.id, filterDto);
+    const result = await this.findSkusByItemId(item.id, filterDto);
+
+    // Transform data in paginated response
+    if (result.data) {
+      result.data = mapSkusResponse(result.data);
+    }
+
+    return result;
   }
 
   async findSkusByModelPublicId(
@@ -806,7 +828,14 @@ export class ItemQueryService {
       throw new NotFoundException(`Model not found`);
     }
 
-    return this.findSkusByModelId(model.id, filterDto);
+    const result = await this.findSkusByModelId(model.id, filterDto);
+
+    // Transform data in paginated response
+    if (result.data) {
+      result.data = mapSkusResponse(result.data);
+    }
+
+    return result;
   }
 
   async findAllSkus(filterDto?: SkuFilterDto) {

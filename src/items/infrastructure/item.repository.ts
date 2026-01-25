@@ -155,8 +155,16 @@ export class ItemRepository implements IItemRepository {
   }
 
   async save(item: Item): Promise<Item> {
+    const itemData = item.toPersistence();
+    delete itemData.id;
+    delete itemData.createdAt;
+    delete itemData.updatedAt;
+
+    // Generate ULID for new items
+    itemData.publicId = itemData.publicId || ulid();
+
     const data = await this.prisma.client.item.create({
-      data: item.toPersistence(),
+      data: itemData,
       include: {
         itemUoms: true,
       },
