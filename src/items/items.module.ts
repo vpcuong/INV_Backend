@@ -5,6 +5,8 @@ import {
   ItemModelsController,
   ItemSkusController,
   ItemUomsController,
+  SkusController,
+  ModelsController,
 } from './controllers';
 import { ItemAggregateService } from './application/item-aggregate.service';
 import { ItemQueryService } from './application/item-query.service';
@@ -23,6 +25,8 @@ import { FilteringModule } from '@/common/filtering';
     ItemModelsController,
     ItemSkusController,
     ItemUomsController,
+    SkusController,
+    ModelsController,
   ],
   providers: [
     ItemAggregateService,

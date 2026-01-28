@@ -64,7 +64,7 @@ export class ItemQueryService {
     ]);
 
     return this.queryBuilder.buildPaginatedResponse(
-      data,
+      mapItemsResponse(data),
       total,
       filterDto.page || 1,
       filterDto.limit
@@ -697,6 +697,73 @@ export class ItemQueryService {
     return { data, total };
   }
 
+  /**
+   * Find all Models with advanced filtering, sorting, and pagination
+   */
+  async findAllModelsWithFilters(filterDto: ModelFilterDto) {
+    const where: any = {};
+
+    // Apply filters
+    if (filterDto.status) {
+      where.status = filterDto.status;
+    }
+
+    if (filterDto.search) {
+      where.OR = [
+        { code: { contains: filterDto.search, mode: 'insensitive' } },
+        { desc: { contains: filterDto.search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (filterDto.customerId !== undefined) {
+      where.customerId = filterDto.customerId;
+    }
+
+    if (filterDto.itemId !== undefined) {
+      where.itemId = filterDto.itemId;
+    }
+
+    // Build orderBy from sort parameter
+    let orderBy: any = { id: 'desc' };
+    if (filterDto.sort && filterDto.sort.length > 0) {
+      orderBy = filterDto.sort.map((s: any) => ({
+        [s.field]: s.order || 'asc',
+      }));
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.client.itemModel.findMany({
+        where,
+        include: {
+          customer: true,
+          item: {
+            select: { id: true, publicId: true, code: true },
+          },
+        },
+        orderBy,
+        skip: filterDto.page && filterDto.limit
+          ? (filterDto.page - 1) * filterDto.limit
+          : undefined,
+        take: filterDto.limit,
+      }),
+      this.prisma.client.itemModel.count({ where }),
+    ]);
+
+    // Map response to remove internal IDs
+    const mappedData = mapModelsResponse(data);
+
+    if (filterDto.limit) {
+      return this.queryBuilder.buildPaginatedResponse(
+        mappedData,
+        total,
+        filterDto.page || 1,
+        filterDto.limit
+      );
+    }
+
+    return { data: mappedData, total };
+  }
+
   // ==================== SKU QUERIES ====================
 
   async findSkusByItemId(itemId: number, filterDto?: SkuFilterDto) {
@@ -841,14 +908,6 @@ export class ItemQueryService {
   async findAllSkus(filterDto?: SkuFilterDto) {
     const where: any = {};
 
-    if (filterDto?.itemId !== undefined) {
-      where.itemId = filterDto.itemId;
-    }
-
-    if (filterDto?.modelId !== undefined) {
-      where.modelId = filterDto.modelId;
-    }
-
     this.applySkuFilters(where, filterDto);
 
     const [data, total] = await Promise.all([
@@ -874,6 +933,52 @@ export class ItemQueryService {
     }
 
     return { data, total };
+  }
+
+  /**
+   * Find all SKUs with advanced filtering, sorting, and pagination
+   * Supports filtering by publicId (ULID) instead of internal IDs
+   */
+  async findAllSkusWithFilters(filterDto: SkuFilterDto) {
+    const where: any = {};
+
+    // Apply common SKU filters
+    this.applySkuFilters(where, filterDto);
+
+    // Build orderBy from sort parameter
+    let orderBy: any = { id: 'desc' };
+    if (filterDto.sort && filterDto.sort.length > 0) {
+      orderBy = filterDto.sort.map((s: any) => ({
+        [s.field]: s.order || 'asc',
+      }));
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.client.itemSKU.findMany({
+        where,
+        include: this.getSkuIncludes(),
+        orderBy,
+        skip: filterDto.page && filterDto.limit
+          ? (filterDto.page - 1) * filterDto.limit
+          : undefined,
+        take: filterDto.limit,
+      }),
+      this.prisma.client.itemSKU.count({ where }),
+    ]);
+
+    // Map response to remove internal IDs
+    const mappedData = mapSkusResponse(data);
+
+    if (filterDto.limit) {
+      return this.queryBuilder.buildPaginatedResponse(
+        mappedData,
+        total,
+        filterDto.page || 1,
+        filterDto.limit
+      );
+    }
+
+    return { data: mappedData, total };
   }
 
   private applySkuFilters(where: any, filterDto?: SkuFilterDto) {

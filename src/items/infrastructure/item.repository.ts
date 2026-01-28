@@ -189,6 +189,22 @@ export class ItemRepository implements IItemRepository {
     return Item.fromPersistence(data);
   }
 
+  async updatePartial(id: number, data: Record<string, any>): Promise<any> {
+    const result = await this.prisma.client.item.update({
+      where: { id },
+      data,
+      include: {
+        itemUoms: true,
+        category: true,
+        itemType: true,
+        material: true,
+        uom: true,
+      },
+    });
+
+    return result;
+  }
+
   async saveWithChildren(item: Item): Promise<Item> {
     const itemId = item.getId();
 
@@ -415,6 +431,19 @@ export class ItemRepository implements IItemRepository {
     return data ? ItemModel.fromPersistence(data) : null;
   }
 
+  async findModelByPublicId(publicId: string): Promise<{ model: ItemModel; itemId: number } | null> {
+    const data = await this.prisma.client.itemModel.findUnique({
+      where: { publicId },
+    });
+
+    if (!data) return null;
+
+    return {
+      model: ItemModel.fromPersistence(data),
+      itemId: data.itemId,
+    };
+  }
+
   async findModelsByItemId(itemId: number): Promise<ItemModel[]> {
     const data = await this.prisma.client.itemModel.findMany({
       where: { itemId },
@@ -442,6 +471,19 @@ export class ItemRepository implements IItemRepository {
     });
 
     return data ? ItemSku.fromPersistence(data) : null;
+  }
+
+  async findSkuByPublicId(publicId: string): Promise<{ sku: ItemSku; itemId: number } | null> {
+    const data = await this.prisma.client.itemSKU.findUnique({
+      where: { publicId },
+    });
+
+    if (!data) return null;
+
+    return {
+      sku: ItemSku.fromPersistence(data),
+      itemId: data.itemId,
+    };
   }
 
   async findSkusByItemId(itemId: number): Promise<ItemSku[]> {

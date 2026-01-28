@@ -27,25 +27,40 @@ async function bootstrap() {
     .setTitle('Garment Inventory API')
     .setDescription('API documentation for Garment Inventory Management System')
     .setVersion('1.0')
-    // .addTag('items', 'Item management')
-    // .addTag('item-categories', 'Item category management')
-    // .addTag('item-types', 'Item type management')
-    // .addTag('item-revisions', 'Item revision management')
-    // .addTag('item-skus', 'Item SKU management')
-    // .addTag('materials', 'Material management')
-    // .addTag('colors', 'Color management')
-    // .addTag('genders', 'Gender management')
-    // .addTag('sizes', 'Size management')
-    // .addTag('suppliers', 'Supplier management')
-    // .addTag('supplier-item-packagings', 'Supplier item packaging management')
-    // .addTag('customers', 'Customer management')
-    // .addTag('customer-addresses', 'Customer address management')
-    // .addTag('auth', 'Authentication')
+    // Item Management Group
+    .addTag('Items', 'Item CRUD operations')
+    .addTag('Models', 'Model direct CRUD operations')
+    .addTag('SKUs', 'SKU direct CRUD operations')
+    .addTag('Item Models', 'Model operations nested under Item')
+    .addTag('Item SKUs', 'SKU operations nested under Item/Model')
+    .addTag('Item UOMs', 'UOM operations for Item')
+    // Master Data Group
+    .addTag('Item Categories', 'Item category management')
+    .addTag('Item Types', 'Item type management')
+    .addTag('Materials', 'Material management')
+    .addTag('Colors', 'Color management')
+    .addTag('Genders', 'Gender management')
+    // .addTag('Sizes', 'Size management')
+    .addTag('UOMs', 'Unit of Measure management')
+    // Partners Group
+    .addTag('Suppliers', 'Supplier management')
+    .addTag('Customers', 'Customer management')
+    // Auth
+    .addTag('Auth', 'Authentication')
     .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: {
+      filter: true, // Enable filter/search box
+      showRequestDuration: true,
+      persistAuthorization: true,
+      tagsSorter: 'alpha', // Sort tags alphabetically
+      operationsSorter: 'alpha', // Sort operations alphabetically
+      docExpansion: 'none', // Collapse all by default
+    },
+  });
 
   const port = process.env.RUNNING_PORT || 3000;
   await app.listen(port, () => {

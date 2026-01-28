@@ -7,8 +7,9 @@ import {
   Delete,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { ItemAggregateService, CreateUomDto } from '../application/item-aggregate.service';
+import { ItemAggregateService } from '../application/item-aggregate.service';
 import { ItemQueryService } from '../application/item-query.service';
+import { CreateUomDto } from '../dto/create-uom.dto';
 
 /**
  * Controller xử lý các endpoints liên quan đến Item UOMs

@@ -3,26 +3,26 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { ItemAggregateService, CreateSkuDto, UpdateSkuDto } from '../application/item-aggregate.service';
+import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { ItemAggregateService } from '../application/item-aggregate.service';
 import { ItemQueryService } from '../application/item-query.service';
 import { SkuFilterDto } from '../dto/sku-filter.dto';
+import { CreateSkuDto } from '../dto/create-sku.dto';
 
 /**
- * Controller xử lý các endpoints liên quan đến Item SKUs
+ * Controller xử lý các endpoints tạo và list SKUs theo Item/Model
  *
  * Nested routes:
- * - /items/:itemPublicId/skus/* (SKU trực tiếp của Item)
- * - /items/:itemPublicId/models/:modelPublicId/skus/* (SKU thuộc Model)
+ * - POST /items/:itemPublicId/skus - Tạo SKU cho Item
+ * - GET /items/:itemPublicId/skus - List SKUs của Item
+ * - POST /items/:itemPublicId/models/:modelPublicId/skus - Tạo SKU cho Model
+ * - GET /items/:itemPublicId/models/:modelPublicId/skus - List SKUs của Model
  *
- * Bao gồm:
- * - CRUD operations cho SKU
- * - Status management (activate, deactivate)
+ * Lưu ý: Các thao tác CRUD trực tiếp với SKU (get, update, delete, activate, deactivate)
+ * sử dụng endpoint /skus/:publicId trong SkusController
  */
 @ApiTags('Item SKUs')
 @Controller('items/:itemPublicId')
@@ -52,62 +52,6 @@ export class ItemSkusController {
     @Query() filterDto: SkuFilterDto,
   ) {
     return this.itemQueryService.findSkusByItemPublicId(itemPublicId, filterDto);
-  }
-
-  @Get('skus/:skuPublicId')
-  @ApiOperation({ summary: 'Get specific SKU' })
-  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
-  @ApiParam({ name: 'skuPublicId', description: 'SKU Public ID (ULID)' })
-  findOne(
-    @Param('itemPublicId') itemPublicId: string,
-    @Param('skuPublicId') skuPublicId: string,
-  ) {
-    return this.itemQueryService.findSkuByPublicId(skuPublicId);
-  }
-
-  @Patch('skus/:skuPublicId')
-  @ApiOperation({ summary: 'Update SKU' })
-  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
-  @ApiParam({ name: 'skuPublicId', description: 'SKU Public ID (ULID)' })
-  update(
-    @Param('itemPublicId') itemPublicId: string,
-    @Param('skuPublicId') skuPublicId: string,
-    @Body() dto: UpdateSkuDto,
-  ) {
-    return this.itemAggregateService.updateSkuByPublicId(itemPublicId, skuPublicId, dto);
-  }
-
-  @Delete('skus/:skuPublicId')
-  @ApiOperation({ summary: 'Remove SKU' })
-  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
-  @ApiParam({ name: 'skuPublicId', description: 'SKU Public ID (ULID)' })
-  remove(
-    @Param('itemPublicId') itemPublicId: string,
-    @Param('skuPublicId') skuPublicId: string,
-  ) {
-    return this.itemAggregateService.removeSkuByPublicId(itemPublicId, skuPublicId);
-  }
-
-  @Patch('skus/:skuPublicId/activate')
-  @ApiOperation({ summary: 'Activate SKU' })
-  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
-  @ApiParam({ name: 'skuPublicId', description: 'SKU Public ID (ULID)' })
-  activate(
-    @Param('itemPublicId') itemPublicId: string,
-    @Param('skuPublicId') skuPublicId: string,
-  ) {
-    return this.itemAggregateService.activateSkuByPublicId(itemPublicId, skuPublicId);
-  }
-
-  @Patch('skus/:skuPublicId/deactivate')
-  @ApiOperation({ summary: 'Deactivate SKU' })
-  @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
-  @ApiParam({ name: 'skuPublicId', description: 'SKU Public ID (ULID)' })
-  deactivate(
-    @Param('itemPublicId') itemPublicId: string,
-    @Param('skuPublicId') skuPublicId: string,
-  ) {
-    return this.itemAggregateService.deactivateSkuByPublicId(itemPublicId, skuPublicId);
   }
 
   // ==================== SKU thuộc Model ====================

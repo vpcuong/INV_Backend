@@ -27,6 +27,8 @@ import {
   ItemUomAddedEvent,
   ItemUomRemovedEvent,
 } from '../events/item-uom-changed.event';
+import { STATUS_CODES } from 'node:http';
+import { isIn } from 'class-validator';
 
 export enum ItemStatus {
   ACTIVE = 'active',
@@ -285,11 +287,12 @@ export class Item {
    * @returns boolean
    */
   public canBeDeleted(): boolean {
-    return (
-      this.itemUoms.length === 0 &&
-      this.models.length === 0 &&
-      this.skus.length === 0
-    );
+    return true;
+    // return (
+    //   this.itemUoms.length === 0 &&
+    //   this.models.length === 0 &&
+    //   this.skus.length === 0
+    // );
   }
 
   // ==================== MODEL OPERATIONS ====================
@@ -928,6 +931,26 @@ export class Item {
 
   public getUpdatedAt(): Date | undefined {
     return this.updatedAt;
+  }
+
+  /**
+   * Check if item is active
+   * @returns Boolean
+   */
+  public isActive(): boolean {
+    return this.status == ItemStatus.ACTIVE;
+  }
+
+  /**
+   * Check if item is inactive
+   * @returns boolean
+   */
+  public isInactive(): boolean {
+    return this.status == ItemStatus.INACTIVE;
+  }
+
+  public isDraft(): boolean {
+    return this.status == ItemStatus.DRAFT;
   }
 
   // ==================== PERSISTENCE ====================

@@ -82,6 +82,12 @@ export interface IItemRepository {
   update(item: Item): Promise<Item>;
 
   /**
+   * Partial update - only update specified fields
+   * More efficient than full update when changing only a few fields
+   */
+  updatePartial(id: number, data: Record<string, any>): Promise<Item>;
+
+  /**
    * Save item with all children (models, skus, uoms) in a transaction
    */
   saveWithChildren(item: Item): Promise<Item>;
@@ -109,6 +115,11 @@ export interface IItemRepository {
   findModelById(modelId: number): Promise<ItemModel | null>;
 
   /**
+   * Find model by public ID with itemId included
+   */
+  findModelByPublicId(publicId: string): Promise<{ model: ItemModel; itemId: number } | null>;
+
+  /**
    * Find models by item ID
    */
   findModelsByItemId(itemId: number): Promise<ItemModel[]>;
@@ -124,6 +135,11 @@ export interface IItemRepository {
    * Find SKU by ID
    */
   findSkuById(skuId: number): Promise<ItemSku | null>;
+
+  /**
+   * Find SKU by public ID with itemId included
+   */
+  findSkuByPublicId(publicId: string): Promise<{ sku: ItemSku; itemId: number } | null>;
 
   /**
    * Find SKUs by item ID

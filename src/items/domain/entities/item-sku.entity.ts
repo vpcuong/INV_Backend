@@ -36,6 +36,7 @@ export interface ItemSkuConstructorData {
 }
 
 export interface UpdateItemSkuData {
+  skuCode?: string | null;
   colorId?: number | null;
   genderId?: number | null;
   sizeId?: number | null;
@@ -210,6 +211,7 @@ export class ItemSku {
       weightG: data.weightG,
     });
 
+    if (data.skuCode !== undefined) this.skuCode = data.skuCode;
     if (data.colorId !== undefined) this.colorId = data.colorId;
     if (data.genderId !== undefined) this.genderId = data.genderId;
     if (data.sizeId !== undefined) this.sizeId = data.sizeId;

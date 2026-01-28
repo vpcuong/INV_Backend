@@ -23,121 +23,14 @@ import {
 } from '../domain/exceptions/item-domain.exception';
 
 import { ItemQueryService } from './item-query.service';
+import { CreateItemDto } from '../dto/create-item.dto';
+import { UpdateItemDto } from '../dto/update-item.dto';
+import { CreateModelDto } from '../dto/create-model.dto';
+import { UpdateModelDto } from '../dto/update-model.dto';
+import { CreateSkuDto } from '../dto/create-sku.dto';
+import { UpdateSkuDto } from '../dto/update-sku.dto';
+import { CreateUomDto } from '../dto/create-uom.dto';
 
-export interface CreateItemDto {
-  code: string;
-  categoryId: number;
-  itemTypeId: number;
-  materialId?: number | null;
-  fabricSupId?: number | null;
-  lengthCm?: number | null;
-  widthCm?: number | null;
-  heightCm?: number | null;
-  weightG?: number | null;
-  desc?: string | null;
-  status?: string;
-  purchasingPrice?: number | null;
-  isManufactured?: boolean;
-  isPurchasable?: boolean;
-  isSellable?: boolean;
-  sellingPrice?: number | null;
-  uomCode?: string | null;
-}
-
-export interface UpdateItemDto {
-  code?: string;
-  categoryId?: number;
-  itemTypeId?: number;
-  materialId?: number | null;
-  fabricSupId?: number | null;
-  lengthCm?: number | null;
-  widthCm?: number | null;
-  heightCm?: number | null;
-  weightG?: number | null;
-  desc?: string | null;
-  purchasingPrice?: number | null;
-  isManufactured?: boolean;
-  isPurchasable?: boolean;
-  isSellable?: boolean;
-  sellingPrice?: number | null;
-  uomCode?: string | null;
-}
-
-export interface CreateModelDto {
-  code: string;
-  desc?: string | null;
-  customerId?: number | null;
-  status?: string;
-}
-
-export interface UpdateModelDto {
-  code?: string;
-  desc?: string | null;
-  customerId?: number | null;
-  status?: string;
-}
-
-export interface CreateSkuDto {
-  skuCode: string;
-  colorId: number;
-  genderId?: number | null;
-  sizeId?: number | null;
-  supplierId?: number | null;
-  customerId?: number | null;
-  fabricSKUId?: number | null;
-  pattern?: string | null;
-  lengthCm?: number | null;
-  widthCm?: number | null;
-  heightCm?: number | null;
-  weightG?: number | null;
-  desc?: string | null;
-  status?: string;
-  costPrice?: number | null;
-  sellingPrice?: number | null;
-  uomCode?: string | null;
-}
-
-export interface UpdateSkuDto {
-  colorId?: number | null;
-  genderId?: number | null;
-  sizeId?: number | null;
-  supplierId?: number | null;
-  customerId?: number | null;
-  fabricSKUId?: number | null;
-  pattern?: string | null;
-  lengthCm?: number | null;
-  widthCm?: number | null;
-  heightCm?: number | null;
-  weightG?: number | null;
-  desc?: string | null;
-  status?: string;
-  costPrice?: number | null;
-  sellingPrice?: number | null;
-  uomCode?: string | null;
-}
-
-export interface CreateUomDto {
-  uomCode: string;
-  toBaseFactor: number;
-  roundingPrecision?: number;
-  isDefaultTransUom?: boolean;
-  isPurchasingUom?: boolean;
-  isSalesUom?: boolean;
-  isManufacturingUom?: boolean;
-  isActive?: boolean;
-  desc?: string;
-}
-
-export interface UpdateUomDto {
-  toBaseFactor?: number;
-  roundingPrecision?: number;
-  isDefaultTransUom?: boolean;
-  isPurchasingUom?: boolean;
-  isSalesUom?: boolean;
-  isManufacturingUom?: boolean;
-  isActive?: boolean;
-  desc?: string;
-}
 
 @Injectable()
 export class ItemAggregateService {
@@ -183,7 +76,7 @@ export class ItemAggregateService {
     return this.queryService.findById((savedItem.getId()));
   }
 
-  async updateItem(id: number, dto: UpdateItemDto): Promise<Item> {
+  async updateItem(id: number, dto: UpdateItemDto): Promise<any> {
     const item = await this.repository.findById(id);
     if (!item) {
       throw new ItemNotFoundException(id);
@@ -200,7 +93,7 @@ export class ItemAggregateService {
     item.update(dto as UpdateItemData);
     const savedItem = await this.repository.update(item);
     await this.publishEvents(savedItem);
-    return savedItem;
+    return this.queryService.findById(savedItem.getId());
   }
 
   async deleteItem(id: number): Promise<void> {
@@ -224,8 +117,7 @@ export class ItemAggregateService {
       throw new ItemNotFoundException(id);
     }
 
-    item.activate();
-    return this.repository.update(item);
+    return this.repository.updatePartial(id, { status: 'active' });
   }
 
   async deactivateItem(id: number): Promise<Item> {
@@ -234,8 +126,7 @@ export class ItemAggregateService {
       throw new ItemNotFoundException(id);
     }
 
-    item.deactivate();
-    return this.repository.update(item);
+    return this.repository.updatePartial(id, { status: 'inactive' });
   }
 
   async setItemDraft(id: number): Promise<Item> {
@@ -244,8 +135,7 @@ export class ItemAggregateService {
       throw new ItemNotFoundException(id);
     }
 
-    item.setDraft();
-    return this.repository.update(item);
+    return this.repository.updatePartial(id, { status: 'draft' });
   }
 
   async getItemById(id: number): Promise<Item> {
@@ -271,7 +161,7 @@ export class ItemAggregateService {
    * @param publicId - ULID public identifier
    * @param dto - Update data
    */
-  async updateItemByPublicId(publicId: string, dto: UpdateItemDto): Promise<Item> {
+  async updateItemByPublicId(publicId: string, dto: UpdateItemDto): Promise<any> {
     const item = await this.repository.findByPublicId(publicId);
     if (!item) {
       throw new NotFoundException(`Item with publicId ${publicId} not found`);
@@ -288,7 +178,7 @@ export class ItemAggregateService {
     item.update(dto as UpdateItemData);
     const savedItem = await this.repository.update(item);
     await this.publishEvents(savedItem);
-    return savedItem;
+    return this.queryService.findById((savedItem.getId()));
   }
 
   /**
@@ -314,14 +204,23 @@ export class ItemAggregateService {
    * Activate item by publicId
    * @param publicId - ULID public identifier
    */
-  async activateItemByPublicId(publicId: string): Promise<Item> {
+  async activateItemByPublicId(publicId: string): Promise<any> {
+
     const item = await this.repository.findByPublicId(publicId);
     if (!item) {
       throw new NotFoundException(`Item with publicId ${publicId} not found`);
     }
 
+    if(item.isActive()) {
+      throw new ConflictException(`Item with publicId ${publicId} is already active`);
+    }
+
     item.activate();
-    return this.repository.update(item);
+
+    return this.repository.updatePartial(item.getId()!, { 
+      status: item.getStatus(),
+      updatedAt: item.getUpdatedAt()
+    });
   }
 
   /**
@@ -334,8 +233,16 @@ export class ItemAggregateService {
       throw new NotFoundException(`Item with publicId ${publicId} not found`);
     }
 
+    if(item.isInactive()){
+      throw new ConflictException(`Item with publicId ${publicId} is already inactive`);
+    }
+
     item.deactivate();
-    return this.repository.update(item);
+
+    return this.repository.updatePartial(item.getId()!, { 
+      status: item.getStatus(),
+      updatedAt: item.getUpdatedAt()
+    });
   }
 
   /**
@@ -348,8 +255,16 @@ export class ItemAggregateService {
       throw new NotFoundException(`Item with publicId ${publicId} not found`);
     }
 
+    if(item.isDraft()){
+      throw new ConflictException(`Item with publicId ${publicId} is already draft`);
+    }
+
     item.setDraft();
-    return this.repository.update(item);
+
+    return this.repository.updatePartial(item.getId()!, { 
+      status: item.getStatus(),
+      updatedAt: item.getUpdatedAt()
+    });
   }
 
   // ==================== MODEL OPERATIONS ====================
@@ -564,6 +479,113 @@ export class ItemAggregateService {
     return model;
   }
 
+  // ==================== MODEL DIRECT OPERATIONS (by Model publicId only) ====================
+
+  /**
+   * Update model directly by Model's publicId (without needing itemPublicId)
+   * @param modelPublicId - Model's ULID public identifier
+   * @param dto - Update data
+   */
+  async updateModelDirect(modelPublicId: string, dto: UpdateModelDto): Promise<ItemModel> {
+    const result = await this.repository.findModelByPublicId(modelPublicId);
+    if (!result) {
+      throw new NotFoundException(`Model not found`);
+    }
+
+    const item = await this.repository.findByIdComplete(result.itemId);
+    if (!item) {
+      throw new NotFoundException(`Item not found`);
+    }
+
+    const model = item.findModelByPublicId(modelPublicId);
+    if (!model) {
+      throw new NotFoundException(`Model not found`);
+    }
+
+    if (dto.code) {
+      const exists = await this.repository.existsModelByCode(dto.code, model.getId());
+      if (exists) {
+        throw new ConflictException(`Model with code ${dto.code} already exists`);
+      }
+    }
+
+    model.update(dto as UpdateItemModelData);
+    await this.repository.saveWithChildren(item);
+    await this.publishEvents(item);
+
+    return model;
+  }
+
+  /**
+   * Delete model directly by Model's publicId (without needing itemPublicId)
+   * @param modelPublicId - Model's ULID public identifier
+   */
+  async deleteModelDirect(modelPublicId: string): Promise<void> {
+    const result = await this.repository.findModelByPublicId(modelPublicId);
+    if (!result) {
+      throw new NotFoundException(`Model not found`);
+    }
+
+    const item = await this.repository.findByIdComplete(result.itemId);
+    if (!item) {
+      throw new NotFoundException(`Item not found`);
+    }
+
+    item.removeModel(result.model.getId()!);
+    await this.repository.saveWithChildren(item);
+    await this.publishEvents(item);
+  }
+
+  /**
+   * Activate model directly by Model's publicId
+   * @param modelPublicId - Model's ULID public identifier
+   */
+  async activateModelDirect(modelPublicId: string): Promise<ItemModel> {
+    const result = await this.repository.findModelByPublicId(modelPublicId);
+    if (!result) {
+      throw new NotFoundException(`Model not found`);
+    }
+
+    const item = await this.repository.findByIdComplete(result.itemId);
+    if (!item) {
+      throw new NotFoundException(`Item not found`);
+    }
+
+    const model = item.findModelByPublicId(modelPublicId);
+    if (!model) {
+      throw new NotFoundException(`Model not found`);
+    }
+
+    model.activate();
+    await this.repository.saveWithChildren(item);
+    return model;
+  }
+
+  /**
+   * Deactivate model directly by Model's publicId
+   * @param modelPublicId - Model's ULID public identifier
+   */
+  async deactivateModelDirect(modelPublicId: string): Promise<ItemModel> {
+    const result = await this.repository.findModelByPublicId(modelPublicId);
+    if (!result) {
+      throw new NotFoundException(`Model not found`);
+    }
+
+    const item = await this.repository.findByIdComplete(result.itemId);
+    if (!item) {
+      throw new NotFoundException(`Item not found`);
+    }
+
+    const model = item.findModelByPublicId(modelPublicId);
+    if (!model) {
+      throw new NotFoundException(`Model not found`);
+    }
+
+    model.deactivate();
+    await this.repository.saveWithChildren(item);
+    return model;
+  }
+
   // ==================== SKU OPERATIONS ====================
 
   async addSkuToItem(
@@ -771,6 +793,106 @@ export class ItemAggregateService {
     const sku = item.findSkuByPublicId(skuPublicId);
     if (!sku) {
       throw new NotFoundException(`SKU with publicId ${skuPublicId} not found`);
+    }
+
+    sku.deactivate();
+    await this.repository.saveWithChildren(item);
+    return sku;
+  }
+
+  // ==================== SKU DIRECT OPERATIONS (by SKU publicId only) ====================
+
+  /**
+   * Update SKU directly by SKU's publicId (without needing itemPublicId)
+   * @param skuPublicId - SKU's ULID public identifier
+   * @param dto - Update data
+   */
+  async updateSkuDirect(skuPublicId: string, dto: UpdateSkuDto): Promise<ItemSku> {
+    const result = await this.repository.findSkuByPublicId(skuPublicId);
+    if (!result) {
+      throw new NotFoundException(`SKU not found`);
+    }
+
+    const item = await this.repository.findByIdComplete(result.itemId);
+    if (!item) {
+      throw new NotFoundException(`Item not found`);
+    }
+
+    const sku = item.findSkuByPublicId(skuPublicId);
+    if (!sku) {
+      throw new NotFoundException(`SKU not found`);
+    }
+
+    sku.update(dto as UpdateItemSkuData);
+    await this.repository.saveWithChildren(item);
+    await this.publishEvents(item);
+
+    return sku;
+  }
+
+  /**
+   * Delete SKU directly by SKU's publicId (without needing itemPublicId)
+   * @param skuPublicId - SKU's ULID public identifier
+   */
+  async deleteSkuDirect(skuPublicId: string): Promise<void> {
+    const result = await this.repository.findSkuByPublicId(skuPublicId);
+    if (!result) {
+      throw new NotFoundException(`SKU not found`);
+    }
+
+    const item = await this.repository.findByIdComplete(result.itemId);
+    if (!item) {
+      throw new NotFoundException(`Item not found`);
+    }
+
+    item.removeSku(result.sku.getId()!);
+    await this.repository.saveWithChildren(item);
+    await this.publishEvents(item);
+  }
+
+  /**
+   * Activate SKU directly by SKU's publicId
+   * @param skuPublicId - SKU's ULID public identifier
+   */
+  async activateSkuDirect(skuPublicId: string): Promise<ItemSku> {
+    const result = await this.repository.findSkuByPublicId(skuPublicId);
+    if (!result) {
+      throw new NotFoundException(`SKU not found`);
+    }
+
+    const item = await this.repository.findByIdComplete(result.itemId);
+    if (!item) {
+      throw new NotFoundException(`Item not found`);
+    }
+
+    const sku = item.findSkuByPublicId(skuPublicId);
+    if (!sku) {
+      throw new NotFoundException(`SKU not found`);
+    }
+
+    sku.activate();
+    await this.repository.saveWithChildren(item);
+    return sku;
+  }
+
+  /**
+   * Deactivate SKU directly by SKU's publicId
+   * @param skuPublicId - SKU's ULID public identifier
+   */
+  async deactivateSkuDirect(skuPublicId: string): Promise<ItemSku> {
+    const result = await this.repository.findSkuByPublicId(skuPublicId);
+    if (!result) {
+      throw new NotFoundException(`SKU not found`);
+    }
+
+    const item = await this.repository.findByIdComplete(result.itemId);
+    if (!item) {
+      throw new NotFoundException(`Item not found`);
+    }
+
+    const sku = item.findSkuByPublicId(skuPublicId);
+    if (!sku) {
+      throw new NotFoundException(`SKU not found`);
     }
 
     sku.deactivate();

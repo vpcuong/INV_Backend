@@ -1,79 +1,76 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  IsOptional,
   IsString,
   IsNumber,
-  IsBoolean,
+  IsOptional,
   IsEnum,
   Min,
 } from 'class-validator';
 
-export class UpdateItemDto {
-  @ApiPropertyOptional({
-    description: 'Item code (unique)',
-    example: 'ITEM001',
+export class UpdateSkuDto {
+   @ApiPropertyOptional({
+    description: 'SKU code (unique)',
+    example: 'SKU001',
   })
   @IsOptional()
   @IsString()
-  code?: string;
+  skuCode?: string;
 
   @ApiPropertyOptional({
-    description: 'Item category ID',
+    description: 'Color ID',
     example: 1,
   })
   @IsOptional()
   @IsNumber()
-  categoryId?: number;
+  colorId?: number;
 
   @ApiPropertyOptional({
-    description: 'Item type ID',
+    description: 'Gender ID',
     example: 1,
   })
   @IsOptional()
   @IsNumber()
-  itemTypeId?: number;
+  genderId?: number;
 
   @ApiPropertyOptional({
-    description: 'Material ID',
+    description: 'Size ID',
     example: 1,
   })
   @IsOptional()
   @IsNumber()
-  materialId?: number;
+  sizeId?: number;
 
   @ApiPropertyOptional({
-    description: 'Fabric Customer ID (for fabric items)',
+    description: 'Supplier ID',
     example: 1,
   })
   @IsOptional()
   @IsNumber()
-  fabricSupId?: number;
+  supplierId?: number;
 
   @ApiPropertyOptional({
-    description: 'Unit of Measure code',
-    example: 'PCS',
+    description: 'Customer ID',
+    example: 1,
+  })
+  @IsOptional()
+  @IsNumber()
+  customerId?: number;
+
+  @ApiPropertyOptional({
+    description: 'Fabric SKU ID (for fabric items)',
+    example: 1,
+  })
+  @IsOptional()
+  @IsNumber()
+  fabricSKUId?: number;
+
+  @ApiPropertyOptional({
+    description: 'Pattern',
+    example: 'Striped',
   })
   @IsOptional()
   @IsString()
-  uomCode?: string;
-
-  @ApiPropertyOptional({
-    description: 'Purchasing price',
-    example: 15.5,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  purchasingPrice?: number;
-
-  @ApiPropertyOptional({
-    description: 'Selling price',
-    example: 25.99,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  sellingPrice?: number;
+  pattern?: string;
 
   @ApiPropertyOptional({
     description: 'Length in centimeters',
@@ -109,33 +106,44 @@ export class UpdateItemDto {
 
   @ApiPropertyOptional({
     description: 'Description',
-    example: 'Premium quality cotton',
+    example: 'Updated SKU description',
   })
   @IsOptional()
   @IsString()
   desc?: string;
 
   @ApiPropertyOptional({
-    description: 'Whether item is purchasable',
-    example: true,
+    description: 'SKU status',
+    example: 'active',
+    enum: ['active', 'inactive', 'draft'],
   })
   @IsOptional()
-  @IsBoolean()
-  isPurchasable?: boolean;
+  @IsEnum(['active', 'inactive', 'draft'])
+  status?: string;
 
   @ApiPropertyOptional({
-    description: 'Whether item is sellable',
-    example: true,
+    description: 'Cost price',
+    example: 15.5,
   })
   @IsOptional()
-  @IsBoolean()
-  isSellable?: boolean;
+  @IsNumber()
+  @Min(0)
+  costPrice?: number;
 
   @ApiPropertyOptional({
-    description: 'Whether item is manufactured',
-    example: false,
+    description: 'Selling price',
+    example: 25.99,
   })
   @IsOptional()
-  @IsBoolean()
-  isManufactured?: boolean;
+  @IsNumber()
+  @Min(0)
+  sellingPrice?: number;
+
+  @ApiPropertyOptional({
+    description: 'Unit of Measure code',
+    example: 'PCS',
+  })
+  @IsOptional()
+  @IsString()
+  uomCode?: string;
 }
