@@ -7,12 +7,14 @@ import {
   SO_HEADER_REPOSITORY,
   SO_NUMBER_GENERATOR,
   EXCHANGE_RATE_SERVICE,
+  ITEM_REPOSITORY,
 } from './constant/so.token';
 import { SOHeaderRepository } from './infrastructure/so.repository';
 import { QueryBuilderService } from '../common/filtering/query-builder.service';
 import { AuditLoggerService } from './common/audit-logger.service';
 import { SONumberGeneratorService } from './domain/services/so-number-generator.service';
 import { ExchangeRateService } from './domain/services/exchange-rate.service';
+import { ItemRepository } from '../items/infrastructure/item.repository';
 
 @Module({
   imports: [PrismaModule],
@@ -34,6 +36,10 @@ import { ExchangeRateService } from './domain/services/exchange-rate.service';
     {
       provide: EXCHANGE_RATE_SERVICE,
       useClass: ExchangeRateService,
+    },
+    {
+      provide: ITEM_REPOSITORY,
+      useClass: ItemRepository,
     },
     QueryBuilderService,
   ],

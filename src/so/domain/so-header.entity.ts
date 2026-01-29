@@ -29,7 +29,7 @@ export interface SOHeaderConstructorData {
   shipViaCode?: string | null;
   paymentTermCode?: string | null;
   currencyCode?: string | null;
-  exchangeRate?: number;
+  // exchangeRate?: number;
   customerPoNum?: string | null;
   headerNote?: string | null;
   internalNote?: string | null;
@@ -105,7 +105,7 @@ export class SOHeader {
       shipViaCode: data.shipViaCode,
       paymentTermCode: data.paymentTermCode,
       currencyCode: data.currencyCode ?? 'VND',
-      exchangeRate: data.exchangeRate ?? 1,
+      // exchangeRate: data.exchangeRate ?? 1,
       customerPoNum: data.customerPoNum,
       headerNote: data.headerNote,
       internalNote: data.internalNote,

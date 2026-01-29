@@ -9,6 +9,7 @@ import {
   Max,
   ValidateNested,
   IsDate,
+  IsEnum,
 } from 'class-validator';
 
 export class LinePricingDto {
@@ -21,17 +22,16 @@ export class LinePricingDto {
   @IsNumber()
   @Min(0)
   @Max(100)
-  discountPercent?: number;
+  discountValue?: number;
 
   @ApiProperty({
-    description: 'Line discount amount',
-    example: 5.5,
+    description: 'Line discount type',
+    example: 'PERCENT',
     required: false,
   })
   @IsOptional()
-  @IsNumber()
-  @Min(0)
-  discountAmount?: number;
+  @IsEnum(['PERCENT', 'AMOUNT'])
+  discountType?: string;
 
   @ApiProperty({
     description: 'Line tax percentage (0-100)',
@@ -43,16 +43,6 @@ export class LinePricingDto {
   @Min(0)
   @Max(100)
   taxPercent?: number;
-
-  @ApiProperty({
-    description: 'Line tax amount',
-    example: 2.07,
-    required: false,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  taxAmount?: number;
 }
 
 export class CreateSOLineDto {
@@ -65,9 +55,9 @@ export class CreateSOLineDto {
   @IsPositive()
   lineNum?: number;
 
-  @ApiProperty({ description: 'Item SKU ID', example: 456 })
-  @IsNumber()
-  itemSkuId: number;
+  @ApiProperty({ description: 'Item SKU ID', example: 'CFYEN9GPV25XWQNKXC8G554PSC' })
+  @IsString()
+  itemSkuId: string;
 
   @ApiProperty({ description: 'Item description', required: false })
   @IsOptional()

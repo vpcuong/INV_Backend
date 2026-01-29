@@ -4,9 +4,9 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateSkuUomDto } from './dto/create-sku-uom.dto';
-import { UpdateSkuUomDto } from './dto/update-sku-uom.dto';
+import { PrismaService } from '../../prisma/prisma.service';
+import { CreateSkuUomDto } from '../dto/create-sku-uom.dto';
+import { UpdateSkuUomDto } from '../dto/update-sku-uom.dto';
 
 @Injectable()
 export class SkuUomService {

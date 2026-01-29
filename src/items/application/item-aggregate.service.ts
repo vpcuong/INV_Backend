@@ -14,7 +14,7 @@ import {
 } from '../domain/aggregates/item.aggregate';
 import { ItemModel, UpdateItemModelData } from '../domain/entities/item-model.entity';
 import { ItemSku, UpdateItemSkuData } from '../domain/entities/item-sku.entity';
-import { ItemUOM } from '../domain/value-objects/item-uom.value-object';
+import { ItemUom } from '../domain/entities/item-uom.entity';
 import { IItemRepository } from '../domain/item.repository.interface';
 import {
   ItemNotFoundException,
@@ -902,7 +902,7 @@ export class ItemAggregateService {
 
   // ==================== UOM OPERATIONS ====================
 
-  async addUomToItem(itemId: number, dto: CreateUomDto): Promise<ItemUOM> {
+  async addUomToItem(itemId: number, dto: CreateUomDto): Promise<ItemUom> {
     const item = await this.repository.findById(itemId);
     if (!item) {
       throw new ItemNotFoundException(itemId);
@@ -933,7 +933,7 @@ export class ItemAggregateService {
    * @param itemPublicId - Item's ULID public identifier
    * @param dto - UOM creation data
    */
-  async addUomToItemByPublicId(itemPublicId: string, dto: CreateUomDto): Promise<ItemUOM> {
+  async addUomToItemByPublicId(itemPublicId: string, dto: CreateUomDto): Promise<ItemUom> {
     const item = await this.repository.findByPublicId(itemPublicId);
     if (!item) {
       throw new NotFoundException(`Item with publicId ${itemPublicId} not found`);

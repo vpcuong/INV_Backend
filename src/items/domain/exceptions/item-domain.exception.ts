@@ -102,3 +102,25 @@ export class ItemUOMNotFoundException extends ItemDomainException {
     this.name = 'ItemUOMNotFoundException';
   }
 }
+
+// SkuUOM exceptions
+export class InvalidSkuUomException extends ItemDomainException {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidSkuUomException';
+  }
+}
+
+export class DuplicateSkuUomException extends ItemDomainException {
+  constructor(skuId: number, uomCode: string) {
+    super(`SKU UOM already exists for SKU ${skuId} and UOM ${uomCode}`);
+    this.name = 'DuplicateSkuUomException';
+  }
+}
+
+export class SkuUomNotFoundException extends ItemDomainException {
+  constructor(id: number) {
+    super(`SKU UOM with ID ${id} not found`);
+    this.name = 'SkuUomNotFoundException';
+  }
+}

@@ -5,7 +5,7 @@ export class SOMetadata {
     private readonly shipViaCode: string | null,
     private readonly paymentTermCode: string | null,
     private readonly currencyCode: string | null,
-    private readonly exchangeRate: number,
+    //private readonly exchangeRate: number,
     private readonly customerPoNum: string | null,
     private readonly headerNote: string | null,
     private readonly internalNote: string | null,
@@ -15,9 +15,9 @@ export class SOMetadata {
   }
 
   private validateMetadata(): void {
-    if (this.exchangeRate <= 0) {
-      throw new Error('Exchange rate must be greater than 0');
-    }
+    //if (this.exchangeRate <= 0) {
+    //  throw new Error('Exchange rate must be greater than 0');
+    //}
   }
 
   public static create(data: {
@@ -26,7 +26,7 @@ export class SOMetadata {
     shipViaCode?: string | null;
     paymentTermCode?: string | null;
     currencyCode?: string | null;
-    exchangeRate?: number;
+    //exchangeRate?: number;
     customerPoNum?: string | null;
     headerNote?: string | null;
     internalNote?: string | null;
@@ -38,7 +38,7 @@ export class SOMetadata {
       data.shipViaCode || null,
       data.paymentTermCode || null,
       data.currencyCode || null,
-      data.exchangeRate || 1,
+      //data.exchangeRate || 1,
       data.customerPoNum || null,
       data.headerNote || null,
       data.internalNote || null,
@@ -66,7 +66,7 @@ export class SOMetadata {
         ? data.paymentTermCode
         : this.paymentTermCode,
       data.currencyCode !== undefined ? data.currencyCode : this.currencyCode,
-      data.exchangeRate !== undefined ? data.exchangeRate : this.exchangeRate,
+      // data.exchangeRate !== undefined ? data.exchangeRate : this.exchangeRate,
       data.customerPoNum !== undefined
         ? data.customerPoNum
         : this.customerPoNum,
@@ -115,9 +115,9 @@ export class SOMetadata {
     return this.currencyCode;
   }
 
-  public getExchangeRate(): number {
-    return this.exchangeRate;
-  }
+  // public getExchangeRate(): number {
+  //   return this.exchangeRate;
+  // }
 
   public getCustomerPoNum(): string | null {
     return this.customerPoNum;
@@ -143,7 +143,7 @@ export class SOMetadata {
       shipViaCode: this.shipViaCode,
       paymentTermCode: this.paymentTermCode,
       currencyCode: this.currencyCode,
-      exchangeRate: this.exchangeRate,
+      //exchangeRate: this.exchangeRate,
       customerPoNum: this.customerPoNum,
       headerNote: this.headerNote,
       internalNote: this.internalNote,
@@ -158,7 +158,7 @@ export class SOMetadata {
       data.shipViaCode || null,
       data.paymentTermCode || null,
       data.currencyCode || null,
-      Number(data.exchangeRate) || 1,
+      //Number(data.exchangeRate) || 1,
       data.customerPoNum || null,
       data.headerNote || null,
       data.internalNote || null,

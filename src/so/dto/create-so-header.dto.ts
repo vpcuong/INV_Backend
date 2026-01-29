@@ -14,14 +14,6 @@ import { SOAddressesDto, SOMetadataDto } from './composed/so-composed.dto';
 import { CreateSOLineDto } from './composed/create-so-line.dto';
 
 export class CreateSOHeaderDto {
-  // @ApiProperty({
-  //   description: 'Sales Order Number (auto-generated if not provided)',
-  //   example: 'SO-2024-001',
-  //   required: false,
-  // })
-  // @IsOptional()
-  // @IsString()
-  // soNum?: string;
 
   @ApiProperty({
     description: 'Customer ID',
@@ -91,6 +83,15 @@ export class CreateSOHeaderDto {
   metadata?: SOMetadataDto;
 
   @ApiProperty({
+    description: 'Line discount type',
+    example: 'PERCENT',
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(['PERCENT', 'AMOUNT'])
+  discountType?: string;
+
+  @ApiProperty({
     description: 'Header discount percent',
     example: 5.0,
     required: false,
@@ -98,7 +99,7 @@ export class CreateSOHeaderDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  discountPercent?: number;
+  discountValue?: number;
 
   @ApiProperty({
     description: 'Order lines',

@@ -10,10 +10,9 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
-import { SkuUomService } from './sku-uom.service';
-import { CreateSkuUomDto } from './dto/create-sku-uom.dto';
-import { UpdateSkuUomDto } from './dto/update-sku-uom.dto';
-
+import { SkuUomService } from '../application/sku-uom.service';
+import { CreateSkuUomDto } from '../dto/create-sku-uom.dto';
+import { UpdateSkuUomDto } from '../dto/update-sku-uom.dto';
 @ApiTags('SKU UOM')
 @Controller('sku-uom')
 export class SkuUomController {

@@ -1,4 +1,4 @@
-import { ItemUOM, ItemUOMData } from '../value-objects/item-uom.value-object';
+import { ItemUom, ItemUomConstructorData, UpdateItemUomData } from '../entities/item-uom.entity';
 import {
   ItemModel,
   ItemModelConstructorData,
@@ -56,7 +56,7 @@ export interface ItemConstructorData {
   isSellable?: boolean;
   sellingPrice?: number | null;
   uomCode?: string | null;
-  itemUoms?: ItemUOM[];
+  itemUoms?: ItemUom[];
   models?: ItemModel[];
   skus?: ItemSku[];
   createdAt?: Date;
@@ -175,7 +175,7 @@ export class Item {
   private updatedAt?: Date;
 
   // Child collections
-  private itemUoms: ItemUOM[] = [];
+  private itemUoms: ItemUom[] = [];
   private models: ItemModel[] = [];
   private skus: ItemSku[] = [];
 
@@ -677,7 +677,7 @@ export class Item {
    * });
    * ```
    */
-  public addUOM(data: CreateUomData): ItemUOM {
+  public addUOM(data: CreateUomData): ItemUom {
     // Check if base UOM
     if (data.uomCode === this.uomCode) {
       throw new InvalidItemException('Cannot add base UOM as ItemUOM');
@@ -688,7 +688,7 @@ export class Item {
       throw new DuplicateItemUOMException(data.uomCode);
     }
 
-    const uom = new ItemUOM({
+    const uom = new ItemUom({
       itemId: this.id!,
       uomCode: data.uomCode,
       toBaseFactor: data.toBaseFactor,
@@ -752,8 +752,70 @@ export class Item {
    * @param uomCode - Mã UOM cần tìm
    * @returns ItemUOM | undefined - UOM tìm được hoặc undefined nếu không tồn tại
    */
-  public findUOM(uomCode: string): ItemUOM | undefined {
+  public findUOM(uomCode: string): ItemUom | undefined {
     return this.itemUoms.find((u) => u.getUomCode() === uomCode);
+  }
+
+  /**
+   * Cập nhật thông tin UOM đã tồn tại
+   *
+   * @param uomCode - Mã UOM cần cập nhật
+   * @param data - Dữ liệu cần cập nhật
+   * @returns ItemUom - UOM sau khi cập nhật
+   * @throws ItemUOMNotFoundException - Khi không tìm thấy UOM với mã đã cho
+   *
+   * @example
+   * ```typescript
+   * const updatedUom = item.updateUOM('BOX', {
+   *   toBaseFactor: 24,
+   *   isPurchasingUom: true,
+   * });
+   * ```
+   */
+  public updateUOM(uomCode: string, data: UpdateItemUomData): ItemUom {
+    const uom = this.findUOM(uomCode);
+    if (!uom) {
+      throw new ItemUOMNotFoundException(uomCode);
+    }
+
+    uom.update(data);
+    this.updatedAt = new Date();
+    return uom;
+  }
+
+  /**
+   * Get active UOMs only
+   */
+  public getActiveUOMs(): ItemUom[] {
+    return this.itemUoms.filter((u) => u.getIsActive());
+  }
+
+  /**
+   * Get the default transaction UOM
+   */
+  public getDefaultTransUom(): ItemUom | undefined {
+    return this.itemUoms.find((u) => u.getIsDefaultTransUom());
+  }
+
+  /**
+   * Get purchasing UOMs
+   */
+  public getPurchasingUoms(): ItemUom[] {
+    return this.itemUoms.filter((u) => u.getIsPurchasingUom());
+  }
+
+  /**
+   * Get sales UOMs
+   */
+  public getSalesUoms(): ItemUom[] {
+    return this.itemUoms.filter((u) => u.getIsSalesUom());
+  }
+
+  /**
+   * Get manufacturing UOMs
+   */
+  public getManufacturingUoms(): ItemUom[] {
+    return this.itemUoms.filter((u) => u.getIsManufacturingUom());
   }
 
   /**
@@ -913,7 +975,7 @@ export class Item {
     return this.isManufactured;
   }
 
-  public getItemUOMs(): ItemUOM[] {
+  public getItemUOMs(): ItemUom[] {
     return [...this.itemUoms];
   }
 
@@ -1030,7 +1092,7 @@ export class Item {
       sellingPrice: data.sellingPrice,
       uomCode: data.uomCode,
       itemUoms:
-        data.itemUoms?.map((u: any) => ItemUOM.fromPersistence(u)) ?? [],
+        data.itemUoms?.map((u: any) => ItemUom.fromPersistence(u)) ?? [],
       models:
         data.models?.map((m: any) => ItemModel.fromPersistence(m)) ?? [],
       skus: data.skus?.map((s: any) => ItemSku.fromPersistence(s)) ?? [],

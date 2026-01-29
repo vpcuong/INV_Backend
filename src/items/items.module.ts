@@ -7,9 +7,11 @@ import {
   ItemUomsController,
   SkusController,
   ModelsController,
+  SkuUomController,
 } from './controllers';
 import { ItemAggregateService } from './application/item-aggregate.service';
 import { ItemQueryService } from './application/item-query.service';
+import { SkuUomService } from './application/sku-uom.service';
 import { ItemRepository } from './infrastructure/item.repository';
 import { PrismaModule } from '../prisma/prisma.module';
 import { FilteringModule } from '@/common/filtering';
@@ -27,15 +29,17 @@ import { FilteringModule } from '@/common/filtering';
     ItemUomsController,
     SkusController,
     ModelsController,
+    SkuUomController,
   ],
   providers: [
     ItemAggregateService,
     ItemQueryService,
+    SkuUomService,
     {
       provide: 'IItemRepository',
       useClass: ItemRepository,
     },
   ],
-  exports: [ItemAggregateService, ItemQueryService],
+  exports: [ItemAggregateService, ItemQueryService, SkuUomService],
 })
 export class ItemsModule {}

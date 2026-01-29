@@ -11,6 +11,7 @@ import {
   SO_HEADER_REPOSITORY,
   SO_NUMBER_GENERATOR,
   EXCHANGE_RATE_SERVICE,
+  ITEM_REPOSITORY,
 } from '../constant/so.token';
 import { CreateSOHeaderDto } from '../dto/create-so-header.dto';
 import { UpdateSOHeaderDto } from '../dto/update-so-header.dto';
@@ -18,6 +19,9 @@ import { UpdateSOWithLinesDto } from '../dto/update-so-with-lines.dto';
 import { AuditLoggerService } from '../common/audit-logger.service';
 import { SONumberGeneratorService } from '../domain/services/so-number-generator.service';
 import { IExchangeRateService } from '../domain/services/exchange-rate.service';
+import { IItemRepository } from 'src/items/domain/item.repository.interface';
+import { Item } from 'src/items/domain/aggregates/item.aggregate';
+import { ItemSku } from 'src/items/domain/entities/item-sku.entity';
 
 /**
  * Application Service - Orchestrates SO use cases
@@ -31,6 +35,8 @@ export class SOService {
     private readonly soNumberGenerator: SONumberGeneratorService,
     @Inject(EXCHANGE_RATE_SERVICE)
     private readonly exchangeRateService: IExchangeRateService,
+    @Inject(ITEM_REPOSITORY)
+    private readonly itemRepository: IItemRepository,
     private readonly auditLogger: AuditLoggerService
   ) {}
 
@@ -38,6 +44,19 @@ export class SOService {
    * Use Case: Create new Sales Order
    */
   async create(createDto: CreateSOHeaderDto): Promise<any> {
+    const itemSkus = await Promise.all(
+      createDto.lines.map(async (line) => {
+        const itemSku = await this.itemRepository.findSkuByPublicId(
+          line.itemSkuId
+        );
+        if (!itemSku) {
+          throw new NotFoundException(
+            `Item with ID ${line.itemSkuId} not found`
+          );
+        }
+        return itemSku.sku;
+      })
+    );
     // Auto-generate SO number using domain service
     const soNum = await this.soNumberGenerator.generate();
 
@@ -47,32 +66,22 @@ export class SOService {
       throw new BadRequestException(`SO number ${soNum} already exists`);
     }
 
-    // Calculate exchange rate if currency code is provided
-    const exchangeRate = createDto.metadata?.currencyCode
-      ? await this.exchangeRateService.getRate(createDto.metadata.currencyCode)
-      : 1.0;
-
     // Create lines with calculated fields
     const lines = createDto.lines
       ? createDto.lines.map((lineDto, index) => {
-          // Calculate line total: (qty * price) - discount + tax
-          const subtotal = lineDto.orderQty * lineDto.unitPrice;
-          const discountAmount = lineDto.pricing?.discountAmount || 0;
-          const taxAmount = lineDto.pricing?.taxAmount || 0;
-          const totalAmount = subtotal - discountAmount + taxAmount;
-
+         
           return new SOLine({
             lineNum: lineDto.lineNum || index + 1, // Auto-generate line number
-            itemSkuId: lineDto.itemSkuId,
+            itemSkuId: itemSkus[index].getId(),
             description: lineDto.description,
             orderQty: lineDto.orderQty,
             uomCode: lineDto.uomCode || '', // Should ideally be required or fetched
             unitPrice: lineDto.unitPrice,
-            discountPercent: lineDto.pricing?.discountPercent,
-            discountAmount: discountAmount,
+            discountPercent: lineDto.pricing?.discountType === 'PERCENT' ? lineDto.pricing?.discountValue : 0,
+            discountAmount: lineDto.pricing?.discountType === 'AMOUNT' ? lineDto.pricing?.discountValue : 0,
             taxPercent: lineDto.pricing?.taxPercent,
-            taxAmount: taxAmount,
-            totalAmount: totalAmount,
+            //taxAmount: taxAmount,
+            //totalAmount: totalAmount,
             needByDate: lineDto.needByDate,
             // Calculated fields - not from DTO
             status: 'OPEN', // Default status
@@ -94,8 +103,8 @@ export class SOService {
       // Calculated fields - not from DTO
       orderStatus: 'OPEN', // Default status for new SO
       // Pricing - Only need to pass user inputs (percents/fixed amounts)
-      discountPercent: createDto.discountPercent, 
-      // discountAmount will be calculated if percent is provided
+      discountPercent: createDto?.discountType === 'PERCENT' ? createDto.discountValue: undefined,
+      discountAmount: createDto?.discountType === 'AMOUNT' ? createDto.discountValue: undefined,
       
       billingAddressId: createDto.addresses?.billingAddressId,
       shippingAddressId: createDto.addresses?.shippingAddressId,
@@ -104,7 +113,6 @@ export class SOService {
       shipViaCode: createDto.metadata?.shipViaCode,
       paymentTermCode: createDto.metadata?.paymentTermCode,
       currencyCode: createDto.metadata?.currencyCode || 'USD',
-      exchangeRate,
       customerPoNum: createDto.metadata?.customerPoNum,
       headerNote: createDto.metadata?.headerNote,
       internalNote: createDto.metadata?.internalNote,
@@ -487,9 +495,9 @@ export class SOService {
 
           // Calculate line total: (qty * price) - discount + tax
           const subtotal = lineDto.orderQty * lineDto.unitPrice;
-          const discountAmount = lineDto.pricing?.discountAmount || 0;
-          const taxAmount = lineDto.pricing?.taxAmount || 0;
-          const totalAmount = subtotal - discountAmount + taxAmount;
+          //const discountAmount = lineDto.pricing?.discountAmount || 0;
+          //const taxAmount = lineDto.pricing?.taxAmount || 0;
+          //const totalAmount = subtotal - discountAmount + taxAmount;
 
           // Add/re-add line with calculated fields
           const newLine = new SOLine({
@@ -500,11 +508,9 @@ export class SOService {
             orderQty: lineDto.orderQty,
             uomCode: lineDto.uomCode,
             unitPrice: lineDto.unitPrice,
-            discountPercent: lineDto.pricing?.discountPercent,
-            discountAmount: discountAmount,
+            discountPercent: lineDto.pricing?.discountType === 'PERCENT' ? lineDto.pricing?.discountValue : 0,
+            discountAmount: lineDto.pricing?.discountType === 'AMOUNT' ? lineDto.pricing?.discountValue : 0,
             taxPercent: lineDto.pricing?.taxPercent,
-            taxAmount: taxAmount,
-            totalAmount: totalAmount,
             needByDate: lineDto.needByDate,
             // For updates, preserve existing status/quantities if it's an update
             // For new lines, use defaults
@@ -731,7 +737,7 @@ export class SOService {
       shipViaCode: metadata.getShipViaCode(),
       paymentTermCode: metadata.getPaymentTermCode(),
       currencyCode: metadata.getCurrencyCode(),
-      exchangeRate: metadata.getExchangeRate(),
+      //exchangeRate: metadata.getExchangeRate(),
       customerPoNum: metadata.getCustomerPoNum(),
       headerNote: metadata.getHeaderNote(),
       internalNote: metadata.getInternalNote(),

@@ -7,7 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { DomainExceptionFilter } from './common/exception-filters/domain-exception.filter';
 import { ItemCategoriesModule } from './item-categories/item-categories.module';
 import { ItemsModule } from './items/items.module';
-// Removed: ItemSkusModule, ItemModelsModule, ItemUomModule - now part of ItemsModule
+// Removed: ItemSkusModule, ItemModelsModule, ItemUomModule, SkuUomModule - now part of ItemsModule
 import { ItemTypesModule } from './item-types/item-types.module';
 import { AuthModule } from './auth/auth.module';
 import { ColorsModule } from './colors/colors.module';
@@ -22,7 +22,6 @@ import { SupplierItemPackagingsModule } from './supplier-item-packagings/supplie
 import { CustomersModule } from './customers/customers.module';
 import { CustomerAddressesModule } from './customer-addresses/customer-addresses.module';
 import { SoModule } from './so/so.module';
-import { SkuUomModule } from './sku-uom/sku-uom.module';
 import { PoModule } from './po/po.module';
 import { ThemeModule } from './themes/theme.module';
 import { FilteringModule } from './common/filtering';
@@ -36,7 +35,7 @@ import { RequestLoggerMiddleware } from './common/middleware/request-logger.midd
     PrismaModule,
     FilteringModule,
     ItemCategoriesModule,
-    ItemsModule, // Now contains Models, SKUs, and UOMs
+    ItemsModule, // Now contains Models, SKUs, UOMs, and SkuUom
     ItemTypesModule,
     AuthModule,
     ColorsModule,
@@ -51,7 +50,6 @@ import { RequestLoggerMiddleware } from './common/middleware/request-logger.midd
     CustomersModule,
     CustomerAddressesModule,
     SoModule,
-    SkuUomModule,
     PoModule,
     ThemeModule,
   ],

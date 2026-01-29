@@ -2,7 +2,9 @@ import {
   InvalidItemSkuException,
   InvalidPriceException,
   InvalidDimensionException,
+  DuplicateSkuUomException,
 } from '../exceptions/item-domain.exception';
+import { SkuUom, SkuUomConstructorData } from './sku-uom.entity';
 
 export enum ItemSkuStatus {
   ACTIVE = 'active',
@@ -33,6 +35,7 @@ export interface ItemSkuConstructorData {
   uomCode?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
+  skuUoms?: SkuUom[];
 }
 
 export interface UpdateItemSkuData {
@@ -81,6 +84,7 @@ export class ItemSku {
   private uomCode?: string | null;
   private createdAt?: Date;
   private updatedAt?: Date;
+  private skuUoms: SkuUom[] = [];
 
   constructor(data: ItemSkuConstructorData) {
     this.validateRequiredFields(data);
@@ -110,6 +114,7 @@ export class ItemSku {
     this.uomCode = data.uomCode;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
+    this.skuUoms = data.skuUoms ?? [];
   }
 
   private validateRequiredFields(data: ItemSkuConstructorData): void {
@@ -245,6 +250,143 @@ export class ItemSku {
     return this.status === ItemSkuStatus.ACTIVE;
   }
 
+  //#region SkuUom Management
+  /**
+   * Add a new UOM to this SKU
+   * @throws DuplicateSkuUomException if UOM already exists
+   */
+  public addSkuUom(data: Omit<SkuUomConstructorData, 'skuId'>): SkuUom {
+    const existingUom = this.skuUoms.find(
+      (uom) => uom.getUomCode() === data.uomCode,
+    );
+
+    if (existingUom) {
+      throw new DuplicateSkuUomException(this.id!, data.uomCode);
+    }
+
+    // Prevent adding UOM with same code as base UOM
+    if (this.uomCode === data.uomCode) {
+      throw new InvalidItemSkuException(
+        `Cannot add UOM ${data.uomCode} because it is already the base UOM of this SKU`,
+      );
+    }
+
+    const skuUom = new SkuUom({
+      ...data,
+      skuId: this.id!,
+    });
+
+    this.skuUoms.push(skuUom);
+    this.updatedAt = new Date();
+
+    return skuUom;
+  }
+
+  /**
+   * Remove a UOM from this SKU by UOM code
+   * @returns true if removed, false if not found
+   */
+  public removeSkuUom(uomCode: string): boolean {
+    const index = this.skuUoms.findIndex(
+      (uom) => uom.getUomCode() === uomCode,
+    );
+
+    if (index === -1) {
+      return false;
+    }
+
+    this.skuUoms.splice(index, 1);
+    this.updatedAt = new Date();
+    return true;
+  }
+
+  /**
+   * Remove a UOM from this SKU by ID
+   * @returns true if removed, false if not found
+   */
+  public removeSkuUomById(id: number): boolean {
+    const index = this.skuUoms.findIndex((uom) => uom.getId() === id);
+
+    if (index === -1) {
+      return false;
+    }
+
+    this.skuUoms.splice(index, 1);
+    this.updatedAt = new Date();
+    return true;
+  }
+
+  /**
+   * Find a UOM by code
+   */
+  public findSkuUom(uomCode: string): SkuUom | undefined {
+    return this.skuUoms.find((uom) => uom.getUomCode() === uomCode);
+  }
+
+  /**
+   * Find a UOM by ID
+   */
+  public findSkuUomById(id: number): SkuUom | undefined {
+    return this.skuUoms.find((uom) => uom.getId() === id);
+  }
+
+  /**
+   * Get all UOMs for this SKU
+   */
+  public getSkuUoms(): SkuUom[] {
+    return [...this.skuUoms];
+  }
+
+  /**
+   * Get active UOMs only
+   */
+  public getActiveSkuUoms(): SkuUom[] {
+    return this.skuUoms.filter((uom) => uom.getIsActive());
+  }
+
+  /**
+   * Check if SKU has a specific UOM
+   */
+  public hasSkuUom(uomCode: string): boolean {
+    return this.skuUoms.some((uom) => uom.getUomCode() === uomCode);
+  }
+
+  /**
+   * Get the default transaction UOM
+   */
+  public getDefaultTransUom(): SkuUom | undefined {
+    return this.skuUoms.find((uom) => uom.getIsDefaultTransUom());
+  }
+
+  /**
+   * Get purchasing UOMs
+   */
+  public getPurchasingUoms(): SkuUom[] {
+    return this.skuUoms.filter((uom) => uom.getIsPurchasingUom());
+  }
+
+  /**
+   * Get sales UOMs
+   */
+  public getSalesUoms(): SkuUom[] {
+    return this.skuUoms.filter((uom) => uom.getIsSalesUom());
+  }
+
+  /**
+   * Get manufacturing UOMs
+   */
+  public getManufacturingUoms(): SkuUom[] {
+    return this.skuUoms.filter((uom) => uom.getIsManufacturingUom());
+  }
+
+  /**
+   * Set skuUoms collection (used when loading from persistence)
+   */
+  public setSkuUoms(skuUoms: SkuUom[]): void {
+    this.skuUoms = skuUoms;
+  }
+  //#endregion
+
   //#region Getters
   public getId(): number | undefined {
     return this.id;
@@ -365,10 +507,15 @@ export class ItemSku {
       uomCode: this.uomCode,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      skuUoms: this.skuUoms.map((uom) => uom.toPersistence()),
     };
   }
 
   public static fromPersistence(data: any): ItemSku {
+    const skuUoms = data.skuUoms
+      ? data.skuUoms.map((uomData: any) => SkuUom.fromPersistence(uomData))
+      : [];
+
     return new ItemSku({
       id: data.id,
       publicId: data.publicId,
@@ -393,8 +540,7 @@ export class ItemSku {
       uomCode: data.uomCode,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
+      skuUoms: skuUoms,
     });
   }
-
-
 }
