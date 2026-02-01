@@ -213,11 +213,6 @@ export class SOHeader {
       return line;
     });
     
-    // No need to recalculate pricing for cancellation status change?
-    // Actually if lines are cancelled, their totals might change?
-    // In this system, line.cancel() changes status but does it change amounts?
-    // Assuming amounts stay same for record keeping, just status changes.
-    
     return new SOHeader(
       this.soNum,
       this.customerId,

@@ -52,7 +52,6 @@ export class SOLine {
 
   constructor(data: SOLineConstructorData) {
     this.validateRequiredFields(data);
-    this.validateQuantities(data);
     
     // Initialize basic fields first to calculate pricing
     this.orderQty = data.orderQty;
@@ -182,100 +181,56 @@ export class SOLine {
   }
 
   /**
-   * Business rule: Validate quantities cannot be negative
+   * Business rule: Update unit price
+   * Keeps discount percent and tax percent constant, recalculates amounts
    */
-  private validateQuantities(data: SOLineConstructorData): void {
-    // No additional quantity validations needed after removing openQty, shippedQty
+  public updateUnitPrice(unitPrice: number): void {
+    if (unitPrice < 0) {
+      throw new InvalidAmountException('Unit price', unitPrice);
+    }
+    this.unitPrice = unitPrice;
+    this.recalculateAll();
+    this.updatedAt = new Date();
   }
 
   /**
-   * Business rule: Update line pricing
+   * Business rule: Update discount
+   * Accepts percent, amount, or both (validated for consistency)
    */
-  public updatePricing(
-    unitPrice?: number,
-    discountPercent?: number,
-    discountAmount?: number
-  ): void {
-    if (unitPrice !== undefined) {
-      if (unitPrice < 0) {
-        throw new InvalidAmountException('Unit price', unitPrice);
-      }
-      this.unitPrice = unitPrice;
-    }
-
-    // Logic: If user provides NEW percent or amount, we recalculate consistency.
-    // If user provides BOTH, we validate.
-    // However, this update method signature is partial.
-    // We should assume if one is missing, we MIGHT keep existing?
-    // BUT typically in update, if I set Percent, I expect Amount to recalc.
-    
+  public updateDiscount(discountPercent?: number, discountAmount?: number): void {
     const baseAmount = this.orderQty * this.unitPrice;
-    
-    // Determine input for resolution
-    // If passed explicitly (even undefined? logic depends on caller) -> Assuming undefined means "no change"
-    // BUT for consistency, if I update UnitPrice, I MUST recalc DiscountAmount if Percent is fixed.
-    // STRATEGY: 
-    // 1. If Discount inputs provided, use them.
-    // 2. If NO Discount inputs provided, Keep EXISTING Percent and Recalc Amount? (Percent driven)
-    
-    let targetPercent = this.discountPercent;
-    let targetAmount = undefined; // Undefined means recalc from percent
-
-    if (discountPercent !== undefined && discountAmount !== undefined) {
-        // Both updated
-        targetPercent = discountPercent;
-        targetAmount = discountAmount;
-    } else if (discountPercent !== undefined) {
-        // Only percent updated
-        targetPercent = discountPercent;
-        targetAmount = undefined; // Force recalc
-    } else if (discountAmount !== undefined) {
-        // Only amount updated
-        targetPercent = undefined as any; // Trick to force reverse calc? No, helper needs logic.
-        // Helper logic: if percent Undefined, and Amount Defined -> Calc Percent.
-        // So pass undefined for percent.
-        const res = this.resolvePricingComponent(baseAmount, undefined, discountAmount, 'Discount');
-        this.discountPercent = res.percent;
-        this.discountAmount = res.amount;
-        
-        // Skip default Assignment below
-        this.recalculateTotalAmount();
-        this.updatedAt = new Date();
-        return;
-    }
-
-    // Default flow (Percent driven or Both)
-    const res = this.resolvePricingComponent(baseAmount, targetPercent, targetAmount, 'Discount');
+    const res = this.resolvePricingComponent(baseAmount, discountPercent, discountAmount, 'Discount');
     this.discountPercent = res.percent;
     this.discountAmount = res.amount;
+    this.recalculateTax();
+    this.recalculateTotalAmount();
+    this.updatedAt = new Date();
+  }
 
+  /**
+   * Business rule: Update tax
+   * Accepts percent, amount, or both (validated for consistency)
+   */
+  public updateTax(taxPercent?: number, taxAmount?: number): void {
+    const baseAmount = this.orderQty * this.unitPrice;
+    const taxableAmount = baseAmount - this.discountAmount;
+    const res = this.resolvePricingComponent(taxableAmount, taxPercent, taxAmount, 'Tax');
+    this.taxPercent = res.percent;
+    this.taxAmount = res.amount;
     this.recalculateTotalAmount();
     this.updatedAt = new Date();
   }
 
   /**
    * Business rule: Update line quantity
+   * Keeps percent constant, recalculates all amounts
    */
   public updateQuantity(orderQty: number): void {
     if (orderQty <= 0) {
       throw new InvalidQuantityException('Order quantity', orderQty);
     }
     this.orderQty = orderQty;
-    // When qty changes, Base changes.
-    // Keep Percent constant, recalc Amount?
-    // Or Keep Amount constant, recalc Percent?
-    // Standard business rule: Percent is King.
-    
-    const baseAmount = this.orderQty * this.unitPrice;
-    this.discountAmount = (baseAmount * this.discountPercent) / 100;
-    
-    // Re-calc Tax amount too? Yes if tax is percent based.
-    if (this.taxPercent > 0) {
-        const taxable = baseAmount - this.discountAmount;
-        this.taxAmount = (taxable * this.taxPercent) / 100;
-    }
-
-    this.recalculateTotalAmount();
+    this.recalculateAll();
     this.updatedAt = new Date();
   }
 
@@ -287,17 +242,26 @@ export class SOLine {
     this.updatedAt = new Date();
   }
 
-  /**
-   * Business rule: Recalculate total amount
-   */
+  private recalculateDiscount(): void {
+    const baseAmount = this.orderQty * this.unitPrice;
+    this.discountAmount = (baseAmount * this.discountPercent) / 100;
+  }
+
+  private recalculateTax(): void {
+    const baseAmount = this.orderQty * this.unitPrice;
+    const taxableAmount = baseAmount - this.discountAmount;
+    this.taxAmount = (taxableAmount * this.taxPercent) / 100;
+  }
+
   private recalculateTotalAmount(): void {
     const subtotal = this.orderQty * this.unitPrice;
-    
-    // Tax logic check (ensure consistency if taxPercent exists)
-    // We might need a full recalc method like resolvePricingComponent?
-    // For now, assuming direct updates handled components individually.
-    
     this.totalAmount = subtotal - this.discountAmount + this.taxAmount;
+  }
+
+  private recalculateAll(): void {
+    this.recalculateDiscount();
+    this.recalculateTax();
+    this.recalculateTotalAmount();
   }
 
   // Getters
@@ -362,32 +326,6 @@ export class SOLine {
     return this.updatedAt;
   }
 
-  // Backward compatibility getters (deprecated)
-  /** @deprecated Use getTotalAmount() instead */
-  public getLineTotal(): number {
-    return this.totalAmount;
-  }
-  /** @deprecated Use getStatus() instead */
-  public getLineStatus(): string {
-    return this.status;
-  }
-  /** @deprecated Use getDiscountPercent() instead */
-  public getLineDiscountPercent(): number {
-    return this.discountPercent;
-  }
-  /** @deprecated Use getDiscountAmount() instead */
-  public getLineDiscountAmount(): number {
-    return this.discountAmount;
-  }
-  /** @deprecated Use getTaxPercent() instead */
-  public getLineTaxPercent(): number {
-    return this.taxPercent;
-  }
-  /** @deprecated Use getTaxAmount() instead */
-  public getLineTaxAmount(): number {
-    return this.taxAmount;
-  }
-
   /**
    * Convert to persistence model (for Prisma)
    */
@@ -431,11 +369,6 @@ export class SOLine {
       uomCode: data.uomCode,
       unitPrice: Number(data.unitPrice),
       // For persistence load, assume data is correct. But constructor will re-calc/validate.
-      // If DB has inconsistency (e.g. legacy data), resolution logic will force consistency
-      // potentially changing Amount to match Percent if they disagree?
-      // Or throwing error.
-      // For legacy migration safety, maybe we should trust Amount if present?
-      // The current logic prefers consistency.
       discountPercent: data.discountPercent ? Number(data.discountPercent) : 0,
       discountAmount: data.discountAmount ? Number(data.discountAmount) : 0,
       taxPercent: data.taxPercent ? Number(data.taxPercent) : 0,

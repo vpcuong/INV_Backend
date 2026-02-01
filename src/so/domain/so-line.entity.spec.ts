@@ -80,26 +80,65 @@ describe('SOLine', () => {
     });
   });
 
-  describe('updatePricing', () => {
+  describe('updateUnitPrice', () => {
      it('should recalculate amounts when UnitPrice changes', () => {
         const line = new SOLine({ ...validData, discountPercent: 10 });
         // Initial: 1000 base, 100 disc, 900 total
-        
-        line.updatePricing(200); // New Price. Base = 2000.
-        
+
+        line.updateUnitPrice(200); // New Price. Base = 2000.
+
         expect(line.getUnitPrice()).toBe(200);
         expect(line.getDiscountAmount()).toBe(200); // 10% of 2000
         expect(line.getTotalAmount()).toBe(1800);
      });
 
-     it('should recalculate percent when Discount Amount is updated specifically', () => {
+     it('should throw if unit price is negative', () => {
         const line = new SOLine({ ...validData });
-        
-        line.updatePricing(undefined, undefined, 200); // Set discount amount to 200
-        
+        expect(() => line.updateUnitPrice(-1)).toThrow();
+     });
+  });
+
+  describe('updateDiscount', () => {
+     it('should recalculate when Discount Amount is updated', () => {
+        const line = new SOLine({ ...validData });
+
+        line.updateDiscount(undefined, 200); // Set discount amount to 200
+
         expect(line.getDiscountAmount()).toBe(200);
         expect(line.getDiscountPercent()).toBe(20); // 200/1000
         expect(line.getTotalAmount()).toBe(800);
+     });
+
+     it('should recalculate amount from percent', () => {
+        const line = new SOLine({ ...validData });
+
+        line.updateDiscount(15); // 15% discount
+
+        expect(line.getDiscountPercent()).toBe(15);
+        expect(line.getDiscountAmount()).toBe(150); // 15% of 1000
+        expect(line.getTotalAmount()).toBe(850);
+     });
+  });
+
+  describe('updateTax', () => {
+     it('should recalculate tax from percent', () => {
+        const line = new SOLine({ ...validData });
+
+        line.updateTax(10); // 10% tax
+
+        expect(line.getTaxPercent()).toBe(10);
+        expect(line.getTaxAmount()).toBe(100); // 10% of 1000
+        expect(line.getTotalAmount()).toBe(1100); // 1000 + 100
+     });
+
+     it('should recalculate percent from amount', () => {
+        const line = new SOLine({ ...validData });
+
+        line.updateTax(undefined, 50);
+
+        expect(line.getTaxAmount()).toBe(50);
+        expect(line.getTaxPercent()).toBe(5); // 50/1000
+        expect(line.getTotalAmount()).toBe(1050);
      });
   });
 });
