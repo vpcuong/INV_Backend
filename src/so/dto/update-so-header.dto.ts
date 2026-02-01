@@ -65,24 +65,23 @@ export class UpdateSOHeaderDto {
   orderStatus?: string;
 
   @ApiPropertyOptional({
-    description: 'Header discount percent',
+    description: 'Header discount type',
+    example: 'PERCENT',
+    enum: ['PERCENT', 'AMOUNT'],
+  })
+  @IsOptional()
+  @IsEnum(['PERCENT', 'AMOUNT'])
+  discountType?: string;
+
+  @ApiPropertyOptional({
+    description: 'Header discount value',
     example: 5.0,
   })
   @IsOptional()
   @IsNumber()
   @Min(0)
   @Type(() => Number)
-  discountPercent?: number;
-
-  @ApiPropertyOptional({
-    description: 'Header discount amount',
-    example: 100.0,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  discountAmount?: number;
+  discountValue?: number;
 
   @ApiPropertyOptional({
     description: 'Addresses information (billing and shipping)',

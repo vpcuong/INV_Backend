@@ -204,12 +204,6 @@ export class SOService {
       ? Math.max(...currentLines.map(l => l.getLineNum())) + 1
       : 1;
 
-    // Calculate line total: (qty * price) - discount + tax
-    const subtotal = lineDto.orderQty * lineDto.unitPrice;
-    const discountAmount = lineDto.pricing?.discountAmount || 0;
-    const taxAmount = lineDto.pricing?.taxAmount || 0;
-    const totalAmount = subtotal - discountAmount + taxAmount;
-
     // Create new line
     const newLine = new SOLine({
       lineNum: lineDto.lineNum || nextLineNum,
@@ -218,11 +212,9 @@ export class SOService {
       orderQty: lineDto.orderQty,
       uomCode: lineDto.uomCode,
       unitPrice: lineDto.unitPrice,
-      discountPercent: lineDto.pricing?.discountPercent,
-      discountAmount: discountAmount,
+      discountPercent: lineDto.pricing?.discountType === 'PERCENT' ? lineDto.pricing?.discountValue : undefined,
+      discountAmount: lineDto.pricing?.discountType === 'AMOUNT' ? lineDto.pricing?.discountValue : undefined,
       taxPercent: lineDto.pricing?.taxPercent,
-      taxAmount: taxAmount,
-      totalAmount: totalAmount,
       needByDate: lineDto.needByDate,
       status: 'OPEN',
       warehouseCode: lineDto.warehouseCode,
@@ -360,12 +352,12 @@ export class SOService {
     }
 
     // Update discount if provided
-    if (updateDto.discountAmount !== undefined) {
-      soHeader = soHeader.updateDiscountAmount(updateDto.discountAmount);
-    }
-    // Also support update by percent?
-    if (updateDto.discountPercent !== undefined) {
-       soHeader = soHeader.updateDiscountPercent(updateDto.discountPercent);
+    if (updateDto.discountValue !== undefined && updateDto.discountType) {
+      if (updateDto.discountType === 'AMOUNT') {
+        soHeader = soHeader.updateDiscountAmount(updateDto.discountValue);
+      } else {
+        soHeader = soHeader.updateDiscountPercent(updateDto.discountValue);
+      }
     }
 
     // Update root fields if provided
@@ -402,8 +394,8 @@ export class SOService {
 
     // Audit log
     const changes: Record<string, any> = {};
-    if (updateDto.discountAmount !== undefined)
-      changes.discountAmount = updateDto.discountAmount;
+    if (updateDto.discountValue !== undefined && updateDto.discountType)
+      changes.discount = { type: updateDto.discountType, value: updateDto.discountValue };
     if (updateDto.orderStatus) changes.orderStatus = updateDto.orderStatus;
     if (updateDto.addresses) changes.addresses = updateDto.addresses;
     if (updateDto.metadata) changes.metadata = updateDto.metadata;
@@ -431,11 +423,12 @@ export class SOService {
 
       // Update header fields if provided
       if (dto.header) {
-        if (dto.header.discountAmount !== undefined) {
-          soHeader = soHeader.updateDiscountAmount(dto.header.discountAmount);
-        }
-        if (dto.header.discountPercent !== undefined) {
-            soHeader = soHeader.updateDiscountPercent(dto.header.discountPercent);
+        if (dto.header.discountValue !== undefined && dto.header.discountType) {
+          if (dto.header.discountType === 'AMOUNT') {
+            soHeader = soHeader.updateDiscountAmount(dto.header.discountValue);
+          } else {
+            soHeader = soHeader.updateDiscountPercent(dto.header.discountValue);
+          }
         }
 
         // Update root fields if provided
@@ -728,6 +721,8 @@ export class SOService {
       discountAmount: pricing.getDiscountAmount(),
       taxAmount: pricing.getTaxAmount(),
       totalAmount: pricing.getTotalAmount(),
+      subtotalAmount: pricing.getSubtotalAmount(),
+      totalLinesDiscountAmount: pricing.getTotalLinesDiscountAmount(),
       
       billingAddressId: addresses.getBillingAddressId(),
       shippingAddressId: addresses.getShippingAddressId(),

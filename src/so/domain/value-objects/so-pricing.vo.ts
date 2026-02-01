@@ -6,7 +6,9 @@ export class SOPricing {
     private readonly discountPercent: number,
     private readonly discountAmount: number,
     private readonly taxAmount: number,
-    private readonly totalAmount: number
+    private readonly totalAmount: number,
+    private readonly subtotalAmount: number,
+    private readonly totalLinesDiscountAmount: number
   ) {
     this.validateAmounts();
   }
@@ -34,12 +36,16 @@ export class SOPricing {
     discountAmount?: number;
     taxAmount?: number;
     totalAmount?: number;
+    subtotalAmount?: number;
+    totalLinesDiscountAmount?: number;
   }): SOPricing {
     const {
       discountPercent = 0,
       discountAmount = 0,
       taxAmount = 0,
       totalAmount = 0,
+      subtotalAmount = 0,
+      totalLinesDiscountAmount = 0,
     } = data;
 
     // Derive baseAmount: Total = Base - Discount + Tax => Base = Total + Discount - Tax
@@ -50,16 +56,25 @@ export class SOPricing {
       discountPercent,
       discountAmount,
       taxAmount,
-      totalAmount
+      totalAmount,
+      subtotalAmount,
+      totalLinesDiscountAmount
     );
   }
 
   /**
-   * Recalculate pricing based on a new base amount (sum of line totals).
-   * Preserves discount percentage and recalculates discount amount.
-   * taxAmount is passed in as the sum of line-level taxes.
+   * Recalculate pricing based on line-level aggregates.
+   * @param baseAmount - SUM(line.totalAmount) i.e. after line discounts and taxes
+   * @param totalLinesTaxAmount - SUM(line.taxAmount)
+   * @param subtotalAmount - SUM(line.orderQty * line.unitPrice) i.e. before any discount/tax
+   * @param totalLinesDiscountAmount - SUM(line.discountAmount)
    */
-  public recalculate(baseAmount: number, totalLinesTaxAmount: number = 0): SOPricing {
+  public recalculate(
+    baseAmount: number,
+    totalLinesTaxAmount: number = 0,
+    subtotalAmount: number = 0,
+    totalLinesDiscountAmount: number = 0
+  ): SOPricing {
     if (baseAmount < 0) {
       throw new InvalidAmountException('Base amount', baseAmount);
     }
@@ -81,7 +96,9 @@ export class SOPricing {
       this.discountPercent,
       newDiscountAmount,
       newTaxAmount,
-      newTotalAmount
+      newTotalAmount,
+      subtotalAmount,
+      totalLinesDiscountAmount
     );
   }
 
@@ -102,7 +119,9 @@ export class SOPricing {
       newPercent,
       amount,
       this.taxAmount,
-      newTotalAmount
+      newTotalAmount,
+      this.subtotalAmount,
+      this.totalLinesDiscountAmount
     );
   }
 
@@ -123,7 +142,9 @@ export class SOPricing {
       percent,
       newAmount,
       this.taxAmount,
-      newTotalAmount
+      newTotalAmount,
+      this.subtotalAmount,
+      this.totalLinesDiscountAmount
     );
   }
 
@@ -148,6 +169,14 @@ export class SOPricing {
     return this.totalAmount;
   }
 
+  public getSubtotalAmount(): number {
+    return this.subtotalAmount;
+  }
+
+  public getTotalLinesDiscountAmount(): number {
+    return this.totalLinesDiscountAmount;
+  }
+
   // Persistence methods - matches Prisma schema exactly
   public toPersistence(): any {
     return {
@@ -155,6 +184,8 @@ export class SOPricing {
       discountAmount: this.discountAmount,
       taxAmount: this.taxAmount,
       totalAmount: this.totalAmount,
+      subtotalAmount: this.subtotalAmount,
+      totalLinesDiscountAmount: this.totalLinesDiscountAmount,
     };
   }
 
@@ -163,6 +194,8 @@ export class SOPricing {
     const discountAmount = Number(data.discountAmount) || 0;
     const taxAmount = Number(data.taxAmount) || 0;
     const totalAmount = Number(data.totalAmount) || 0;
+    const subtotalAmount = Number(data.subtotalAmount) || 0;
+    const totalLinesDiscountAmount = Number(data.totalLinesDiscountAmount) || 0;
     // Derive baseAmount: Base = Total + Discount - Tax
     const baseAmount = totalAmount + discountAmount - taxAmount;
 
@@ -171,7 +204,9 @@ export class SOPricing {
       discountPercent,
       discountAmount,
       taxAmount,
-      totalAmount
+      totalAmount,
+      subtotalAmount,
+      totalLinesDiscountAmount
     );
   }
 }

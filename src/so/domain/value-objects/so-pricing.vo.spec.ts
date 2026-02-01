@@ -99,6 +99,66 @@ describe('SOPricing', () => {
     });
   });
 
+  describe('Line Aggregates (subtotalAmount, totalLinesDiscountAmount)', () => {
+    it('recalculate should store subtotalAmount and totalLinesDiscountAmount', () => {
+      const pricing = SOPricing.create({ totalAmount: 0 });
+
+      // baseAmount=900, lineTax=90, subtotal=1000, linesDiscount=100
+      const updated = pricing.recalculate(900, 90, 1000, 100);
+
+      expect(updated.getSubtotalAmount()).toBe(1000);
+      expect(updated.getTotalLinesDiscountAmount()).toBe(100);
+      // Total = 900 - 0 + 90 = 990
+      expect(updated.getTotalAmount()).toBe(990);
+    });
+
+    it('setDiscountAmount should preserve line aggregates', () => {
+      const pricing = SOPricing.create({ totalAmount: 0 });
+      const withLines = pricing.recalculate(900, 90, 1000, 100);
+
+      const updated = withLines.setDiscountAmount(50);
+
+      expect(updated.getSubtotalAmount()).toBe(1000);
+      expect(updated.getTotalLinesDiscountAmount()).toBe(100);
+    });
+
+    it('setDiscountPercent should preserve line aggregates', () => {
+      const pricing = SOPricing.create({ totalAmount: 0 });
+      const withLines = pricing.recalculate(900, 90, 1000, 100);
+
+      const updated = withLines.setDiscountPercent(10);
+
+      expect(updated.getSubtotalAmount()).toBe(1000);
+      expect(updated.getTotalLinesDiscountAmount()).toBe(100);
+    });
+
+    it('toPersistence should include line aggregates', () => {
+      const pricing = SOPricing.create({ totalAmount: 0 });
+      const updated = pricing.recalculate(900, 90, 1000, 100);
+
+      const persisted = updated.toPersistence();
+
+      expect(persisted.subtotalAmount).toBe(1000);
+      expect(persisted.totalLinesDiscountAmount).toBe(100);
+    });
+
+    it('fromPersistence should restore line aggregates', () => {
+      const data = {
+        discountPercent: 0,
+        discountAmount: 0,
+        taxAmount: 90,
+        totalAmount: 990,
+        subtotalAmount: 1000,
+        totalLinesDiscountAmount: 100,
+      };
+
+      const pricing = SOPricing.fromPersistence(data);
+
+      expect(pricing.getSubtotalAmount()).toBe(1000);
+      expect(pricing.getTotalLinesDiscountAmount()).toBe(100);
+    });
+  });
+
   describe('Validation', () => {
     it('should validate max percent > 100', () => {
          expect(() => SOPricing.create({ totalAmount: 100, discountPercent: 101 })).toThrow();

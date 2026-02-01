@@ -14,14 +14,13 @@ import {
 
 export class LinePricingDto {
   @ApiProperty({
-    description: 'Line discount percentage (0-100)',
+    description: 'Line discount value (percent 0-100 or absolute amount)',
     example: 10,
     required: false,
   })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  @Max(100)
   discountValue?: number;
 
   @ApiProperty({

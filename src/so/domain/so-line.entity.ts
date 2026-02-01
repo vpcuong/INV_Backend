@@ -304,6 +304,9 @@ export class SOLine {
   public getTaxAmount(): number {
     return this.taxAmount;
   }
+  public getSubtotal(): number {
+    return this.orderQty * this.unitPrice;
+  }
   public getTotalAmount(): number {
     return this.totalAmount;
   }

@@ -74,17 +74,21 @@ export class SOHeader {
     // Initial lines
     const lines = data.lines || [];
 
-    // Calculate initial base total from lines
+    // Calculate line-level aggregates
     const totalLinesAmount = lines.reduce(
         (sum, line) => sum + line.getTotalAmount(),
         0
     );
-
-    // Create pricing object using new logic
-    // We create a temp object first, then recalculate to ensure consistency
-    // Calculate sum of line taxes
     const totalLinesTaxAmount = lines.reduce(
       (sum, line) => sum + line.getTaxAmount(),
+      0
+    );
+    const subtotalAmount = lines.reduce(
+      (sum, line) => sum + line.getSubtotal(),
+      0
+    );
+    const totalLinesDiscountAmount = lines.reduce(
+      (sum, line) => sum + line.getDiscountAmount(),
       0
     );
 
@@ -93,10 +97,12 @@ export class SOHeader {
       discountAmount: data.discountAmount,
       taxAmount: data.taxAmount,
       totalAmount: data.totalAmount,
+      subtotalAmount: data.totalAmount !== undefined ? undefined : 0,
+      totalLinesDiscountAmount: data.totalAmount !== undefined ? undefined : 0,
     });
 
-    // Enforce consistency: Base + Recalc
-    pricing = pricing.recalculate(totalLinesAmount, totalLinesTaxAmount);
+    // Enforce consistency: Recalculate from lines
+    pricing = pricing.recalculate(totalLinesAmount, totalLinesTaxAmount, subtotalAmount, totalLinesDiscountAmount);
 
     const addresses = SOAddresses.create({
       billingAddressId: data.billingAddressId,
@@ -521,8 +527,16 @@ export class SOHeader {
       (sum, line) => sum + line.getTaxAmount(),
       0
     );
+    const subtotalAmount = lines.reduce(
+      (sum, line) => sum + line.getSubtotal(),
+      0
+    );
+    const totalLinesDiscountAmount = lines.reduce(
+      (sum, line) => sum + line.getDiscountAmount(),
+      0
+    );
 
-    return this.pricing.recalculate(sumLineTotal, totalLinesTaxAmount);
+    return this.pricing.recalculate(sumLineTotal, totalLinesTaxAmount, subtotalAmount, totalLinesDiscountAmount);
   }
 
   // Persistence methods
