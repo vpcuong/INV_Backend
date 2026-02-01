@@ -5,7 +5,6 @@ export class SOPricing {
     private readonly baseAmount: number,
     private readonly discountPercent: number,
     private readonly discountAmount: number,
-    private readonly taxPercent: number,
     private readonly taxAmount: number,
     private readonly totalAmount: number
   ) {
@@ -22,12 +21,6 @@ export class SOPricing {
     if (this.discountAmount < 0) {
       throw new InvalidAmountException('Discount amount', this.discountAmount);
     }
-    if (this.taxPercent < 0 || this.taxPercent > 100) {
-      throw new InvalidAmountException(
-        'Tax percent must be between 0 and 100',
-        this.taxPercent
-      );
-    }
     if (this.taxAmount < 0) {
       throw new InvalidAmountException('Tax amount', this.taxAmount);
     }
@@ -39,14 +32,12 @@ export class SOPricing {
   public static create(data: {
     discountPercent?: number;
     discountAmount?: number;
-    taxPercent?: number;
     taxAmount?: number;
     totalAmount?: number;
   }): SOPricing {
     const {
       discountPercent = 0,
       discountAmount = 0,
-      taxPercent = 0,
       taxAmount = 0,
       totalAmount = 0,
     } = data;
@@ -58,18 +49,17 @@ export class SOPricing {
       baseAmount,
       discountPercent,
       discountAmount,
-      taxPercent,
       taxAmount,
       totalAmount
     );
   }
 
   /**
-   * Recalculate pricing based on a new base amount (sum of lines).
-   * Preserves percentages and recalculates absolute amounts.
-   * If percent is 0, keeps the fixed amount (capped at base).
+   * Recalculate pricing based on a new base amount (sum of line totals).
+   * Preserves discount percentage and recalculates discount amount.
+   * taxAmount is passed in as the sum of line-level taxes.
    */
-  public recalculate(baseAmount: number): SOPricing {
+  public recalculate(baseAmount: number, totalLinesTaxAmount: number = 0): SOPricing {
     if (baseAmount < 0) {
       throw new InvalidAmountException('Base amount', baseAmount);
     }
@@ -82,20 +72,14 @@ export class SOPricing {
       newDiscountAmount = baseAmount;
     }
 
-    const taxableAmount = baseAmount - newDiscountAmount;
-    let newTaxAmount = this.taxAmount;
-
-    if (this.taxPercent > 0) {
-      newTaxAmount = (taxableAmount * this.taxPercent) / 100;
-    }
-
+    // Tax at header level = sum of line taxes (passed in)
+    const newTaxAmount = totalLinesTaxAmount;
     const newTotalAmount = baseAmount - newDiscountAmount + newTaxAmount;
 
     return new SOPricing(
       baseAmount,
       this.discountPercent,
       newDiscountAmount,
-      this.taxPercent,
       newTaxAmount,
       newTotalAmount
     );
@@ -110,21 +94,14 @@ export class SOPricing {
     }
 
     const newPercent = this.baseAmount > 0 ? (amount / this.baseAmount) * 100 : 0;
-
-    let newTaxAmount = this.taxAmount;
-    if (this.taxPercent > 0) {
-      const newTaxable = this.baseAmount - amount;
-      newTaxAmount = (newTaxable * this.taxPercent) / 100;
-    }
-
-    const newTotalAmount = this.baseAmount - amount + newTaxAmount;
+    // taxAmount stays the same (comes from lines, not affected by header discount)
+    const newTotalAmount = this.baseAmount - amount + this.taxAmount;
 
     return new SOPricing(
       this.baseAmount,
       newPercent,
       amount,
-      this.taxPercent,
-      newTaxAmount,
+      this.taxAmount,
       newTotalAmount
     );
   }
@@ -138,62 +115,14 @@ export class SOPricing {
     }
 
     const newAmount = (this.baseAmount * percent) / 100;
-
-    let newTaxAmount = this.taxAmount;
-    if (this.taxPercent > 0) {
-      const newTaxable = this.baseAmount - newAmount;
-      newTaxAmount = (newTaxable * this.taxPercent) / 100;
-    }
-
-    const newTotalAmount = this.baseAmount - newAmount + newTaxAmount;
+    // taxAmount stays the same (comes from lines)
+    const newTotalAmount = this.baseAmount - newAmount + this.taxAmount;
 
     return new SOPricing(
       this.baseAmount,
       percent,
       newAmount,
-      this.taxPercent,
-      newTaxAmount,
-      newTotalAmount
-    );
-  }
-
-  public setTaxAmount(amount: number): SOPricing {
-    if (amount < 0) {
-      throw new InvalidAmountException('Tax amount cannot be negative', amount);
-    }
-
-    const newTotalAmount = this.baseAmount - this.discountAmount + amount;
-    const taxable = this.baseAmount - this.discountAmount;
-    const newPercent = taxable > 0 ? (amount / taxable) * 100 : 0;
-
-    return new SOPricing(
-      this.baseAmount,
-      this.discountPercent,
-      this.discountAmount,
-      newPercent,
-      amount,
-      newTotalAmount
-    );
-  }
-
-  public setTaxPercent(percent: number): SOPricing {
-    if (percent < 0 || percent > 100) {
-      throw new InvalidAmountException(
-        'Tax percent must be between 0 and 100',
-        percent
-      );
-    }
-
-    const taxable = this.baseAmount - this.discountAmount;
-    const newTaxAmount = (taxable * percent) / 100;
-    const newTotalAmount = this.baseAmount - this.discountAmount + newTaxAmount;
-
-    return new SOPricing(
-      this.baseAmount,
-      this.discountPercent,
-      this.discountAmount,
-      percent,
-      newTaxAmount,
+      this.taxAmount,
       newTotalAmount
     );
   }
@@ -211,10 +140,6 @@ export class SOPricing {
     return this.discountAmount;
   }
 
-  public getTaxPercent(): number {
-    return this.taxPercent;
-  }
-
   public getTaxAmount(): number {
     return this.taxAmount;
   }
@@ -228,7 +153,6 @@ export class SOPricing {
     return {
       discountPercent: this.discountPercent,
       discountAmount: this.discountAmount,
-      taxPercent: this.taxPercent,
       taxAmount: this.taxAmount,
       totalAmount: this.totalAmount,
     };
@@ -237,7 +161,6 @@ export class SOPricing {
   public static fromPersistence(data: any): SOPricing {
     const discountPercent = Number(data.discountPercent) || 0;
     const discountAmount = Number(data.discountAmount) || 0;
-    const taxPercent = Number(data.taxPercent) || 0;
     const taxAmount = Number(data.taxAmount) || 0;
     const totalAmount = Number(data.totalAmount) || 0;
     // Derive baseAmount: Base = Total + Discount - Tax
@@ -247,7 +170,6 @@ export class SOPricing {
       baseAmount,
       discountPercent,
       discountAmount,
-      taxPercent,
       taxAmount,
       totalAmount
     );

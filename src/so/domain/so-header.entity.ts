@@ -17,7 +17,6 @@ export interface SOHeaderConstructorData {
   // Pricing fields - Simplified
   discountPercent?: number;
   discountAmount?: number;
-  taxPercent?: number;
   taxAmount?: number;
   totalAmount?: number;
   // Relations
@@ -83,16 +82,21 @@ export class SOHeader {
 
     // Create pricing object using new logic
     // We create a temp object first, then recalculate to ensure consistency
+    // Calculate sum of line taxes
+    const totalLinesTaxAmount = lines.reduce(
+      (sum, line) => sum + line.getTaxAmount(),
+      0
+    );
+
     let pricing = SOPricing.create({
       discountPercent: data.discountPercent,
       discountAmount: data.discountAmount,
-      taxPercent: data.taxPercent,
       taxAmount: data.taxAmount,
-      totalAmount: data.totalAmount, // This might be ignored by recalculate, used for initial
+      totalAmount: data.totalAmount,
     });
-    
+
     // Enforce consistency: Base + Recalc
-    pricing = pricing.recalculate(totalLinesAmount);
+    pricing = pricing.recalculate(totalLinesAmount, totalLinesTaxAmount);
 
     const addresses = SOAddresses.create({
       billingAddressId: data.billingAddressId,
@@ -352,9 +356,9 @@ export class SOHeader {
   /**
    * @deprecated Use updateDiscountAmount instead
    */
-  public updateDiscount(headerDiscount: number): SOHeader {
-    return this.updateDiscountAmount(headerDiscount);
-  }
+  // public updateDiscount(headerDiscount: number): SOHeader {
+  //   return this.updateDiscountAmount(headerDiscount);
+  // }
 
   public updateAddresses(
     billingAddressId: number | null,
@@ -509,14 +513,16 @@ export class SOHeader {
   }
 
   private recalculatePricing(lines: SOLine[]): SOPricing {
-    // 1. Calculate sum of lines
     const sumLineTotal = lines.reduce(
       (sum, line) => sum + line.getTotalAmount(),
       0
     );
+    const totalLinesTaxAmount = lines.reduce(
+      (sum, line) => sum + line.getTaxAmount(),
+      0
+    );
 
-    // 2. Delegate to proper VO method
-    return this.pricing.recalculate(sumLineTotal);
+    return this.pricing.recalculate(sumLineTotal, totalLinesTaxAmount);
   }
 
   // Persistence methods

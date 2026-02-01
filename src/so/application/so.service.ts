@@ -726,7 +726,6 @@ export class SOService {
       // Pricing
       discountPercent: pricing.getDiscountPercent(),
       discountAmount: pricing.getDiscountAmount(),
-      taxPercent: pricing.getTaxPercent(),
       taxAmount: pricing.getTaxAmount(),
       totalAmount: pricing.getTotalAmount(),
       

@@ -16,11 +16,13 @@ model SOHeader {
   // Discount
   discountPercent Decimal          @default(0) @db.Decimal(5, 2)
   discountAmount  Decimal          @default(0) @db.Decimal(18, 2)
-  // Tax
-  taxPercent      Decimal @default(0) @db.Decimal(5, 2)
+  // Tax (aggregated from lines)
   taxAmount       Decimal      @default(0) @db.Decimal(18, 2)
   // Total
   totalAmount     Decimal @default(0) @db.Decimal(18, 2)
+  //
+  totalLinesTaxAmount   Decimal @default(0) @db.Decimal(18, 2)
+  totalLinesDiscountAmount Decimal @default(0) @db.Decimal(18, 2)
   //
   billingAddressId      Int?
   shippingAddressId     Int?
