@@ -16,12 +16,13 @@ import {
 import { CreateSOHeaderDto } from '../dto/create-so-header.dto';
 import { UpdateSOHeaderDto } from '../dto/update-so-header.dto';
 import { UpdateSOWithLinesDto } from '../dto/update-so-with-lines.dto';
+import { UpdateSOLineDto } from '../dto/update-so-line.dto';
 import { AuditLoggerService } from '../common/audit-logger.service';
 import { SONumberGeneratorService } from '../domain/services/so-number-generator.service';
 import { IExchangeRateService } from '../domain/services/exchange-rate.service';
 import { IItemRepository } from 'src/items/domain/item.repository.interface';
-import { Item } from 'src/items/domain/aggregates/item.aggregate';
-import { ItemSku } from 'src/items/domain/entities/item-sku.entity';
+import { ItemAggregateService } from '@/items/application/item-aggregate.service';
+import { CreateSOLineDto } from '../dto/composed/create-so-line.dto';
 
 /**
  * Application Service - Orchestrates SO use cases
@@ -37,7 +38,8 @@ export class SOService {
     private readonly exchangeRateService: IExchangeRateService,
     @Inject(ITEM_REPOSITORY)
     private readonly itemRepository: IItemRepository,
-    private readonly auditLogger: AuditLoggerService
+    private readonly auditLogger: AuditLoggerService,
+    private readonly itemAggregateService: ItemAggregateService
   ) {}
 
   /**
@@ -46,15 +48,14 @@ export class SOService {
   async create(createDto: CreateSOHeaderDto): Promise<any> {
     const itemSkus = await Promise.all(
       createDto.lines.map(async (line) => {
-        const itemSku = await this.itemRepository.findSkuByPublicId(
-          line.itemSkuId
-        );
+        const item = await this.itemAggregateService.getItemBySkuPublicId(line.itemSkuId);
+        const itemSku = item.findSkuByPublicId(line.itemSkuId);
         if (!itemSku) {
           throw new NotFoundException(
             `Item with ID ${line.itemSkuId} not found`
           );
         }
-        return itemSku.sku;
+        return itemSku;
       })
     );
     // Auto-generate SO number using domain service
@@ -192,52 +193,144 @@ export class SOService {
   /**
    * Use Case: Add line to Sales Order by Public ID
    */
-  async addLineByPublicId(publicId: string, lineDto: any): Promise<any> {
-    let soHeader = await this.soHeaderRepository.findByPublicId(publicId);
-    if (!soHeader) {
-      throw new NotFoundException(`Sales Order with public ID ${publicId} not found`);
+  async addLineByPublicId(publicId: string, lineDto: CreateSOLineDto): Promise<any> {
+    // Resolve item SKU before transaction (read-only, no need to be in tx)
+    const item = await this.itemAggregateService.getItemBySkuPublicId(lineDto.itemSkuId);
+    const sku = item.findSkuByPublicId(lineDto.itemSkuId);
+    if (!sku) {
+      throw new NotFoundException(`Item SKU with public ID ${lineDto.itemSkuId} not found`);
     }
 
-    // Calculate next line number
-    const currentLines = soHeader.getLines();
-    const nextLineNum = currentLines.length > 0
-      ? Math.max(...currentLines.map(l => l.getLineNum())) + 1
-      : 1;
+    return await this.soHeaderRepository.transaction(async (txRepo) => {
+      let soHeader = await txRepo.findByPublicId(publicId);
+      if (!soHeader) {
+        throw new NotFoundException(`Sales Order with public ID ${publicId} not found`);
+      }
 
-    // Create new line
-    const newLine = new SOLine({
-      lineNum: lineDto.lineNum || nextLineNum,
-      itemSkuId: lineDto.itemSkuId,
-      description: lineDto.description,
-      orderQty: lineDto.orderQty,
-      uomCode: lineDto.uomCode,
-      unitPrice: lineDto.unitPrice,
-      discountPercent: lineDto.pricing?.discountType === 'PERCENT' ? lineDto.pricing?.discountValue : undefined,
-      discountAmount: lineDto.pricing?.discountType === 'AMOUNT' ? lineDto.pricing?.discountValue : undefined,
-      taxPercent: lineDto.pricing?.taxPercent,
-      needByDate: lineDto.needByDate,
-      status: 'OPEN',
-      warehouseCode: lineDto.warehouseCode,
-      lineNote: lineDto.lineNote,
+      // Check SO status - cannot add line to cancelled/closed orders
+      const status = soHeader.getStatus();
+      if (status === 'CANCELLED' || status === 'CLOSED') {
+        throw new BadRequestException(`Cannot add line to ${status} sales order`);
+      }
+
+      // Calculate next line number
+      const currentLines = soHeader.getLines();
+      const nextLineNum = currentLines.length > 0
+        ? Math.max(...currentLines.map(l => l.getLineNum())) + 1
+        : 1;
+
+      const lineNum = lineDto.lineNum || nextLineNum;
+
+      // Check duplicate lineNum
+      const duplicateLine = currentLines.find(l => l.getLineNum() === lineNum);
+      if (duplicateLine) {
+        throw new BadRequestException(`Line number ${lineNum} already exists in SO ${soHeader.getSONum()}`);
+      }
+
+      // Create new line
+      const newLine = new SOLine({
+        lineNum,
+        itemSkuId: sku.getId(),
+        description: lineDto.description,
+        orderQty: lineDto.orderQty,
+        uomCode: lineDto.uomCode,
+        unitPrice: lineDto.unitPrice,
+        discountPercent: lineDto.pricing?.discountType === 'PERCENT' ? lineDto.pricing?.discountValue : undefined,
+        discountAmount: lineDto.pricing?.discountType === 'AMOUNT' ? lineDto.pricing?.discountValue : undefined,
+        taxPercent: lineDto.pricing?.taxPercent,
+        needByDate: lineDto.needByDate,
+        status: 'OPEN',
+        warehouseCode: lineDto.warehouseCode,
+        lineNote: lineDto.lineNote,
+      });
+
+      // Add line to SO - entity will auto-recalculate header totals
+      soHeader = soHeader.addLine(newLine);
+
+      // Persist changes
+      const updated = await txRepo.update(soHeader.getId()!, soHeader);
+
+      // Audit log
+      this.auditLogger.logSOLinesUpdated(
+        updated.getId()!,
+        updated.getSONum(),
+        1, // linesAdded
+        0, // linesUpdated
+        0  // linesDeleted
+      );
+
+      return this.findOneWithRelations(updated.getId()!);
     });
+  }
 
-    // Add line to SO
-    // ENTITY will auto-recalculate header totals!
-    soHeader = soHeader.addLine(newLine);
+  /**
+   * Use Case: Update a single SO line by public IDs
+   */
+  async updateLineByPublicId(
+    headerPublicId: string,
+    linePublicId: string,
+    updateDto: UpdateSOLineDto
+  ): Promise<any> {
+    return await this.soHeaderRepository.transaction(async (txRepo) => {
+      let soHeader = await txRepo.findByPublicId(headerPublicId);
+      if (!soHeader) {
+        throw new NotFoundException(
+          `Sales Order with public ID ${headerPublicId} not found`
+        );
+      }
 
-    // Persist changes
-    const updated = await this.soHeaderRepository.update(soHeader.getId()!, soHeader);
+      // Check SO status - cannot update line on cancelled/closed orders
+      const status = soHeader.getStatus();
+      if (status === 'CANCELLED' || status === 'CLOSED') {
+        throw new BadRequestException(`Cannot update line on ${status} sales order`);
+      }
 
-    // Audit log
-    this.auditLogger.logSOLinesUpdated(
-      updated.getId()!,
-      updated.getSONum(),
-      1, // linesAdded
-      0, // linesUpdated
-      0  // linesDeleted
-    );
+      const lines = soHeader.getLines();
+      const existingLine = lines.find((line) => line.getPublicId() === linePublicId);
+      if (!existingLine) {
+        throw new NotFoundException(
+          `Line with public ID ${linePublicId} not found in SO ${soHeader.getSONum()}`
+        );
+      }
 
-    return this.findOneWithRelations(updated.getId()!);
+      // Apply updates on the existing line entity using domain methods
+      if (updateDto.unitPrice !== undefined) {
+        existingLine.updateUnitPrice(updateDto.unitPrice);
+      }
+
+      if (updateDto.orderQty !== undefined) {
+        existingLine.updateQuantity(updateDto.orderQty);
+      }
+
+      if (updateDto.pricing) {
+        if (updateDto.pricing.discountValue !== undefined) {
+          const discountPercent = updateDto.pricing.discountType === 'PERCENT' ? updateDto.pricing.discountValue : undefined;
+          const discountAmount = updateDto.pricing.discountType === 'AMOUNT' ? updateDto.pricing.discountValue : undefined;
+          existingLine.updateDiscount(discountPercent, discountAmount);
+        }
+        if (updateDto.pricing.taxPercent !== undefined) {
+          existingLine.updateTax(updateDto.pricing.taxPercent);
+        }
+      }
+
+      // Rebuild SOHeader with updated line to recalculate header totals
+      soHeader = soHeader.removeLine(existingLine.getLineNum());
+      soHeader = soHeader.addLine(existingLine);
+
+      // Persist changes
+      const updated = await txRepo.update(soHeader.getId()!, soHeader);
+
+      // Audit log
+      this.auditLogger.logSOLinesUpdated(
+        updated.getId()!,
+        updated.getSONum(),
+        0, // linesAdded
+        1, // linesUpdated
+        0  // linesDeleted
+      );
+
+      return this.findOneWithRelations(updated.getId()!);
+    });
   }
 
   /**
@@ -488,15 +581,14 @@ export class SOService {
 
           // Calculate line total: (qty * price) - discount + tax
           const subtotal = lineDto.orderQty * lineDto.unitPrice;
-          //const discountAmount = lineDto.pricing?.discountAmount || 0;
-          //const taxAmount = lineDto.pricing?.taxAmount || 0;
-          //const totalAmount = subtotal - discountAmount + taxAmount;
-
-          // Add/re-add line with calculated fields
+          //
+          const item = await this.itemAggregateService.getItemBySkuPublicId(lineDto.itemSkuId);
+          const sku = item.findSkuByPublicId(lineDto.itemSkuId);
+          //
           const newLine = new SOLine({
             id: lineDto.id,
             lineNum: lineDto.lineNum || 0,
-            itemSkuId: lineDto.itemSkuId,
+            itemSkuId: sku.getId(),
             description: lineDto.description,
             orderQty: lineDto.orderQty,
             uomCode: lineDto.uomCode,

@@ -2,6 +2,7 @@ import {
   Injectable,
   Inject,
   NotFoundException,
+  BadRequestException,
   ConflictException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -588,6 +589,18 @@ export class ItemAggregateService {
 
   // ==================== SKU OPERATIONS ====================
 
+  async getItemBySkuPublicId(skuPublicId: string): Promise<Item> {
+    const sku= await this.repository.findSkuByPublicId(skuPublicId);
+    if (!sku) {
+      throw new NotFoundException(`SKU not found`);
+    }
+
+    const item = await this.repository.findByIdComplete(sku.itemId);
+    if (!item) {
+      throw new NotFoundException(`Item not found`);
+    }
+    return item;
+  }
   async addSkuToItem(
     itemId: number,
     modelId: number | null,
@@ -807,27 +820,58 @@ export class ItemAggregateService {
    * @param skuPublicId - SKU's ULID public identifier
    * @param dto - Update data
    */
-  async updateSkuDirect(skuPublicId: string, dto: UpdateSkuDto): Promise<ItemSku> {
+  async updateSkuDirect(skuPublicId: string, dto: UpdateSkuDto): Promise<any> {
+    // Step 1: Find SKU by publicId
     const result = await this.repository.findSkuByPublicId(skuPublicId);
     if (!result) {
       throw new NotFoundException(`SKU not found`);
     }
 
-    const item = await this.repository.findByIdComplete(result.itemId);
-    if (!item) {
-      throw new NotFoundException(`Item not found`);
+    const { sku } = result;
+
+    // Step 2: Check SKU status - cannot update inactive SKU
+    if (sku.getStatus() === 'inactive') {
+      throw new BadRequestException('Cannot update inactive SKU. Activate it first.');
     }
 
-    const sku = item.findSkuByPublicId(skuPublicId);
-    if (!sku) {
-      throw new NotFoundException(`SKU not found`);
+    // Step 3: Validate skuCode uniqueness if being updated
+    if (dto.skuCode !== undefined) {
+      const duplicateExists = await this.repository.existsSkuByCode(dto.skuCode, sku.getId());
+      if (duplicateExists) {
+        throw new ConflictException(`SKU code '${dto.skuCode}' already exists`);
+      }
     }
 
-    sku.update(dto as UpdateItemSkuData);
-    await this.repository.saveWithChildren(item);
-    await this.publishEvents(item);
+    // Step 4: Apply domain updates (entity validates required fields, prices, dimensions)
+    const updateData: UpdateItemSkuData = {
+      skuCode: dto.skuCode,
+      colorId: dto.colorId,
+      genderId: dto.genderId,
+      sizeId: dto.sizeId,
+      supplierId: dto.supplierId,
+      customerId: dto.customerId,
+      fabricSKUId: dto.fabricSKUId,
+      pattern: dto.pattern,
+      lengthCm: dto.lengthCm,
+      widthCm: dto.widthCm,
+      heightCm: dto.heightCm,
+      weightG: dto.weightG,
+      desc: dto.desc,
+      costPrice: dto.costPrice,
+      sellingPrice: dto.sellingPrice,
+      uomCode: dto.uomCode,
+    };
 
-    return sku;
+    sku.update(updateData);
+    const skuData = sku.toPersistence();
+    delete skuData.id;
+    delete skuData.skuUoms;
+
+    // Step 5: Persist only the SKU (not the entire aggregate)
+    await this.repository.updateSkuById(sku.getId()!, skuData);
+
+    // Step 6: Return response DTO
+    return this.queryService.findSkuByPublicId(skuPublicId);
   }
 
   /**

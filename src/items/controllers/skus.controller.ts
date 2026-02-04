@@ -19,6 +19,7 @@ import { ItemQueryService } from '../application/item-query.service';
 import { ItemAggregateService } from '../application/item-aggregate.service';
 import { SkuFilterDto } from '../dto/sku-filter.dto';
 import { UpdateSkuDto } from '../dto/update-sku.dto';
+import { ULIDValidationPipe } from '../../common/pipes/ulid-validation.pipe';
 
 /**
  * Controller xử lý các endpoints SKU trực tiếp
@@ -67,7 +68,7 @@ export class SkusController {
     status: 404,
     description: 'SKU not found',
   })
-  findOne(@Param('publicId') publicId: string) {
+  findOne(@Param('publicId', ULIDValidationPipe) publicId: string) {
     return this.itemQueryService.findSkuByPublicId(publicId);
   }
 
@@ -89,7 +90,7 @@ export class SkusController {
     description: 'SKU not found',
   })
   update(
-    @Param('publicId') publicId: string,
+    @Param('publicId', ULIDValidationPipe) publicId: string,
     @Body() updateSkuDto: UpdateSkuDto,
   ) {
     return this.itemAggregateService.updateSkuDirect(publicId, updateSkuDto);
@@ -113,7 +114,7 @@ export class SkusController {
     status: 404,
     description: 'SKU not found',
   })
-  remove(@Param('publicId') publicId: string) {
+  remove(@Param('publicId', ULIDValidationPipe) publicId: string) {
     return this.itemAggregateService.deleteSkuDirect(publicId);
   }
 
@@ -134,7 +135,7 @@ export class SkusController {
     status: 404,
     description: 'SKU not found',
   })
-  activate(@Param('publicId') publicId: string) {
+  activate(@Param('publicId', ULIDValidationPipe) publicId: string) {
     return this.itemAggregateService.activateSkuDirect(publicId);
   }
 
@@ -155,7 +156,7 @@ export class SkusController {
     status: 404,
     description: 'SKU not found',
   })
-  deactivate(@Param('publicId') publicId: string) {
+  deactivate(@Param('publicId', ULIDValidationPipe) publicId: string) {
     return this.itemAggregateService.deactivateSkuDirect(publicId);
   }
 }

@@ -15,9 +15,10 @@ import { AuditLoggerService } from './common/audit-logger.service';
 import { SONumberGeneratorService } from './domain/services/so-number-generator.service';
 import { ExchangeRateService } from './domain/services/exchange-rate.service';
 import { ItemRepository } from '../items/infrastructure/item.repository';
+import { ItemsModule } from '../items/items.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, ItemsModule],
   providers: [
     SOService,
     SOQueryService,

@@ -286,6 +286,7 @@ export class SOHeader {
     const updatedLines = this.lines.filter(
       (line) => line.getLineNum() !== lineNum
     );
+    
     const updatedPricing = this.recalculatePricing(updatedLines);
 
     return new SOHeader(

@@ -93,7 +93,8 @@ export class ItemSku {
 
     this.id = data.id;
     this.publicId = data.publicId;
-    this.skuCode = data.skuCode;
+    // remove whitespace
+    this.skuCode = data.skuCode ? data.skuCode.replace(/\s+/g, '').toUpperCase() : '';
     this.itemId = data.itemId;
     this.modelId = data.modelId;
     this.colorId = data.colorId;
@@ -107,7 +108,8 @@ export class ItemSku {
     this.widthCm = data.widthCm;
     this.heightCm = data.heightCm;
     this.weightG = data.weightG;
-    this.desc = data.desc;
+    // remove whitespace
+    this.desc = data.desc ? data.desc.trim() : '';
     this.status = data.status ?? ItemSkuStatus.ACTIVE;
     this.costPrice = data.costPrice ?? 0;
     this.sellingPrice = data.sellingPrice ?? 0;
@@ -202,6 +204,14 @@ export class ItemSku {
    * @param data 
    */
   public update(data: UpdateItemSkuData): void {
+    // Re-validate required fields if being updated
+    if (data.skuCode !== undefined && (!data.skuCode || data.skuCode.trim() === '')) {
+      throw new InvalidItemSkuException('SKU code is required and cannot be empty');
+    }
+    if (data.colorId !== undefined && !data.colorId) {
+      throw new InvalidItemSkuException('Color is required and cannot be empty');
+    }
+
     if (data.costPrice !== undefined || data.sellingPrice !== undefined) {
       this.validatePrices(
         data.costPrice ?? this.costPrice,
@@ -209,14 +219,17 @@ export class ItemSku {
       );
     }
 
-    this.validateDimensions({
-      lengthCm: data.lengthCm,
-      widthCm: data.widthCm,
-      heightCm: data.heightCm,
-      weightG: data.weightG,
-    });
+    if (data.lengthCm !== undefined || data.widthCm !== undefined ||
+        data.heightCm !== undefined || data.weightG !== undefined) {
+      this.validateDimensions({
+        lengthCm: data.lengthCm,
+        widthCm: data.widthCm,
+        heightCm: data.heightCm,
+        weightG: data.weightG,
+      });
+    }
 
-    if (data.skuCode !== undefined) this.skuCode = data.skuCode;
+    if (data.skuCode !== undefined) this.skuCode = data.skuCode.replace(/\s+/g, '').toUpperCase();
     if (data.colorId !== undefined) this.colorId = data.colorId;
     if (data.genderId !== undefined) this.genderId = data.genderId;
     if (data.sizeId !== undefined) this.sizeId = data.sizeId;
@@ -228,7 +241,7 @@ export class ItemSku {
     if (data.widthCm !== undefined) this.widthCm = data.widthCm;
     if (data.heightCm !== undefined) this.heightCm = data.heightCm;
     if (data.weightG !== undefined) this.weightG = data.weightG;
-    if (data.desc !== undefined) this.desc = data.desc;
+    if (data.desc !== undefined) this.desc = data.desc.trim();
     if (data.costPrice !== undefined) this.costPrice = data.costPrice;
     if (data.sellingPrice !== undefined) this.sellingPrice = data.sellingPrice;
     if (data.uomCode !== undefined) this.uomCode = data.uomCode;

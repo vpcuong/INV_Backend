@@ -8,6 +8,7 @@ import {
 } from 'class-validator';
 
 export class CreateSkuDto {
+
   @ApiProperty({
     description: 'SKU code (unique)',
     example: 'SKU001',

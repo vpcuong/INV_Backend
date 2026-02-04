@@ -17,6 +17,7 @@ import { UpdateSOHeaderDto } from './dto/update-so-header.dto';
 import { UpdateSOWithLinesDto } from './dto/update-so-with-lines.dto';
 import { SOFilterDto } from './dto/so-filter.dto';
 import { CreateSOLineDto } from './dto/composed/create-so-line.dto';
+import { UpdateSOLineDto } from './dto/update-so-line.dto';
 import { ULIDValidationPipe } from '../common/pipes/ulid-validation.pipe';
 
 @ApiTags('Sales Orders')
@@ -175,6 +176,28 @@ export class SalesOrdersController {
     @Body() lineDto: CreateSOLineDto
   ) {
     return this.soService.addLineByPublicId(publicId, lineDto);
+  }
+
+  @Patch(':publicId/lines/:linePublicId')
+  @ApiOperation({
+    summary: 'Update a single sales order line',
+    description: 'Update a specific line in an existing SO by public IDs. Pricing is auto-recalculated.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Line updated successfully',
+  })
+  @ApiResponse({ status: 404, description: 'Sales order or line not found' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid ULID format or data',
+  })
+  async updateLineByPublicId(
+    @Param('publicId', ULIDValidationPipe) publicId: string,
+    @Param('linePublicId', ULIDValidationPipe) linePublicId: string,
+    @Body() updateDto: UpdateSOLineDto
+  ) {
+    return this.soService.updateLineByPublicId(publicId, linePublicId, updateDto);
   }
 
   @Patch(':publicId/cancel')

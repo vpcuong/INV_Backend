@@ -12,29 +12,14 @@ import { Type } from 'class-transformer';
 import { LinePricingDto } from './composed/create-so-line.dto';
 
 export class UpdateSOLineDto {
-  @ApiPropertyOptional({
-    description: 'Item ID',
-    example: 10,
-  })
-  @IsOptional()
-  @IsNumber()
-  itemId?: number;
 
   @ApiPropertyOptional({
     description: 'Item SKU ID',
-    example: 25,
-  })
-  @IsOptional()
-  @IsNumber()
-  itemSkuId?: number;
-
-  @ApiPropertyOptional({
-    description: 'Item code',
-    example: 'TS-COT-GRE-UNI-M',
+    example: "",
   })
   @IsOptional()
   @IsString()
-  itemCode?: string;
+  itemSkuId?: string;
 
   @ApiPropertyOptional({
     description: 'Item description',
@@ -89,15 +74,6 @@ export class UpdateSOLineDto {
   @Type(() => Date)
   @IsDate()
   needByDate?: Date;
-
-  @ApiPropertyOptional({
-    description: 'Line status',
-    example: 'OPEN',
-    enum: ['OPEN', 'PARTIAL', 'CLOSED', 'CANCELLED', 'BACKORDERED'],
-  })
-  @IsOptional()
-  @IsEnum(['OPEN', 'PARTIAL', 'CLOSED', 'CANCELLED', 'BACKORDERED'])
-  lineStatus?: string;
 
   @ApiPropertyOptional({
     description: 'Warehouse code',

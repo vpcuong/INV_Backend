@@ -49,8 +49,6 @@ export class SOQueryService {
 
     // Apply quick filters
     this.applyQuickFilters(query, filterDto);
-    console.log('query');
-    console.log(query);
     // Execute queries in parallel
     const [data, total] = await Promise.all([
       this.prisma.client.sOHeader.findMany(query),
@@ -114,6 +112,7 @@ export class SOQueryService {
                 color: true,
                 gender: true,
                 size: true,
+                item: true
               },
             },
             uom: true,

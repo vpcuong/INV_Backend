@@ -3,7 +3,6 @@ import {
   IsString,
   IsNumber,
   IsOptional,
-  IsEnum,
   Min,
 } from 'class-validator';
 
@@ -112,14 +111,6 @@ export class UpdateSkuDto {
   @IsString()
   desc?: string;
 
-  @ApiPropertyOptional({
-    description: 'SKU status',
-    example: 'active',
-    enum: ['active', 'inactive', 'draft'],
-  })
-  @IsOptional()
-  @IsEnum(['active', 'inactive', 'draft'])
-  status?: string;
 
   @ApiPropertyOptional({
     description: 'Cost price',

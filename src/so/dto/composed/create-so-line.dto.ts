@@ -56,7 +56,7 @@ export class CreateSOLineDto {
 
   @ApiProperty({ description: 'Item SKU ID', example: 'CFYEN9GPV25XWQNKXC8G554PSC' })
   @IsString()
-  itemSkuId: string;
+  itemSkuId!: string;
 
   @ApiProperty({ description: 'Item description', required: false })
   @IsOptional()
@@ -66,21 +66,20 @@ export class CreateSOLineDto {
   @ApiProperty({ description: 'Order quantity', example: 10 })
   @IsNumber()
   @IsPositive()
-  orderQty: number;
+  orderQty!: number;
 
   @ApiProperty({
     description: 'Unit of measure code',
     example: 'PCS',
     required: false,
   })
-  @IsOptional()
   @IsString()
-  uomCode?: string;
+  uomCode!: string;
 
   @ApiProperty({ description: 'Unit price', example: 25.5 })
   @IsNumber()
   @IsPositive()
-  unitPrice: number;
+  unitPrice!: number;
 
   @ApiProperty({
     description: 'pricing information',

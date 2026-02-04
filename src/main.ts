@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import morgan from 'morgan';
+import { HttpExceptionFilter } from './common/exception-filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,6 +19,9 @@ async function bootstrap() {
       transform: true,
     })
   );
+
+  // Log all 4xx errors for debugging
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   app.enableCors();
   app.setGlobalPrefix('api');

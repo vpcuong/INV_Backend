@@ -155,4 +155,9 @@ export interface IItemRepository {
    * Check if SKU code exists
    */
   existsSkuByCode(code: string, excludeId?: number): Promise<boolean>;
+
+  /**
+   * Update a single SKU by ID (without syncing all children)
+   */
+  updateSkuById(skuId: number, data: Record<string, any>): Promise<ItemSku>;
 }

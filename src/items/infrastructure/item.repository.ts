@@ -213,7 +213,7 @@ export class ItemRepository implements IItemRepository {
       const itemData = item.toPersistence();
       delete itemData.id;
 
-      let savedItem;
+      let savedItem = undefined;
       if (itemId) {
         // Don't update publicId on existing items
         delete itemData.publicId;
@@ -334,6 +334,7 @@ export class ItemRepository implements IItemRepository {
     for (const sku of skus) {
       const skuData = sku.toPersistence();
       delete skuData.id;
+      delete skuData.skuUoms;
       skuData.itemId = itemId;
 
       if (sku.getId()) {
@@ -502,6 +503,14 @@ export class ItemRepository implements IItemRepository {
     });
 
     return data.map((d) => ItemSku.fromPersistence(d));
+  }
+
+  async updateSkuById(skuId: number, data: Record<string, any>): Promise<ItemSku> {
+    const updated = await this.prisma.client.itemSKU.update({
+      where: { id: skuId },
+      data,
+    });
+    return ItemSku.fromPersistence(updated);
   }
 
   async existsSkuByCode(code: string, excludeId?: number): Promise<boolean> {

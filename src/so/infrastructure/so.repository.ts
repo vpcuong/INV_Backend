@@ -143,7 +143,6 @@ export class SOHeaderRepository implements ISOHeaderRepository {
     transaction?: PrismaTransaction
   ): Promise<SOHeader> {
     const db = this.getDb(transaction);
-    // const data = soHeader.toPersistence();
     const lines = soHeader.getLines();
 
     // Get existing lines
@@ -175,59 +174,69 @@ export class SOHeaderRepository implements ISOHeaderRepository {
       ...headerData
     } = soHeader.toPersistence();
 
-    const updated = await db.sOHeader.update({
-      where: { id },
-      data: {
-        ...headerData,
-        lines: {
-          // Delete removed lines
-          deleteMany:
-            linesToDelete.length > 0
-              ? { id: { in: linesToDelete } }
-              : undefined,
-          // Update existing lines
-          updateMany: lines
-            .filter((line) => line.getId())
-            .map((line) => {
-              const {
-                id: lineId,
-                publicId: linePublicId,
-                soHeaderId,
-                createdAt: lineCreatedAt,
-                updatedAt: lineUpdatedAt,
-                ...lineData
-              } = line.toPersistence();
-              return {
-                where: { id: lineId! },
-                data: lineData,
-              };
-            }),
-          // Create new lines
-          create: lines
-            .filter((line) => !line.getId())
-            .map((line) => {
-              const {
-                id: lineId,
-                publicId: linePublicId,
-                soHeaderId,
-                createdAt: lineCreatedAt,
-                updatedAt: lineUpdatedAt,
-                ...lineData
-              } = line.toPersistence();
-              return lineData;
-            }),
-        },
-      },
-      include: {
-        lines: {
-          orderBy: {
-            lineNum: 'asc',
+    // Use transaction if not already in one
+    const executeUpdate = async (txDb: any) => {
+      const updated = await txDb.sOHeader.update({
+        where: { id },
+        data: {
+          ...headerData,
+          lines: {
+            // Delete removed lines
+            deleteMany:
+              linesToDelete.length > 0
+                ? { id: { in: linesToDelete } }
+                : undefined,
+            // Update existing lines
+            updateMany: lines
+              .filter((line) => line.getId())
+              .map((line) => {
+                const {
+                  id: lineId,
+                  publicId: linePublicId,
+                  soHeaderId,
+                  createdAt: lineCreatedAt,
+                  updatedAt: lineUpdatedAt,
+                  ...lineData
+                } = line.toPersistence();
+                return {
+                  where: { id: lineId! },
+                  data: lineData,
+                };
+              }),
+            // Create new lines
+            create: lines
+              .filter((line) => !line.getId())
+              .map((line) => {
+                const {
+                  id: lineId,
+                  publicId: linePublicId,
+                  soHeaderId,
+                  createdAt: lineCreatedAt,
+                  updatedAt: lineUpdatedAt,
+                  ...lineData
+                } = line.toPersistence();
+                return lineData;
+              }),
           },
         },
-      },
-    });
+        include: {
+          lines: {
+            orderBy: {
+              lineNum: 'asc',
+            },
+          },
+        },
+      });
 
-    return SOHeader.fromPersistence(updated);
+      return SOHeader.fromPersistence(updated);
+    };
+
+    // If already inside a transaction, or if $transaction is not available
+    // (e.g. this repo was created with a tx client), execute directly
+    if (transaction || typeof this.prisma.client.$transaction !== 'function') {
+      return executeUpdate(db);
+    }
+    return this.prisma.client.$transaction(async (tx) => executeUpdate(tx));
   }
 
   async delete(id: number, transaction?: PrismaTransaction): Promise<SOHeader> {

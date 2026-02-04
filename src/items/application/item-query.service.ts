@@ -62,7 +62,7 @@ export class ItemQueryService {
       this.prisma.client.item.findMany(query),
       this.prisma.client.item.count({ where: query.where }),
     ]);
-
+   
     return this.queryBuilder.buildPaginatedResponse(
       mapItemsResponse(data),
       total,

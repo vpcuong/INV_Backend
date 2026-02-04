@@ -264,6 +264,11 @@ export class SOLine {
     this.recalculateTotalAmount();
   }
 
+  public setLineNum(lineNum: number): void {
+    this.lineNum = lineNum;
+    this.updatedAt = new Date();
+  }
+
   // Getters
   public getId(): number | undefined {
     return this.id;
