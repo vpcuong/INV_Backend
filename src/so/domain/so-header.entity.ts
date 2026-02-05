@@ -4,6 +4,7 @@ import { SOAddresses } from './value-objects/so-addresses.vo';
 import { SOMetadata } from './value-objects/so-metadata.vo';
 import { InvalidSOException } from './exceptions/so-domain.exception';
 import { SOLine } from './so-line.entity';
+import { RowMode } from '../../common/enums/row-mode.enum';
 
 export interface SOHeaderConstructorData {
   id?: number;
@@ -42,17 +43,17 @@ export class SOHeader {
   private constructor(
     private readonly soNum: string,
     private readonly customerId: number,
-    private readonly orderDate: Date,
-    private readonly requestDate: Date | null,
-    private readonly needByDate: Date | null,
-    private readonly status: SOStatus,
-    private readonly pricing: SOPricing,
-    private readonly addresses: SOAddresses,
-    private readonly metadata: SOMetadata,
-    private readonly lines: SOLine[],
+    private orderDate: Date,
+    private requestDate: Date | null,
+    private needByDate: Date | null,
+    private status: SOStatus,
+    private pricing: SOPricing,
+    private addresses: SOAddresses,
+    private metadata: SOMetadata,
+    private lines: SOLine[],
     private readonly createdBy: string,
     private readonly createdAt: Date,
-    private readonly updatedAt: Date,
+    private updatedAt: Date,
     private readonly id?: number,
     private readonly publicId?: string
   ) {
@@ -187,6 +188,13 @@ export class SOHeader {
   }
 
   public getLines(): SOLine[] {
+    return [...this.lines.filter(l => l.getRowMode() !== RowMode.DELETED)];
+  }
+
+  /**
+   * Get all lines including deleted ones (for repository persistence)
+   */
+  public getAllLinesForPersistence(): SOLine[] {
     return [...this.lines];
   }
 
@@ -203,161 +211,90 @@ export class SOHeader {
   }
 
   // Business methods
-  public hold(): SOHeader {
-    return this.withStatus(this.status.toOnHold());
+  public hold(): void {
+    this.status = this.status.toOnHold();
+    this.updatedAt = new Date();
   }
 
-  public release(): SOHeader {
+  public release(): void {
     if (!this.status.isOnHold()) {
       throw new InvalidSOException('Order is not on hold');
     }
-    return this.withStatus(this.status.toOpen());
+    this.status = this.status.toOpen();
+    this.updatedAt = new Date();
   }
 
-  public cancel(): SOHeader {
+  public cancel(): void {
     if (this.status.isClosed()) {
       throw new InvalidSOException('Cannot cancel closed order');
     }
-    const cancelledLines = this.lines.map((line) => {
+    this.lines.forEach((line) => {
       line.cancel();
-      return line;
     });
-    
-    return new SOHeader(
-      this.soNum,
-      this.customerId,
-      this.orderDate,
-      this.requestDate,
-      this.needByDate,
-      this.status.toCancelled(),
-      this.pricing,
-      this.addresses,
-      this.metadata,
-      cancelledLines,
-      this.createdBy,
-      this.createdAt,
-      new Date(),
-      this.id,
-      this.publicId
-    );
+    this.status = this.status.toCancelled();
+    this.updatedAt = new Date();
   }
 
-  public close(): SOHeader {
-    // Check if all lines are closed or cancelled
-    const hasOpenLines = this.lines.some(
+  public close(): void {
+    // Check if all lines are closed or cancelled (excluding deleted)
+    const activeLines = this.lines.filter(l => l.getRowMode() !== RowMode.DELETED);
+    const hasOpenLines = activeLines.some(
       (line) => line.getStatus() === 'OPEN' || line.getStatus() === 'PARTIAL'
     );
-    
+
     if (hasOpenLines) {
       throw new InvalidSOException('Cannot close order with open lines');
     }
-    return this.withStatus(this.status.toClosed());
+    this.status = this.status.toClosed();
+    this.updatedAt = new Date();
   }
 
   // Alias for backward compatibility
-  public complete(): SOHeader {
-    return this.close();
+  public complete(): void {
+    this.close();
   }
 
-  public addLine(line: SOLine): SOHeader {
-    const updatedLines = [...this.lines, line];
-    const updatedPricing = this.recalculatePricing(updatedLines);
-
-    return new SOHeader(
-      this.soNum,
-      this.customerId,
-      this.orderDate,
-      this.requestDate,
-      this.needByDate,
-      this.status,
-      updatedPricing,
-      this.addresses,
-      this.metadata,
-      updatedLines,
-      this.createdBy,
-      this.createdAt,
-      new Date(),
-      this.id,
-      this.publicId
-    );
+  public addLine(line: SOLine): void {
+    this.lines.push(line);
+    this.recalculatePricingInPlace();
+    this.updatedAt = new Date();
   }
 
-  public removeLine(lineNum: number): SOHeader {
-    const updatedLines = this.lines.filter(
-      (line) => line.getLineNum() !== lineNum
-    );
-    
-    const updatedPricing = this.recalculatePricing(updatedLines);
+  public removeLine(lineNum: number): void {
+    const lineIndex = this.lines.findIndex(l => l.getLineNum() === lineNum);
+    if (lineIndex === -1) {
+      throw new InvalidSOException(`Line ${lineNum} not found`);
+    }
 
-    return new SOHeader(
-      this.soNum,
-      this.customerId,
-      this.orderDate,
-      this.requestDate,
-      this.needByDate,
-      this.status,
-      updatedPricing,
-      this.addresses,
-      this.metadata,
-      updatedLines,
-      this.createdBy,
-      this.createdAt,
-      new Date(),
-      this.id,
-      this.publicId
-    );
+    const line = this.lines[lineIndex];
+
+    // If line is NEW (not yet persisted), just remove from array
+    if (line.getRowMode() === RowMode.NEW) {
+      this.lines.splice(lineIndex, 1);
+    } else {
+      line.markDeleted();
+    }
+
+    this.recalculatePricingInPlace();
+    this.updatedAt = new Date();
   }
 
   /**
    * Update discount by amount - auto-syncs percent
    * @param discountAmount - Discount amount in currency
    */
-  public updateDiscountAmount(discountAmount: number): SOHeader {
-    const updatedPricing = this.pricing.setDiscountAmount(discountAmount);
-
-    return new SOHeader(
-      this.soNum,
-      this.customerId,
-      this.orderDate,
-      this.requestDate,
-      this.needByDate,
-      this.status,
-      updatedPricing,
-      this.addresses,
-      this.metadata,
-      this.lines,
-      this.createdBy,
-      this.createdAt,
-      new Date(),
-      this.id,
-      this.publicId
-    );
+  public updateDiscountAmount(discountAmount: number): void {
+    this.pricing = this.pricing.setDiscountAmount(discountAmount);
+    this.updatedAt = new Date();
   }
 
   /**
    * Update discount by percent - auto-syncs amount
    * @param discountPercent - Discount percent (0-100)
    */
-  public updateDiscountPercent(discountPercent: number): SOHeader {
-    const updatedPricing = this.pricing.setDiscountPercent(discountPercent);
-
-    return new SOHeader(
-      this.soNum,
-      this.customerId,
-      this.orderDate,
-      this.requestDate,
-      this.needByDate,
-      this.status,
-      updatedPricing,
-      this.addresses,
-      this.metadata,
-      this.lines,
-      this.createdBy,
-      this.createdAt,
-      new Date(),
-      this.id,
-      this.publicId
-    );
+  public updateDiscountPercent(discountPercent: number): void {
+    this.pricing = this.pricing.setDiscountPercent(discountPercent);
+    this.updatedAt = new Date();
   }
   
   /**
@@ -370,153 +307,58 @@ export class SOHeader {
   public updateAddresses(
     billingAddressId: number | null,
     shippingAddressId: number | null
-  ): SOHeader {
-    const updatedAddresses = this.addresses.updateAddresses(
+  ): void {
+    this.addresses = this.addresses.updateAddresses(
       billingAddressId,
       shippingAddressId
     );
-
-    return new SOHeader(
-      this.soNum,
-      this.customerId,
-      this.orderDate,
-      this.requestDate,
-      this.needByDate,
-      this.status,
-      this.pricing,
-      updatedAddresses,
-      this.metadata,
-      this.lines,
-      this.createdBy,
-      this.createdAt,
-      new Date(),
-      this.id,
-      this.publicId
-    );
+    this.updatedAt = new Date();
   }
 
   public updateShippingDetails(
     shipViaCode: string | null,
     fobCode: string | null
-  ): SOHeader {
-    const updatedMetadata = this.metadata.updateShippingDetails(
+  ): void {
+    this.metadata = this.metadata.updateShippingDetails(
       shipViaCode,
       fobCode
     );
-
-    return new SOHeader(
-      this.soNum,
-      this.customerId,
-      this.orderDate,
-      this.requestDate,
-      this.needByDate,
-      this.status,
-      this.pricing,
-      this.addresses,
-      updatedMetadata,
-      this.lines,
-      this.createdBy,
-      this.createdAt,
-      new Date(),
-      this.id,
-      this.publicId
-    );
+    this.updatedAt = new Date();
   }
 
   public updateNotes(
     headerNote: string | null,
     internalNote: string | null
-  ): SOHeader {
-    const updatedMetadata = this.metadata.updateNotes(headerNote, internalNote);
-
-    return new SOHeader(
-      this.soNum,
-      this.customerId,
-      this.orderDate,
-      this.requestDate,
-      this.needByDate,
-      this.status,
-      this.pricing,
-      this.addresses,
-      updatedMetadata,
-      this.lines,
-      this.createdBy,
-      this.createdAt,
-      new Date(),
-      this.id,
-      this.publicId
-    );
+  ): void {
+    this.metadata = this.metadata.updateNotes(headerNote, internalNote);
+    this.updatedAt = new Date();
   }
 
-  public updateMetadata(data: any): SOHeader {
-    const updatedMetadata = this.metadata.update(data);
-
-    return new SOHeader(
-      this.soNum,
-      this.customerId,
-      this.orderDate,
-      this.requestDate,
-      this.needByDate,
-      this.status,
-      this.pricing,
-      this.addresses,
-      updatedMetadata,
-      this.lines,
-      this.createdBy,
-      this.createdAt,
-      new Date(),
-      this.id,
-      this.publicId
-    );
+  public updateMetadata(data: any): void {
+    this.metadata = this.metadata.update(data);
+    this.updatedAt = new Date();
   }
 
   public updateDates(data: {
     orderDate?: Date;
     requestDate?: Date | null;
     needByDate?: Date | null;
-  }): SOHeader {
-    return new SOHeader(
-      this.soNum,
-      this.customerId,
-      data.orderDate || this.orderDate,
-      data.requestDate !== undefined ? data.requestDate : this.requestDate,
-      data.needByDate !== undefined ? data.needByDate : this.needByDate,
-      this.status,
-      this.pricing,
-      this.addresses,
-      this.metadata,
-      this.lines,
-      this.createdBy,
-      this.createdAt,
-      new Date(),
-      this.id,
-      this.publicId
-    );
+  }): void {
+    if (data.orderDate !== undefined) {
+      this.orderDate = data.orderDate;
+    }
+    if (data.requestDate !== undefined) {
+      this.requestDate = data.requestDate;
+    }
+    if (data.needByDate !== undefined) {
+      this.needByDate = data.needByDate;
+    }
+    this.updatedAt = new Date();
   }
 
-  public updateStatus(status: string): SOHeader {
-    return this.withStatus(SOStatus.create(status));
-  }
-
-  // Private helper methods
-  private withStatus(newStatus: SOStatus): SOHeader {
-    return new SOHeader(
-      this.soNum,
-      this.customerId,
-      this.orderDate,
-      this.requestDate,
-      this.needByDate,
-      newStatus,
-      this.pricing,
-      this.addresses,
-      this.metadata,
-      this.lines,
-      this.createdBy,
-      this.createdAt,
-      new Date(),
-      this.id,
-      this.publicId
-    );
+  public updateStatus(status: string): void {
+    this.status = SOStatus.create(status);
+    this.updatedAt = new Date();
   }
 
   private recalculatePricing(lines: SOLine[]): SOPricing {
@@ -538,6 +380,30 @@ export class SOHeader {
     );
 
     return this.pricing.recalculate(sumLineTotal, totalLinesTaxAmount, subtotalAmount, totalLinesDiscountAmount);
+  }
+
+  private recalculatePricingInPlace(): void {
+    // Filter out deleted lines when calculating
+    const activeLines = this.lines.filter(l => l.getRowMode() !== RowMode.DELETED);
+
+    const sumLineTotal = activeLines.reduce(
+      (sum, line) => sum + line.getTotalAmount(),
+      0
+    );
+    const totalLinesTaxAmount = activeLines.reduce(
+      (sum, line) => sum + line.getTaxAmount(),
+      0
+    );
+    const subtotalAmount = activeLines.reduce(
+      (sum, line) => sum + line.getSubtotal(),
+      0
+    );
+    const totalLinesDiscountAmount = activeLines.reduce(
+      (sum, line) => sum + line.getDiscountAmount(),
+      0
+    );
+
+    this.pricing = this.pricing.recalculate(sumLineTotal, totalLinesTaxAmount, subtotalAmount, totalLinesDiscountAmount);
   }
 
   // Persistence methods

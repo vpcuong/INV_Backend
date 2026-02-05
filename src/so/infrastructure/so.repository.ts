@@ -6,6 +6,7 @@ import {
 } from '../domain/so-header.repository.interface';
 import { SOHeader } from '../domain/so-header.entity';
 import { SOLine } from '../domain/so-line.entity';
+import { RowMode } from '../../common/enums/row-mode.enum';
 
 @Injectable()
 export class SOHeaderRepository implements ISOHeaderRepository {
@@ -143,27 +144,14 @@ export class SOHeaderRepository implements ISOHeaderRepository {
     transaction?: PrismaTransaction
   ): Promise<SOHeader> {
     const db = this.getDb(transaction);
-    const lines = soHeader.getLines();
 
-    // Get existing lines
-    const existing = await db.sOHeader.findUnique({
-      where: { id },
-      include: { lines: true },
-    });
+    // Use rowMode to determine which lines need DB operations
+    // getAllLinesForPersistence() includes deleted lines for sync
+    const allLines = soHeader.getAllLinesForPersistence();
 
-    if (!existing) {
-      throw new Error(`SOHeader with ID ${id} not found`);
-    }
-
-    const existingLineIds = existing.lines.map((line) => line.id);
-    const currentLineIds = lines
-      .map((line) => line.getId())
-      .filter((id): id is number => id !== undefined);
-
-    // Lines to delete (exist in DB but not in current)
-    const linesToDelete = existingLineIds.filter(
-      (id) => !currentLineIds.includes(id)
-    );
+    const newLines = allLines.filter((l) => l.getRowMode() === RowMode.NEW);
+    const updatedLines = allLines.filter((l) => l.getRowMode() === RowMode.UPDATED);
+    const deletedLines = allLines.filter((l) => l.getRowMode() === RowMode.DELETED);
 
     // Update header and lines
     const {
@@ -174,6 +162,11 @@ export class SOHeaderRepository implements ISOHeaderRepository {
       ...headerData
     } = soHeader.toPersistence();
 
+    // Get IDs of lines to delete
+    const deletedIds = deletedLines
+      .map((l) => l.getId())
+      .filter((id): id is number => id !== undefined);
+
     // Use transaction if not already in one
     const executeUpdate = async (txDb: any) => {
       const updated = await txDb.sOHeader.update({
@@ -181,42 +174,38 @@ export class SOHeaderRepository implements ISOHeaderRepository {
         data: {
           ...headerData,
           lines: {
-            // Delete removed lines
+            // Delete lines marked as DELETED
             deleteMany:
-              linesToDelete.length > 0
-                ? { id: { in: linesToDelete } }
+              deletedIds.length > 0
+                ? { id: { in: deletedIds } }
                 : undefined,
-            // Update existing lines
-            updateMany: lines
-              .filter((line) => line.getId())
-              .map((line) => {
-                const {
-                  id: lineId,
-                  publicId: linePublicId,
-                  soHeaderId,
-                  createdAt: lineCreatedAt,
-                  updatedAt: lineUpdatedAt,
-                  ...lineData
-                } = line.toPersistence();
-                return {
-                  where: { id: lineId! },
-                  data: lineData,
-                };
-              }),
-            // Create new lines
-            create: lines
-              .filter((line) => !line.getId())
-              .map((line) => {
-                const {
-                  id: lineId,
-                  publicId: linePublicId,
-                  soHeaderId,
-                  createdAt: lineCreatedAt,
-                  updatedAt: lineUpdatedAt,
-                  ...lineData
-                } = line.toPersistence();
-                return lineData;
-              }),
+            // Update only lines marked as UPDATED
+            updateMany: updatedLines.map((line) => {
+              const {
+                id: lineId,
+                publicId: linePublicId,
+                soHeaderId,
+                createdAt: lineCreatedAt,
+                updatedAt: lineUpdatedAt,
+                ...lineData
+              } = line.toPersistence();
+              return {
+                where: { id: lineId! },
+                data: lineData,
+              };
+            }),
+            // Create only lines marked as NEW
+            create: newLines.map((line) => {
+              const {
+                id: lineId,
+                publicId: linePublicId,
+                soHeaderId,
+                createdAt: lineCreatedAt,
+                updatedAt: lineUpdatedAt,
+                ...lineData
+              } = line.toPersistence();
+              return lineData;
+            }),
           },
         },
         include: {

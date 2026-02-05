@@ -245,7 +245,7 @@ export class SOService {
       });
 
       // Add line to SO - entity will auto-recalculate header totals
-      soHeader = soHeader.addLine(newLine);
+      soHeader.addLine(newLine);
 
       // Persist changes
       const updated = await txRepo.update(soHeader.getId()!, soHeader);
@@ -313,9 +313,9 @@ export class SOService {
         }
       }
 
-      // Rebuild SOHeader with updated line to recalculate header totals
-      soHeader = soHeader.removeLine(existingLine.getLineNum());
-      soHeader = soHeader.addLine(existingLine);
+      // Trigger header pricing recalculation after line update
+      // Since the line was mutated in place, we just need to trigger recalc
+      // Note: The line's rowMode is already set to UPDATED by the domain methods
 
       // Persist changes
       const updated = await txRepo.update(soHeader.getId()!, soHeader);
@@ -447,9 +447,9 @@ export class SOService {
     // Update discount if provided
     if (updateDto.discountValue !== undefined && updateDto.discountType) {
       if (updateDto.discountType === 'AMOUNT') {
-        soHeader = soHeader.updateDiscountAmount(updateDto.discountValue);
+        soHeader.updateDiscountAmount(updateDto.discountValue);
       } else {
-        soHeader = soHeader.updateDiscountPercent(updateDto.discountValue);
+        soHeader.updateDiscountPercent(updateDto.discountValue);
       }
     }
 
@@ -459,7 +459,7 @@ export class SOService {
       updateDto.requestDate !== undefined ||
       updateDto.needByDate !== undefined
     ) {
-      soHeader = soHeader.updateDates({
+      soHeader.updateDates({
         orderDate: updateDto.orderDate,
         requestDate: updateDto.requestDate,
         needByDate: updateDto.needByDate,
@@ -467,12 +467,12 @@ export class SOService {
     }
 
     if (updateDto.orderStatus) {
-      soHeader = soHeader.updateStatus(updateDto.orderStatus);
+      soHeader.updateStatus(updateDto.orderStatus);
     }
 
     // Update addresses if provided
     if (updateDto.addresses) {
-      soHeader = soHeader.updateAddresses(
+      soHeader.updateAddresses(
         updateDto.addresses.billingAddressId || null,
         updateDto.addresses.shippingAddressId || null
       );
@@ -480,7 +480,7 @@ export class SOService {
 
     // Update metadata if provided
     if (updateDto.metadata) {
-      soHeader = soHeader.updateMetadata(updateDto.metadata);
+      soHeader.updateMetadata(updateDto.metadata);
     }
 
     const updated = await this.soHeaderRepository.update(id, soHeader);
@@ -518,9 +518,9 @@ export class SOService {
       if (dto.header) {
         if (dto.header.discountValue !== undefined && dto.header.discountType) {
           if (dto.header.discountType === 'AMOUNT') {
-            soHeader = soHeader.updateDiscountAmount(dto.header.discountValue);
+            soHeader.updateDiscountAmount(dto.header.discountValue);
           } else {
-            soHeader = soHeader.updateDiscountPercent(dto.header.discountValue);
+            soHeader.updateDiscountPercent(dto.header.discountValue);
           }
         }
 
@@ -530,7 +530,7 @@ export class SOService {
           dto.header.requestDate !== undefined ||
           dto.header.needByDate !== undefined
         ) {
-          soHeader = soHeader.updateDates({
+          soHeader.updateDates({
             orderDate: dto.header.orderDate,
             requestDate: dto.header.requestDate,
             needByDate: dto.header.needByDate,
@@ -538,18 +538,18 @@ export class SOService {
         }
 
         if (dto.header.orderStatus) {
-          soHeader = soHeader.updateStatus(dto.header.orderStatus);
+          soHeader.updateStatus(dto.header.orderStatus);
         }
 
         if (dto.header.addresses) {
-          soHeader = soHeader.updateAddresses(
+          soHeader.updateAddresses(
             dto.header.addresses.billingAddressId || null,
             dto.header.addresses.shippingAddressId || null
           );
         }
 
         if (dto.header.metadata) {
-          soHeader = soHeader.updateMetadata(dto.header.metadata);
+          soHeader.updateMetadata(dto.header.metadata);
         }
       }
 
@@ -560,7 +560,7 @@ export class SOService {
 
         currentLines.forEach((line) => {
           if (lineIdsToDelete.has(line.getId()!)) {
-            soHeader = soHeader.removeLine(line.getLineNum());
+            soHeader.removeLine(line.getLineNum());
           }
         });
       }
@@ -575,7 +575,7 @@ export class SOService {
               (line) => line.getId() === lineDto.id
             );
             if (existingLine) {
-              soHeader = soHeader.removeLine(existingLine.getLineNum());
+              soHeader.removeLine(existingLine.getLineNum());
             }
           }
 
@@ -604,7 +604,7 @@ export class SOService {
             lineNote: lineDto.lineNote,
           });
           // Entity will auto-recalculate header totals!
-          soHeader = soHeader.addLine(newLine);
+          soHeader.addLine(newLine);
         }
       }
 
@@ -762,10 +762,10 @@ export class SOService {
 
     // Remove line using domain method
     // Entity will auto-recalculate header totals!
-    const updatedHeader = soHeader.removeLine(lineNum);
+    soHeader.removeLine(lineNum);
 
     // Persist changes
-    const updated = await this.soHeaderRepository.update(soId, updatedHeader);
+    const updated = await this.soHeaderRepository.update(soId, soHeader);
 
     // Audit log
     this.auditLogger.logSOLinesUpdated(

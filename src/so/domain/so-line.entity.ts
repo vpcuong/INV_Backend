@@ -4,6 +4,7 @@ import {
   InvalidQuantityException,
   InvalidAmountException,
 } from './exceptions/so-domain.exception';
+import { RowMode } from '../../common/enums/row-mode.enum';
 
 export interface SOLineConstructorData {
   id?: number;
@@ -49,6 +50,7 @@ export class SOLine {
   private lineNote?: string | null;
   private createdAt?: Date;
   private updatedAt?: Date;
+  private rowMode: RowMode | null = null;
 
   constructor(data: SOLineConstructorData) {
     this.validateRequiredFields(data);
@@ -103,6 +105,11 @@ export class SOLine {
     this.lineNote = data.lineNote;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
+
+    // New record (no id) → mark as NEW
+    if (!data.id) {
+      this.rowMode = RowMode.NEW;
+    }
   }
 
   /**
@@ -190,6 +197,7 @@ export class SOLine {
     }
     this.unitPrice = unitPrice;
     this.recalculateAll();
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
   }
 
@@ -204,6 +212,7 @@ export class SOLine {
     this.discountAmount = res.amount;
     this.recalculateTax();
     this.recalculateTotalAmount();
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
   }
 
@@ -218,6 +227,7 @@ export class SOLine {
     this.taxPercent = res.percent;
     this.taxAmount = res.amount;
     this.recalculateTotalAmount();
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
   }
 
@@ -231,6 +241,7 @@ export class SOLine {
     }
     this.orderQty = orderQty;
     this.recalculateAll();
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
   }
 
@@ -239,6 +250,7 @@ export class SOLine {
    */
   public cancel(): void {
     this.status = SOLineStatus.CANCELLED;
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
   }
 
@@ -266,7 +278,16 @@ export class SOLine {
 
   public setLineNum(lineNum: number): void {
     this.lineNum = lineNum;
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
+  }
+
+  public markDeleted(): void {
+    this.rowMode = RowMode.DELETED;
+  }
+
+  public getRowMode(): RowMode | null {
+    return this.rowMode;
   }
 
   // Getters
