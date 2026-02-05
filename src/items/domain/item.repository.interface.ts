@@ -107,6 +107,12 @@ export interface IItemRepository {
    */
   count(filters?: ItemFilters): Promise<number>;
 
+  /**
+   * Check if item is a fabric item
+   * @param itemId 
+   */
+  isFabricItem(itemId: number): Promise<boolean>;
+
   // ==================== MODEL OPERATIONS ====================
 
   /**
@@ -160,4 +166,14 @@ export interface IItemRepository {
    * Update a single SKU by ID (without syncing all children)
    */
   updateSkuById(skuId: number, data: Record<string, any>): Promise<ItemSku>;
+
+  /**
+   * Check if sku is mapped to another skus
+   */
+  isMappedSku(skuId: number): Promise<boolean>;
+
+  /**
+   * 
+   */
+  getFabricsSku(colorId: number, materialId: number): Promise<any>;
 }

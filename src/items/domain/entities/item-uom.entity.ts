@@ -1,4 +1,5 @@
 import { InvalidItemUOMException } from '../exceptions/item-domain.exception';
+import { RowMode } from '../enums/row-mode.enum';
 
 export interface ItemUomConstructorData {
   itemId: number;
@@ -45,6 +46,7 @@ export class ItemUom {
   private desc: string;
   private createdAt?: Date;
   private updatedAt?: Date;
+  private rowMode: RowMode | null = null;
 
   constructor(data: ItemUomConstructorData) {
     this.validateRequiredFields(data);
@@ -62,6 +64,11 @@ export class ItemUom {
     this.desc = data.desc ?? '';
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
+
+    // New record (no createdAt from DB) → mark as NEW
+    if (!data.createdAt) {
+      this.rowMode = RowMode.NEW;
+    }
   }
 
   private validateRequiredFields(data: ItemUomConstructorData): void {
@@ -113,7 +120,16 @@ export class ItemUom {
       this.desc = data.desc;
     }
 
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
+  }
+
+  public markDeleted(): void {
+    this.rowMode = RowMode.DELETED;
+  }
+
+  public getRowMode(): RowMode | null {
+    return this.rowMode;
   }
 
   /**
@@ -139,11 +155,13 @@ export class ItemUom {
 
   public activate(): void {
     this.isActive = true;
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
   }
 
   public deactivate(): void {
     this.isActive = false;
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
   }
 

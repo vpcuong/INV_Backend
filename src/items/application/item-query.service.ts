@@ -1032,6 +1032,27 @@ export class ItemQueryService {
     };
   }
 
+  async findFabricSKUs(colorId: number, materialId: number){
+     const data = this.prisma.client.itemSKU.findMany({
+      where: {
+        colorId: colorId,
+        item: {
+          materialId: materialId
+        }
+      },
+      include: {
+        color: true,
+        item: {
+          include: {
+            material: true
+          }
+        }
+      }
+    })
+
+    return data;
+  }
+
   // ==================== UOM QUERIES ====================
 
   async findUomsByItemPublicId(itemPublicId: string) {

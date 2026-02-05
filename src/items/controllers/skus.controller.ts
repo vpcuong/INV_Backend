@@ -159,4 +159,9 @@ export class SkusController {
   deactivate(@Param('publicId', ULIDValidationPipe) publicId: string) {
     return this.itemAggregateService.deactivateSkuDirect(publicId);
   }
+
+  @Get('/fabrics/:colorId/:materialId')
+  validFabrics(@Param('colorId') colorId: number, @Param('materialId') materialId: number){
+    return this.itemQueryService.findFabricSKUs(colorId, materialId);
+  }
 }

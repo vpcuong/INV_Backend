@@ -829,9 +829,18 @@ export class ItemAggregateService {
 
     const { sku } = result;
 
-    // Step 2: Check SKU status - cannot update inactive SKU
+    // Step 2a: Check SKU status - cannot update inactive SKU
     if (sku.getStatus() === 'inactive') {
       throw new BadRequestException('Cannot update inactive SKU. Activate it first.');
+    }
+
+    // Step 2b: Check if sku is mapped to another skus
+    const isFabricItem = await this.repository.isFabricItem(result.itemId);
+    if(isFabricItem) {
+      const isMapped =  await this.repository.isMappedSku(sku.getId());
+      if(isMapped) {
+        throw new BadRequestException('Cannot update mapped SKU');
+      }
     }
 
     // Step 3: Validate skuCode uniqueness if being updated
@@ -842,6 +851,17 @@ export class ItemAggregateService {
       }
     }
 
+    // Step 3b: Validate fabricSKUId exists if being updated
+    //let fabricSku: ItemSku;
+    // TODO
+    if (dto.fabricSKUId !== undefined && dto.fabricSKUId !== null) {
+      const fabricSku = await this.repository.findSkuByPublicId("");
+      if (!fabricSku) {
+        throw new BadRequestException(`Fabric SKU with ID ${dto.fabricSKUId} does not exist`);
+      }
+      //fabricSku = fabricSku.sku;
+    }
+
     // Step 4: Apply domain updates (entity validates required fields, prices, dimensions)
     const updateData: UpdateItemSkuData = {
       skuCode: dto.skuCode,
@@ -850,7 +870,7 @@ export class ItemAggregateService {
       sizeId: dto.sizeId,
       supplierId: dto.supplierId,
       customerId: dto.customerId,
-      fabricSKUId: dto.fabricSKUId,
+      fabricSKUId: sku.getId(),
       pattern: dto.pattern,
       lengthCm: dto.lengthCm,
       widthCm: dto.widthCm,

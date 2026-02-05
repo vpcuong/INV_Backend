@@ -5,6 +5,7 @@ import {
   DuplicateSkuUomException,
 } from '../exceptions/item-domain.exception';
 import { SkuUom, SkuUomConstructorData } from './sku-uom.entity';
+import { RowMode } from '../enums/row-mode.enum';
 
 export enum ItemSkuStatus {
   ACTIVE = 'active',
@@ -85,6 +86,7 @@ export class ItemSku {
   private createdAt?: Date;
   private updatedAt?: Date;
   private skuUoms: SkuUom[] = [];
+  private rowMode: RowMode | null = null;
 
   constructor(data: ItemSkuConstructorData) {
     this.validateRequiredFields(data);
@@ -117,6 +119,11 @@ export class ItemSku {
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
     this.skuUoms = data.skuUoms ?? [];
+
+    // New record (no id) → mark as NEW
+    if (!data.id) {
+      this.rowMode = RowMode.NEW;
+    }
   }
 
   private validateRequiredFields(data: ItemSkuConstructorData): void {
@@ -246,17 +253,28 @@ export class ItemSku {
     if (data.sellingPrice !== undefined) this.sellingPrice = data.sellingPrice;
     if (data.uomCode !== undefined) this.uomCode = data.uomCode;
 
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
   }
 
   public activate(): void {
     this.status = ItemSkuStatus.ACTIVE;
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
   }
 
   public deactivate(): void {
     this.status = ItemSkuStatus.INACTIVE;
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
+  }
+
+  public markDeleted(): void {
+    this.rowMode = RowMode.DELETED;
+  }
+
+  public getRowMode(): RowMode | null {
+    return this.rowMode;
   }
 
   public isActive(): boolean {

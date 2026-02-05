@@ -4,10 +4,14 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { Item } from '../domain/aggregates/item.aggregate';
 import { ItemModel } from '../domain/entities/item-model.entity';
 import { ItemSku } from '../domain/entities/item-sku.entity';
+import { ItemUom } from '../domain/entities/item-uom.entity';
+import { RowMode } from '../domain/enums/row-mode.enum';
 import {
   IItemRepository,
   ItemFilters,
 } from '../domain/item.repository.interface';
+
+import { ItemCategoryType } from '../../item-categories/enums/item-category-type.enum';
 
 @Injectable()
 export class ItemRepository implements IItemRepository {
@@ -231,16 +235,12 @@ export class ItemRepository implements IItemRepository {
 
       const savedItemId = savedItem.id;
 
-      // 2. Sync ItemModels
-      await this.syncModels(tx, savedItemId, item.getModels());
+      // 2. Sync children using rowMode (only dirty rows)
+      await this.syncModelsByRowMode(tx, savedItemId, item.getModels());
+      await this.syncSkusByRowMode(tx, savedItemId, item.getSkus());
+      await this.syncUomsByRowMode(tx, savedItemId, item.getItemUOMs());
 
-      // 3. Sync ItemSkus
-      await this.syncSkus(tx, savedItemId, item.getSkus());
-
-      // 4. Sync ItemUOMs
-      await this.syncUoms(tx, savedItemId, item.getItemUOMs());
-
-      // 5. Return the complete aggregate
+      // 3. Return the complete aggregate
       const result = await tx.item.findUnique({
         where: { id: savedItemId },
         include: {
@@ -257,145 +257,125 @@ export class ItemRepository implements IItemRepository {
     });
   }
 
-  private async syncModels(
+  private async syncModelsByRowMode(
     tx: any,
     itemId: number,
     models: ItemModel[],
   ): Promise<void> {
-    // Get existing model IDs
-    const existingModels = await tx.itemModel.findMany({
-      where: { itemId },
-      select: { id: true },
-    });
-    const existingIds = new Set(existingModels.map((m: any) => m.id));
+    const newModels = models.filter((m) => m.getRowMode() === RowMode.NEW);
+    const updatedModels = models.filter((m) => m.getRowMode() === RowMode.UPDATED);
+    const deletedModels = models.filter((m) => m.getRowMode() === RowMode.DELETED);
 
-    // Get model IDs from domain
-    const domainModelIds = new Set(
-      models.filter((m) => m.getId()).map((m) => m.getId()),
-    );
-
-    // Delete models that are no longer in the aggregate
-    const toDelete = ([...existingIds] as number[]).filter((id) => !domainModelIds.has(id));
-    if (toDelete.length > 0) {
+    // Delete
+    const deletedIds = deletedModels.map((m) => m.getId()).filter(Boolean) as number[];
+    if (deletedIds.length > 0) {
       await tx.itemModel.deleteMany({
-        where: { id: { in: toDelete } },
+        where: { id: { in: deletedIds } },
       });
     }
 
-    // Upsert models
-    for (const model of models) {
+    // Create new
+    for (const model of newModels) {
       const modelData = model.toPersistence();
       delete modelData.id;
       modelData.itemId = itemId;
+      modelData.publicId = modelData.publicId || ulid();
+      await tx.itemModel.create({ data: modelData });
+    }
 
-      if (model.getId()) {
-        // Don't update publicId on existing models
-        delete modelData.publicId;
-        await tx.itemModel.update({
-          where: { id: model.getId() },
-          data: modelData,
-        });
-      } else {
-        // Generate ULID for new models
-        modelData.publicId = modelData.publicId || ulid();
-        await tx.itemModel.create({
-          data: modelData,
-        });
-      }
+    // Update existing
+    for (const model of updatedModels) {
+      const modelData = model.toPersistence();
+      delete modelData.id;
+      delete modelData.publicId;
+      modelData.itemId = itemId;
+      await tx.itemModel.update({
+        where: { id: model.getId() },
+        data: modelData,
+      });
     }
   }
 
-  private async syncSkus(
+  private async syncSkusByRowMode(
     tx: any,
     itemId: number,
     skus: ItemSku[],
   ): Promise<void> {
-    // Get existing SKU IDs
-    const existingSkus = await tx.itemSKU.findMany({
-      where: { itemId },
-      select: { id: true },
-    });
-    const existingIds = new Set(existingSkus.map((s: any) => s.id));
+    const newSkus = skus.filter((s) => s.getRowMode() === RowMode.NEW);
+    const updatedSkus = skus.filter((s) => s.getRowMode() === RowMode.UPDATED);
+    const deletedSkus = skus.filter((s) => s.getRowMode() === RowMode.DELETED);
 
-    // Get SKU IDs from domain
-    const domainSkuIds = new Set(
-      skus.filter((s) => s.getId()).map((s) => s.getId()),
-    );
-
-    // Delete SKUs that are no longer in the aggregate
-    const toDelete = ([...existingIds] as number[]).filter((id) => !domainSkuIds.has(id));
-    if (toDelete.length > 0) {
+    // Delete
+    const deletedIds = deletedSkus.map((s) => s.getId()).filter(Boolean) as number[];
+    if (deletedIds.length > 0) {
       await tx.itemSKU.deleteMany({
-        where: { id: { in: toDelete } },
+        where: { id: { in: deletedIds } },
       });
     }
 
-    // Upsert SKUs
-    for (const sku of skus) {
+    // Create new
+    for (const sku of newSkus) {
       const skuData = sku.toPersistence();
       delete skuData.id;
       delete skuData.skuUoms;
       skuData.itemId = itemId;
+      skuData.publicId = skuData.publicId || ulid();
+      await tx.itemSKU.create({ data: skuData });
+    }
 
-      if (sku.getId()) {
-        // Don't update publicId on existing SKUs
-        delete skuData.publicId;
-        await tx.itemSKU.update({
-          where: { id: sku.getId() },
-          data: skuData,
-        });
-      } else {
-        // Generate ULID for new SKUs
-        skuData.publicId = skuData.publicId || ulid();
-        await tx.itemSKU.create({
-          data: skuData,
-        });
-      }
+    // Update existing
+    for (const sku of updatedSkus) {
+      const skuData = sku.toPersistence();
+      delete skuData.id;
+      delete skuData.publicId;
+      delete skuData.skuUoms;
+      skuData.itemId = itemId;
+      await tx.itemSKU.update({
+        where: { id: sku.getId() },
+        data: skuData,
+      });
     }
   }
 
-  private async syncUoms(
+  private async syncUomsByRowMode(
     tx: any,
     itemId: number,
-    uoms: any[],
+    uoms: ItemUom[],
   ): Promise<void> {
-    // Get existing UOM codes
-    const existingUoms = await tx.itemUOM.findMany({
-      where: { itemId },
-      select: { uomCode: true },
-    });
-    const existingCodes = new Set(existingUoms.map((u: any) => u.uomCode));
+    const newUoms = uoms.filter((u) => u.getRowMode() === RowMode.NEW);
+    const updatedUoms = uoms.filter((u) => u.getRowMode() === RowMode.UPDATED);
+    const deletedUoms = uoms.filter((u) => u.getRowMode() === RowMode.DELETED);
 
-    // Get UOM codes from domain
-    const domainUomCodes = new Set(uoms.map((u) => u.getUomCode()));
-
-    // Delete UOMs that are no longer in the aggregate
-    const toDelete = [...existingCodes].filter(
-      (code) => !domainUomCodes.has(code),
-    );
-    if (toDelete.length > 0) {
+    // Delete
+    const deletedCodes = deletedUoms.map((u) => u.getUomCode());
+    if (deletedCodes.length > 0) {
       await tx.itemUOM.deleteMany({
         where: {
           itemId,
-          uomCode: { in: toDelete },
+          uomCode: { in: deletedCodes },
         },
       });
     }
 
-    // Upsert UOMs
-    for (const uom of uoms) {
+    // Create new
+    for (const uom of newUoms) {
       const uomData = uom.toPersistence();
       uomData.itemId = itemId;
+      await tx.itemUOM.create({ data: uomData });
+    }
 
-      await tx.itemUOM.upsert({
+    // Update existing
+    for (const uom of updatedUoms) {
+      const uomData = uom.toPersistence();
+      uomData.itemId = itemId;
+      await tx.itemUOM.update({
         where: {
           itemId_uomCode: {
             itemId,
             uomCode: uom.getUomCode(),
           },
         },
-        create: uomData,
-        update: uomData,
+        data: uomData,
       });
     }
   }
@@ -421,6 +401,22 @@ export class ItemRepository implements IItemRepository {
       where: this.buildWhereClause(filters),
     });
   }
+
+  async isFabricItem(itemId: number): Promise<boolean> {
+    const data = await this.prisma.client.item.findUnique({
+      where: { id: itemId },
+      include: {
+        category: true,
+      }
+    });
+
+    if(!data) return false;
+
+    if(data.category.type !== ItemCategoryType.FABRIC) return false;
+    return true;
+  }
+
+
 
   // ==================== MODEL OPERATIONS ====================
 
@@ -506,9 +502,23 @@ export class ItemRepository implements IItemRepository {
   }
 
   async updateSkuById(skuId: number, data: Record<string, any>): Promise<ItemSku> {
+    // Only allow safe, updatable fields - exclude identity, relation, and auto-managed fields
+    const allowedFields = [
+      'colorId', 'genderId', 'sizeId', 'supplierId', 'customerId',
+      'fabricSKUId', 'pattern', 'lengthCm', 'widthCm', 'heightCm', 'weightG',
+      'desc', 'status', 'costPrice', 'sellingPrice', 'uomCode',
+    ];
+
+    const updateData: Record<string, any> = {};
+    for (const field of allowedFields) {
+      if (data[field] !== undefined) {
+        updateData[field] = data[field];
+      }
+    }
+
     const updated = await this.prisma.client.itemSKU.update({
       where: { id: skuId },
-      data,
+      data: updateData,
     });
     return ItemSku.fromPersistence(updated);
   }
@@ -521,6 +531,32 @@ export class ItemRepository implements IItemRepository {
       },
     });
     return count > 0;
+  }
+
+  async isMappedSku(skuId: number): Promise<boolean> {
+    const count = await this.prisma.client.itemSKU.count({
+      where: {
+        fabricSKUId: skuId
+      },
+    });
+    return count > 0;
+  }
+
+  async getFabricsSku(colorId: number, materialId: number){
+    const data = this.prisma.client.itemSKU.findMany({
+      where: {
+        colorId: colorId,
+        item: {
+          materialId
+        }
+      },
+      include: {
+        color: true,
+        item: true
+      }
+    })
+
+    return data;
   }
 
   // ==================== PRIVATE HELPERS ====================

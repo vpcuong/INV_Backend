@@ -18,6 +18,7 @@ import {
   DuplicateItemUOMException,
   ItemUOMNotFoundException,
 } from '../exceptions/item-domain.exception';
+import { RowMode } from '../enums/row-mode.enum';
 import { DomainEvent } from '../events';
 import { ItemModelAddedEvent } from '../events/item-model-added.event';
 import { ItemModelRemovedEvent } from '../events/item-model-removed.event';
@@ -323,8 +324,8 @@ export class Item {
    * ```
    */
   public addModel(data: CreateModelData): ItemModel {
-    // Check for duplicate code
-    if (this.models.some((m) => m.getCode() === data.code)) {
+    // Check for duplicate code (excluding deleted models)
+    if (this.models.some((m) => m.getCode() === data.code && m.getRowMode() !== RowMode.DELETED)) {
       throw new DuplicateItemModelCodeException(data.code);
     }
 
@@ -374,9 +375,9 @@ export class Item {
       throw new ItemModelNotFoundException(modelId);
     }
 
-    // Check for duplicate code if code is being updated
+    // Check for duplicate code if code is being updated (excluding deleted models)
     if (data.code && data.code !== model.getCode()) {
-      if (this.models.some((m) => m.getCode() === data.code)) {
+      if (this.models.some((m) => m.getCode() === data.code && m.getRowMode() !== RowMode.DELETED)) {
         throw new DuplicateItemModelCodeException(data.code);
       }
     }
@@ -417,15 +418,22 @@ export class Item {
 
     const model = this.models[modelIndex];
 
-    // Check if model has SKUs
-    const modelSkus = this.skus.filter((s) => s.getModelId() === modelId);
+    // Check if model has SKUs (excluding already-deleted SKUs)
+    const modelSkus = this.skus.filter(
+      (s) => s.getModelId() === modelId && s.getRowMode() !== RowMode.DELETED,
+    );
     if (modelSkus.length > 0) {
       throw new InvalidItemException(
         `Cannot remove model ${model.getCode()} because it has ${modelSkus.length} SKU(s)`,
       );
     }
 
-    this.models.splice(modelIndex, 1);
+    // If model is NEW (not yet persisted), just remove from array
+    if (model.getRowMode() === RowMode.NEW) {
+      this.models.splice(modelIndex, 1);
+    } else {
+      model.markDeleted();
+    }
     this.updatedAt = new Date();
 
     // Add domain event
@@ -513,8 +521,8 @@ export class Item {
       }
     }
 
-    // Check for duplicate SKU code
-    if (this.skus.some((s) => s.getSkuCode() === data.skuCode)) {
+    // Check for duplicate SKU code (excluding deleted SKUs)
+    if (this.skus.some((s) => s.getSkuCode() === data.skuCode && s.getRowMode() !== RowMode.DELETED)) {
       throw new DuplicateSkuCodeException(data.skuCode);
     }
 
@@ -604,7 +612,13 @@ export class Item {
     }
 
     const sku = this.skus[skuIndex];
-    this.skus.splice(skuIndex, 1);
+
+    // If SKU is NEW (not yet persisted), just remove from array
+    if (sku.getRowMode() === RowMode.NEW) {
+      this.skus.splice(skuIndex, 1);
+    } else {
+      sku.markDeleted();
+    }
     this.updatedAt = new Date();
 
     // Add domain event
@@ -729,7 +743,14 @@ export class Item {
       throw new ItemUOMNotFoundException(uomCode);
     }
 
-    this.itemUoms.splice(index, 1);
+    const uom = this.itemUoms[index];
+
+    // If UOM is NEW (not yet persisted), just remove from array
+    if (uom.getRowMode() === RowMode.NEW) {
+      this.itemUoms.splice(index, 1);
+    } else {
+      uom.markDeleted();
+    }
     this.updatedAt = new Date();
 
     // Add domain event
@@ -743,7 +764,7 @@ export class Item {
    * @returns boolean - true nếu tồn tại, false nếu không
    */
   public hasUOM(uomCode: string): boolean {
-    return this.itemUoms.some((u) => u.getUomCode() === uomCode);
+    return this.itemUoms.some((u) => u.getUomCode() === uomCode && u.getRowMode() !== RowMode.DELETED);
   }
 
   /**

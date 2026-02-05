@@ -2,6 +2,7 @@ import {
   InvalidItemModelException,
   DuplicateItemModelCodeException,
 } from '../exceptions/item-domain.exception';
+import { RowMode } from '../enums/row-mode.enum';
 
 export enum ItemModelStatus {
   ACTIVE = 'active',
@@ -40,6 +41,7 @@ export class ItemModel {
   private status: string;
   private createdAt?: Date;
   private updatedAt?: Date;
+  private rowMode: RowMode | null = null;
 
   constructor(data: ItemModelConstructorData) {
     this.validateRequiredFields(data);
@@ -53,6 +55,11 @@ export class ItemModel {
     this.status = data.status ?? ItemModelStatus.ACTIVE;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
+
+    // New record (no id) → mark as NEW
+    if (!data.id) {
+      this.rowMode = RowMode.NEW;
+    }
   }
 
   private validateRequiredFields(data: ItemModelConstructorData): void {
@@ -74,6 +81,7 @@ export class ItemModel {
       return;
     }
     this.status = ItemModelStatus.ACTIVE;
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
   }
 
@@ -82,6 +90,7 @@ export class ItemModel {
       return;
     }
     this.status = ItemModelStatus.INACTIVE;
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
   }
 
@@ -90,6 +99,7 @@ export class ItemModel {
       return;
     }
     this.status = ItemModelStatus.DRAFT;
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
   }
 
@@ -112,7 +122,16 @@ export class ItemModel {
       this.customerId = data.customerId;
     }
    
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
+  }
+
+  public markDeleted(): void {
+    this.rowMode = RowMode.DELETED;
+  }
+
+  public getRowMode(): RowMode | null {
+    return this.rowMode;
   }
 
   public isActive(): boolean {
