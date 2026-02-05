@@ -24,6 +24,7 @@ import { SoModule } from './so/so.module';
 import { PoModule } from './po/po.module';
 import { ThemeModule } from './themes/theme.module';
 import { WarehouseModule } from './warehouse/warehouse.module';
+import { InventoryModule } from './inventory/inventory.module';
 import { FilteringModule } from './common/filtering';
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware';
 
@@ -53,6 +54,7 @@ import { RequestLoggerMiddleware } from './common/middleware/request-logger.midd
     PoModule,
     ThemeModule,
     WarehouseModule,
+    InventoryModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,21 +1,21 @@
 model POHeader {
-  id            Int        @id @default(autoincrement())
-  poNum         String     @unique @db.VarChar(50)
-  supplierId    Int
-  orderDate     DateTime   @default(now())
-  expectedDate  DateTime?
-  status        POStatus   @default(DRAFT)
-  currencyCode  String     @db.VarChar(3)
-  exchangeRate  Decimal  @default(1) @db.Decimal(18, 6)  // High precision for rates
-  totalAmount   Decimal  @default(0) @db.Decimal(18, 2)  // Standard for amounts
+  id           Int       @id @default(autoincrement())
+  poNum        String    @unique @db.VarChar(50)
+  supplierId   Int
+  orderDate    DateTime  @default(now())
+  expectedDate DateTime?
+  status       POStatus  @default(DRAFT)
+  currencyCode String    @db.VarChar(3)
+  exchangeRate Decimal   @default(1) @db.Decimal(18, 6) // High precision for rates
+  totalAmount  Decimal   @default(0) @db.Decimal(18, 2) // Standard for amounts
 
-  note          String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  createdBy     String?    @db.VarChar(50)
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?  @db.VarChar(50)
 
-  supplier      Supplier   @relation(fields: [supplierId], references: [id])
-  lines         PODetail[]
+  supplier Supplier   @relation(fields: [supplierId], references: [id])
+  lines    PODetail[]
 
   @@index([poNum])
   @@index([supplierId])
@@ -23,28 +23,27 @@ model POHeader {
   @@index([orderDate])
 }
 
-
 model PODetail {
-  id          Int @id @default(autoincrement())
+  id            Int          @id @default(autoincrement())
   poId          Int
-  lineNum       Int 
-  skuId        Int
-  description   String? @db.VarChar(500)
-  uomCode       String    @db.VarChar(10)
-  orderQty      Decimal  @db.Decimal(18, 4)  // For quantities
-  unitPrice     Decimal  @db.Decimal(18, 4)  // For prices
-  lineAmount    Decimal  @db.Decimal(18, 2)  // For amounts
-  receivedQty   Decimal  @default(0) @db.Decimal(18, 4)  // For quantities
-  warehouseCode String?  @db.VarChar(20)
+  lineNum       Int
+  skuId         Int
+  description   String?      @db.VarChar(500)
+  uomCode       String       @db.VarChar(10)
+  orderQty      Decimal      @db.Decimal(18, 4) // For quantities
+  unitPrice     Decimal      @db.Decimal(18, 4) // For prices
+  lineAmount    Decimal      @db.Decimal(18, 2) // For amounts
+  receivedQty   Decimal      @default(0) @db.Decimal(18, 4) // For quantities
+  warehouseCode String?      @db.VarChar(20)
   status        POLineStatus @default(OPEN)
   note          String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  createdBy     String?    @db.VarChar(50)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  createdBy     String?      @db.VarChar(50)
 
-  po            POHeader  @relation(fields: [poId], references: [id], onDelete: Cascade)
-  sku           ItemSKU      @relation(fields: [skuId], references: [id])
-  uom           UOM @relation(fields: [uomCode], references: [code])
+  po  POHeader @relation(fields: [poId], references: [id], onDelete: Cascade)
+  sku ItemSKU  @relation(fields: [skuId], references: [id])
+  uom UOM      @relation(fields: [uomCode], references: [code])
 
   @@unique([poId, lineNum])
   @@index([skuId])

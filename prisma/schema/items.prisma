@@ -1,132 +1,133 @@
 enum ItemCategoryType {
-  OUT  // Outsourced
-  FIG  // Finished Good
-  FAB  // Fabric
+  OUT // Outsourced
+  FIG // Finished Good
+  FAB // Fabric
 }
 
 model ItemCategory {
-  id          Int               @id @default(autoincrement())
-  code        String            @db.Char(10)  @unique
-  desc        String?           @db.VarChar(200)
-  isActive    Boolean           @default(true)
-  type        ItemCategoryType?
+  id       Int               @id @default(autoincrement())
+  code     String            @unique @db.Char(10)
+  desc     String?           @db.VarChar(200)
+  isActive Boolean           @default(true)
+  type     ItemCategoryType?
 
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 1 - n
-  items       Item[]
+  items Item[]
 }
 
 model ItemType {
-  id          Int      @id @default(autoincrement())
-  code        String   @db.Char(10) @unique
-  desc        String?  @db.VarChar(200)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  code      String   @unique @db.Char(10)
+  desc      String?  @db.VarChar(200)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 1 - n
-  items       Item[]
+  items Item[]
 }
 
 model Item {
-  id             Int            @id @default(autoincrement())
-  publicId       String         @unique @db.Char(26)
-  code           String?        @db.Char(20) @unique
-  categoryId     Int
-  itemTypeId     Int
-  materialId     Int?
-  fabricSupId    Int?
-  lengthCm       Float?          
-  widthCm        Float?
-  heightCm       Float?
-  weightG        Float?
-  desc           String?        @db.VarChar(200)
-  status         String         @default("active")
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  purchasingPrice      Float?
-  isManufactured Boolean?        @default(false)
-  isPurchasable  Boolean?        @default(false)
-  isSellable     Boolean?        @default(false)
-  sellingPrice   Float?
-  uomCode        String?
+  id              Int      @id @default(autoincrement())
+  publicId        String   @unique @db.Char(26)
+  code            String?  @unique @db.Char(20)
+  categoryId      Int
+  itemTypeId      Int
+  materialId      Int?
+  fabricSupId     Int?
+  lengthCm        Float?
+  widthCm         Float?
+  heightCm        Float?
+  weightG         Float?
+  desc            String?  @db.VarChar(200)
+  status          String   @default("active")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  purchasingPrice Float?
+  isManufactured  Boolean? @default(false)
+  isPurchasable   Boolean? @default(false)
+  isSellable      Boolean? @default(false)
+  sellingPrice    Float?
+  uomCode         String?
 
   // 1 - 1
-  category       ItemCategory   @relation(fields: [categoryId], references: [id])
-  itemType       ItemType       @relation(fields: [itemTypeId], references: [id])
-  material       Material?      @relation(fields: [materialId], references: [id])
-  uom            UOM?           @relation(fields: [uomCode], references: [code])
-  fabricCustomer Supplier?       @relation(fields: [fabricSupId], references: [id])
+  category       ItemCategory @relation(fields: [categoryId], references: [id])
+  itemType       ItemType     @relation(fields: [itemTypeId], references: [id])
+  material       Material?    @relation(fields: [materialId], references: [id])
+  uom            UOM?         @relation(fields: [uomCode], references: [code])
+  fabricCustomer Supplier?    @relation(fields: [fabricSupId], references: [id])
 
   // 1 - n
-  models         ItemModel[]
-  skus           ItemSKU[]
+  models ItemModel[]
+  skus   ItemSKU[]
 
-  itemUoms       ItemUOM[]
+  itemUoms  ItemUOM[]
   //soDetails      SODetail[]
-  suppliers      SupplierItem[]
+  suppliers SupplierItem[]
 }
 
 model ItemModel {
-  id          Int       @id @default(autoincrement())
-  publicId    String    @unique @db.Char(26)
-  itemId      Int
-  code        String    @db.Char(20) @unique
-  desc        String?
-  customerId  Int?
-  status      String    @default("active")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         Int      @id @default(autoincrement())
+  publicId   String   @unique @db.Char(26)
+  itemId     Int
+  code       String   @unique @db.Char(20)
+  desc       String?
+  customerId Int?
+  status     String   @default("active")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   // 1 - 1
-  item        Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  customer    Customer? @relation(fields: [customerId], references: [id])
+  item     Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id])
   // 1 - n
-  skus        ItemSKU[]
+  skus     ItemSKU[]
 }
 
 model ItemSKU {
-  id           Int          @id @default(autoincrement())
-  publicId     String       @unique @db.Char(26)
-  skuCode      String       @unique
+  id           Int      @id @default(autoincrement())
+  publicId     String   @unique @db.Char(26)
+  skuCode      String   @unique
   itemId       Int?
   modelId      Int?
   colorId      Int
   genderId     Int?
   sizeId       Int?
-  supplierId     Int?
-  customerId     Int?
+  supplierId   Int?
+  customerId   Int?
   fabricSKUId  Int?
   pattern      String?
   lengthCm     Float?
   widthCm      Float?
   heightCm     Float?
   weightG      Float?
-  desc        String?
-  status       String       @default("active")
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  costPrice    Float?       @default(0)
-  sellingPrice Float?       @default(0)
+  desc         String?
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  costPrice    Float?   @default(0)
+  sellingPrice Float?   @default(0)
   uomCode      String?
 
   // 1 - 1
   // item         Item         @relation(fields: [itemId], references: [id])
-  color        Color        @relation(fields: [colorId], references: [id])
-  gender       Gender?       @relation(fields: [genderId], references: [id])
-  model        ItemModel? @relation(fields: [modelId], references: [id])
-  item         Item? @relation(fields: [itemId], references: [id])
-  size         Size?         @relation(fields: [sizeId], references: [id])
-  uom          UOM?         @relation(fields: [uomCode], references: [code])
-  fabric       ItemSKU?     @relation("FabricToFinishedGood", fields: [fabricSKUId], references: [id])
-  finishedGoods ItemSKU[]   @relation("FabricToFinishedGood")
+  color          Color           @relation(fields: [colorId], references: [id])
+  gender         Gender?         @relation(fields: [genderId], references: [id])
+  model          ItemModel?      @relation(fields: [modelId], references: [id])
+  item           Item?           @relation(fields: [itemId], references: [id])
+  size           Size?           @relation(fields: [sizeId], references: [id])
+  uom            UOM?            @relation(fields: [uomCode], references: [code])
+  fabric         ItemSKU?        @relation("FabricToFinishedGood", fields: [fabricSKUId], references: [id])
+  finishedGoods  ItemSKU[]       @relation("FabricToFinishedGood")
   // 1 - n
-  skuUoms      SKUUOM[]
-  soDetails    SODetail[]
-  poDetails    PODetail[]
+  skuUoms        SKUUOM[]
+  soDetails      SODetail[]
+  poDetails      PODetail[]
   warehouseItems WarehouseItem[]
+  invTransLines  InvTransLine[]
 }
 
 model ItemUOM {
@@ -144,8 +145,9 @@ model ItemUOM {
   desc               String   @default("")
 
   // 1 - 1
-  uom                UOM      @relation("ItemUOMs", fields: [uomCode], references: [code])
-  item               Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  uom  UOM  @relation("ItemUOMs", fields: [uomCode], references: [code])
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
   // id
   @@id([itemId, uomCode])
   // index
@@ -170,8 +172,8 @@ model SKUUOM {
   uomCode            String   @db.Char(10)
 
   // 1 - 1
-  sku                ItemSKU  @relation(fields: [skuId], references: [id], onDelete: Cascade)
-  uom                UOM      @relation("SKUUOMs", fields: [uomCode], references: [code])
+  sku ItemSKU @relation(fields: [skuId], references: [id], onDelete: Cascade)
+  uom UOM     @relation("SKUUOMs", fields: [uomCode], references: [code])
 
   @@unique([skuId, uomCode], name: "ux_sku_uom_once")
   @@index([skuId], map: "ix_skuuom_sku")

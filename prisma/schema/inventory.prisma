@@ -1,0 +1,87 @@
+// ============================================
+// INVENTORY TRANSACTION ENUMS
+// ============================================
+enum InvTransType {
+  GOODS_RECEIPT // Nhập kho
+  GOODS_ISSUE // Xuất kho
+  STOCK_TRANSFER // Chuyển kho
+  ADJUSTMENT // Điều chỉnh
+}
+
+enum InvTransStatus {
+  DRAFT
+  COMPLETED
+  CANCELLED
+}
+
+// ============================================
+// HEADER - Phiếu xuất/nhập/chuyển kho
+// ============================================
+model InvTransHeader {
+  id       Int            @id @default(autoincrement())
+  publicId String         @unique @default(ulid()) @db.Char(26)
+  transNum String         @unique @db.VarChar(50)
+  type     InvTransType
+  status   InvTransStatus @default(DRAFT)
+
+  // Warehouse references
+  fromWarehouseId Int? // Required for GOODS_ISSUE, STOCK_TRANSFER
+  toWarehouseId   Int? // Required for GOODS_RECEIPT, STOCK_TRANSFER
+
+  // Reference to source document (optional)
+  referenceType String? @db.VarChar(10) // 'PO', 'SO'
+  referenceId   Int?
+  referenceNum  String? @db.VarChar(50)
+
+  // For ADJUSTMENT type
+  reasonCode String? @db.VarChar(20)
+
+  // Metadata
+  transactionDate DateTime @default(now())
+  note            String?  @db.VarChar(500)
+  createdBy       String   @db.VarChar(100)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  fromWarehouse Warehouse?     @relation("InvTransFrom", fields: [fromWarehouseId], references: [id])
+  toWarehouse   Warehouse?     @relation("InvTransTo", fields: [toWarehouseId], references: [id])
+  lines         InvTransLine[]
+
+  @@index([transNum])
+  @@index([type])
+  @@index([status])
+  @@index([transactionDate])
+  @@index([fromWarehouseId])
+  @@index([toWarehouseId])
+  @@index([referenceType, referenceId])
+}
+
+// ============================================
+// LINE - Chi tiết từng SKU
+// ============================================
+model InvTransLine {
+  id       Int    @id @default(autoincrement())
+  publicId String @unique @default(ulid()) @db.Char(26)
+  headerId Int
+  lineNum  Int
+
+  // Item details
+  itemSkuId Int
+  quantity  Decimal @db.Decimal(18, 4)
+  uomCode   String  @db.VarChar(10)
+
+  // Line-level note
+  note      String?  @db.VarChar(500)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  header  InvTransHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
+  itemSku ItemSKU        @relation(fields: [itemSkuId], references: [id])
+  uom     UOM            @relation(fields: [uomCode], references: [code])
+
+  @@unique([headerId, lineNum])
+  @@index([headerId])
+  @@index([itemSkuId])
+}

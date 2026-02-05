@@ -33,6 +33,7 @@ model UOM {
   uomConvs             UOMConversion[]
   baseUOMClasses       UOMClass[]              @relation("BaseUOM")
   poDetails            PODetail[]
+  invTransLines        InvTransLine[]
 }
 
 model UOMConversion {

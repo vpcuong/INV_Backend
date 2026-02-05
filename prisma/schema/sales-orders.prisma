@@ -1,40 +1,40 @@
 model SOHeader {
-  id                    Int              @id @default(autoincrement())
-  publicId              String           @unique @default(ulid()) @db.Char(26)
-  soNum                 String           @unique @db.VarChar(50)
-  customerId            Int
-  customerPoNum         String?          @db.VarChar(100)
-  orderDate             DateTime         @default(now())
-  requestDate           DateTime?
-  needByDate            DateTime?
-  orderStatus           SOStatus         @default(OPEN)
-  channel               String?          @db.VarChar(50)
-  fobCode               String?          @db.VarChar(20)
-  shipViaCode           String?          @db.VarChar(20)
-  paymentTermCode       PaymentTermCode?
-  currencyCode          String           @db.VarChar(3)
+  id                       Int              @id @default(autoincrement())
+  publicId                 String           @unique @default(ulid()) @db.Char(26)
+  soNum                    String           @unique @db.VarChar(50)
+  customerId               Int
+  customerPoNum            String?          @db.VarChar(100)
+  orderDate                DateTime         @default(now())
+  requestDate              DateTime?
+  needByDate               DateTime?
+  orderStatus              SOStatus         @default(OPEN)
+  channel                  String?          @db.VarChar(50)
+  fobCode                  String?          @db.VarChar(20)
+  shipViaCode              String?          @db.VarChar(20)
+  paymentTermCode          PaymentTermCode?
+  currencyCode             String           @db.VarChar(3)
   // Discount
-  discountPercent Decimal          @default(0) @db.Decimal(5, 2)
-  discountAmount  Decimal          @default(0) @db.Decimal(18, 2)
+  discountPercent          Decimal          @default(0) @db.Decimal(5, 2)
+  discountAmount           Decimal          @default(0) @db.Decimal(18, 2)
   // Tax (aggregated from lines)
-  taxAmount       Decimal      @default(0) @db.Decimal(18, 2)
+  taxAmount                Decimal          @default(0) @db.Decimal(18, 2)
   // Total
-  totalAmount     Decimal @default(0) @db.Decimal(18, 2)
+  totalAmount              Decimal          @default(0) @db.Decimal(18, 2)
   //
-  totalLinesDiscountAmount Decimal @default(0) @db.Decimal(18, 2)
-  subtotalAmount Decimal @default(0) @db.Decimal(18, 2)
+  totalLinesDiscountAmount Decimal          @default(0) @db.Decimal(18, 2)
+  subtotalAmount           Decimal          @default(0) @db.Decimal(18, 2)
   //
-  billingAddressId      Int?
-  shippingAddressId     Int?
-  headerNote            String?
-  internalNote          String?
-  createdBy             String           @db.VarChar(100)
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
-  lines                 SODetail[]
-  billingAddress        CustomerAddress? @relation("SOBillingAddress", fields: [billingAddressId], references: [id])
-  customer              Customer         @relation(fields: [customerId], references: [id])
-  shippingAddress       CustomerAddress? @relation("SOShippingAddress", fields: [shippingAddressId], references: [id])
+  billingAddressId         Int?
+  shippingAddressId        Int?
+  headerNote               String?
+  internalNote             String?
+  createdBy                String           @db.VarChar(100)
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+  lines                    SODetail[]
+  billingAddress           CustomerAddress? @relation("SOBillingAddress", fields: [billingAddressId], references: [id])
+  customer                 Customer         @relation(fields: [customerId], references: [id])
+  shippingAddress          CustomerAddress? @relation("SOShippingAddress", fields: [shippingAddressId], references: [id])
 
   @@index([publicId])
   @@index([customerId])
@@ -45,35 +45,35 @@ model SOHeader {
 }
 
 model SODetail {
-  id                  Int          @id @default(autoincrement())
-  publicId            String       @unique @default(ulid()) @db.Char(26)
-  soHeaderId          Int
-  lineNum             Int
-  
-  itemSkuId           Int
-  description         String?      @db.VarChar(500)
-  orderQty            Decimal      @db.Decimal(18, 4)
-  unitPrice           Decimal      @db.Decimal(18, 4)
-  // Discount
-  discountPercent     Decimal      @default(0) @db.Decimal(5, 2)
-  discountAmount      Decimal      @default(0) @db.Decimal(18, 2)
-  // Tax
-  taxPercent          Decimal      @default(0) @db.Decimal(5, 2)
-  taxAmount           Decimal      @default(0) @db.Decimal(18, 2)
-  // Total
-  totalAmount         Decimal      @default(0) @db.Decimal(18, 2)
+  id         Int    @id @default(autoincrement())
+  publicId   String @unique @default(ulid()) @db.Char(26)
+  soHeaderId Int
+  lineNum    Int
 
-  needByDate          DateTime?
-  status          SOLineStatus @default(OPEN)
-  warehouseCode       String?      @db.VarChar(20)
-  lineNote            String?
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
-  uomCode             String       @db.VarChar(50)
-  
-  itemSku             ItemSKU?     @relation(fields: [itemSkuId], references: [id])
-  header              SOHeader     @relation(fields: [soHeaderId], references: [id], onDelete: Cascade)
-  uom                 UOM          @relation(fields: [uomCode], references: [code])
+  itemSkuId       Int
+  description     String? @db.VarChar(500)
+  orderQty        Decimal @db.Decimal(18, 4)
+  unitPrice       Decimal @db.Decimal(18, 4)
+  // Discount
+  discountPercent Decimal @default(0) @db.Decimal(5, 2)
+  discountAmount  Decimal @default(0) @db.Decimal(18, 2)
+  // Tax
+  taxPercent      Decimal @default(0) @db.Decimal(5, 2)
+  taxAmount       Decimal @default(0) @db.Decimal(18, 2)
+  // Total
+  totalAmount     Decimal @default(0) @db.Decimal(18, 2)
+
+  needByDate    DateTime?
+  status        SOLineStatus @default(OPEN)
+  warehouseCode String?      @db.VarChar(20)
+  lineNote      String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  uomCode       String       @db.VarChar(50)
+
+  itemSku ItemSKU? @relation(fields: [itemSkuId], references: [id])
+  header  SOHeader @relation(fields: [soHeaderId], references: [id], onDelete: Cascade)
+  uom     UOM      @relation(fields: [uomCode], references: [code])
 
   @@unique([soHeaderId, lineNum])
   @@index([publicId])
