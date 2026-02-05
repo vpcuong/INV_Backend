@@ -60,8 +60,8 @@ export class UpdateSkuDto {
     example: 1,
   })
   @IsOptional()
-  @IsNumber()
-  fabricSKUId?: number;
+  // @IsNumber()
+  fabricSKUId?: string;
 
   @ApiPropertyOptional({
     description: 'Pattern',

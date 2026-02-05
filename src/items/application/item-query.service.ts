@@ -1029,6 +1029,7 @@ export class ItemQueryService {
       gender: true,
       size: true,
       uom: true,
+      fabric: true
     };
   }
 

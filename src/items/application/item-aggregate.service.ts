@@ -634,7 +634,44 @@ export class ItemAggregateService {
       throw new ItemNotFoundException(itemId);
     }
 
-    const sku = item.updateSku(skuId, dto as UpdateItemSkuData);
+    const sku = item.findSku(skuId);
+    if (!sku) {
+      throw new ItemSkuNotFoundException(skuId);
+    }
+
+    // Convert DTO to domain data, resolving publicId → id for fabricSKUId
+    const updateData: UpdateItemSkuData = {
+      skuCode: dto.skuCode,
+      colorId: dto.colorId,
+      genderId: dto.genderId,
+      sizeId: dto.sizeId,
+      supplierId: dto.supplierId,
+      customerId: dto.customerId,
+      pattern: dto.pattern,
+      lengthCm: dto.lengthCm,
+      widthCm: dto.widthCm,
+      heightCm: dto.heightCm,
+      weightG: dto.weightG,
+      desc: dto.desc,
+      costPrice: dto.costPrice,
+      sellingPrice: dto.sellingPrice,
+      uomCode: dto.uomCode,
+    };
+
+    // Resolve fabricSKUId: publicId (string) → id (number)
+    if (dto.fabricSKUId !== undefined) {
+      if (dto.fabricSKUId === null || dto.fabricSKUId === '') {
+        updateData.fabricSKUId = null;
+      } else {
+        const fabricSkuResult = await this.repository.findSkuByPublicId(dto.fabricSKUId);
+        if (!fabricSkuResult) {
+          throw new NotFoundException(`Fabric SKU with publicId ${dto.fabricSKUId} not found`);
+        }
+        updateData.fabricSKUId = fabricSkuResult.sku.getId();
+      }
+    }
+
+    sku.update(updateData);
     await this.repository.saveWithChildren(item);
     await this.publishEvents(item);
 
@@ -743,7 +780,39 @@ export class ItemAggregateService {
       throw new NotFoundException(`SKU with publicId ${skuPublicId} not found`);
     }
 
-    sku.update(dto as UpdateItemSkuData);
+    // Convert DTO to domain data, resolving publicId → id for fabricSKUId
+    const updateData: UpdateItemSkuData = {
+      skuCode: dto.skuCode,
+      colorId: dto.colorId,
+      genderId: dto.genderId,
+      sizeId: dto.sizeId,
+      supplierId: dto.supplierId,
+      customerId: dto.customerId,
+      pattern: dto.pattern,
+      lengthCm: dto.lengthCm,
+      widthCm: dto.widthCm,
+      heightCm: dto.heightCm,
+      weightG: dto.weightG,
+      desc: dto.desc,
+      costPrice: dto.costPrice,
+      sellingPrice: dto.sellingPrice,
+      uomCode: dto.uomCode,
+    };
+
+    // Resolve fabricSKUId: publicId (string) → id (number)
+    if (dto.fabricSKUId !== undefined) {
+      if (dto.fabricSKUId === null || dto.fabricSKUId === '') {
+        updateData.fabricSKUId = null;
+      } else {
+        const fabricSkuResult = await this.repository.findSkuByPublicId(dto.fabricSKUId);
+        if (!fabricSkuResult) {
+          throw new NotFoundException(`Fabric SKU with publicId ${dto.fabricSKUId} not found`);
+        }
+        updateData.fabricSKUId = fabricSkuResult.sku.getId();
+      }
+    }
+
+    sku.update(updateData);
     await this.repository.saveWithChildren(item);
     await this.publishEvents(item);
 
@@ -852,14 +921,14 @@ export class ItemAggregateService {
     }
 
     // Step 3b: Validate fabricSKUId exists if being updated
-    //let fabricSku: ItemSku;
-    // TODO
+    let fabricSkuId: number | null | undefined = null;
     if (dto.fabricSKUId !== undefined && dto.fabricSKUId !== null) {
-      const fabricSku = await this.repository.findSkuByPublicId("");
+      const fabricSku = await this.repository.findSkuByPublicId(dto.fabricSKUId);
       if (!fabricSku) {
         throw new BadRequestException(`Fabric SKU with ID ${dto.fabricSKUId} does not exist`);
       }
-      //fabricSku = fabricSku.sku;
+
+      fabricSkuId = fabricSku.sku.getId();
     }
 
     // Step 4: Apply domain updates (entity validates required fields, prices, dimensions)
@@ -870,7 +939,7 @@ export class ItemAggregateService {
       sizeId: dto.sizeId,
       supplierId: dto.supplierId,
       customerId: dto.customerId,
-      fabricSKUId: sku.getId(),
+      fabricSKUId: fabricSkuId,
       pattern: dto.pattern,
       lengthCm: dto.lengthCm,
       widthCm: dto.widthCm,
