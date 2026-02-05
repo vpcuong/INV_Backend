@@ -126,6 +126,7 @@ model ItemSKU {
   skuUoms      SKUUOM[]
   soDetails    SODetail[]
   poDetails    PODetail[]
+  warehouseItems WarehouseItem[]
 }
 
 model ItemUOM {

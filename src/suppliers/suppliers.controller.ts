@@ -18,7 +18,7 @@ import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { SupplierFilterDto } from './dto/supplier-filter.dto';
 import { SupplierAggregationRequestDto } from './dto/supplier-aggregation.dto';
 
-@ApiTags('suppliers')
+@ApiTags('Suppliers')
 @Controller('suppliers')
 export class SuppliersController {
   constructor(

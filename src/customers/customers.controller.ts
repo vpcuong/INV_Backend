@@ -16,7 +16,7 @@ import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { CustomerQueryService } from './application/customer-query.service';
 import { CustomerFilterDto } from './dto/customer-filter.dto';
 
-@ApiTags('customers')
+@ApiTags('Customers')
 @Controller('customers')
 export class CustomersController {
   constructor(

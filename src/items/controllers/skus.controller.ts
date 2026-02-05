@@ -28,7 +28,7 @@ import { ULIDValidationPipe } from '../../common/pipes/ulid-validation.pipe';
  *
  * Cho phép thao tác với SKU mà không cần biết itemPublicId
  */
-@ApiTags('Item SKUs')
+@ApiTags('SKUs')
 @Controller('skus')
 export class SkusController {
   constructor(

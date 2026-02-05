@@ -15,7 +15,7 @@ import { ItemTypeService } from './application/item-type.service';
 import { CreateItemTypeDto } from './dto/create-item-type.dto';
 import { UpdateItemTypeDto } from './dto/update-item-type.dto';
 
-@ApiTags('item-types')
+@ApiTags('Item-types')
 @Controller('item-types')
 export class ItemTypesController {
   constructor(private readonly itemTypesService: ItemTypeService) {}

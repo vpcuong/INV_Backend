@@ -7,7 +7,6 @@ import { PrismaModule } from './prisma/prisma.module';
 import { DomainExceptionFilter } from './common/exception-filters/domain-exception.filter';
 import { ItemCategoriesModule } from './item-categories/item-categories.module';
 import { ItemsModule } from './items/items.module';
-// Removed: ItemSkusModule, ItemModelsModule, ItemUomModule, SkuUomModule - now part of ItemsModule
 import { ItemTypesModule } from './item-types/item-types.module';
 import { AuthModule } from './auth/auth.module';
 import { ColorsModule } from './colors/colors.module';
@@ -24,6 +23,7 @@ import { CustomerAddressesModule } from './customer-addresses/customer-addresses
 import { SoModule } from './so/so.module';
 import { PoModule } from './po/po.module';
 import { ThemeModule } from './themes/theme.module';
+import { WarehouseModule } from './warehouse/warehouse.module';
 import { FilteringModule } from './common/filtering';
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware';
 
@@ -52,6 +52,7 @@ import { RequestLoggerMiddleware } from './common/middleware/request-logger.midd
     SoModule,
     PoModule,
     ThemeModule,
+    WarehouseModule,
   ],
   controllers: [AppController],
   providers: [
