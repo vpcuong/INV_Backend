@@ -127,6 +127,41 @@ export class UomClass {
     this.rowMode = this.rowMode === RowMode.NEW ? RowMode.NEW : RowMode.UPDATED;
   }
 
+  /**
+   * convert quantity
+   * @param fromUomCode 
+   * @param toUomCode 
+   * @param value 
+   * @returns 
+   */
+  public convertQuantity(fromUomCode: string, toUomCode: string, value: number): number {
+    // case 0: fromUomCode = toUomCode
+    if(fromUomCode === toUomCode) {
+      return value;
+    }
+
+    const fromUom = this.findUomByCode(fromUomCode);
+    const toUom = this.findUomByCode(toUomCode);
+    if (!fromUom || !toUom) {
+      throw new UomConversionNotFoundException(fromUomCode, this.code);
+    }
+    const conversion = this.findConversionByUomCode(fromUomCode);
+    if (!conversion) {
+      throw new UomConversionNotFoundException(fromUomCode, this.code);
+    }
+    // case 1: toUomCode = baseUomCode
+    if(toUomCode === this.baseUomCode) {
+      return value * conversion.getToBaseFactor();
+    }
+    // case 2: fromUomCode != baseUomCode
+    const toUomCodeConversion = this.findConversionByUomCode(toUomCode);
+    if (!toUomCodeConversion) {
+      throw new UomConversionNotFoundException(toUomCode, this.code);
+    }
+    return Math.round((value * conversion.getToBaseFactor() / 
+                toUomCodeConversion.getToBaseFactor() + Number.EPSILON) * 100) / 100;
+  }
+
   public findUomByCode(uomCode: string): Uom | undefined {
     return this.uoms.find((u) => u.getCode() === uomCode);
   }

@@ -8,4 +8,5 @@ export interface IUomRepository {
   
   // Additional query methods if needed
   findUomByCode(uomCode: string): Promise<any>; // Return raw or entity
+  findClassByUomCode(uomCode: string): Promise<UomClass | null>;
 }

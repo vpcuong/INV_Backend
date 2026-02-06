@@ -160,4 +160,15 @@ export class UomRepository implements IUomRepository {
   async findUomByCode(uomCode: string): Promise<any> {
     return this.prisma.client.uOM.findUnique({ where: { code: uomCode } });
   }
+
+  async findClassByUomCode(uomCode: string): Promise<UomClass | null> {
+    const uom = await this.prisma.client.uOM.findUnique({
+      where: { code: uomCode },
+      select: { classCode: true },
+    });
+
+    if (!uom) return null;
+
+    return this.findByCode(uom.classCode);
+  }
 }

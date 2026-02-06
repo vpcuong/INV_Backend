@@ -16,9 +16,10 @@ import { WarehouseModule } from '../warehouse/warehouse.module';
 import { SoModule } from '../so/so.module';
 import { PoModule } from '../po/po.module';
 import { ItemsModule } from '../items/items.module';
+import { UomModule } from '../uom/uom.module';
 
 @Module({
-  imports: [PrismaModule, WarehouseModule, SoModule, PoModule, ItemsModule],
+  imports: [PrismaModule, WarehouseModule, SoModule, PoModule, ItemsModule, UomModule],
   providers: [
     InventoryService,
     InventoryQueryService,

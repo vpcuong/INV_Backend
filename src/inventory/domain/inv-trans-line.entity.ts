@@ -12,8 +12,9 @@ export interface InvTransLineConstructorData {
   itemSkuId: number;
   quantity: number;
   uomCode: string;
-  toBaseFactor?: number;
-  baseQty?: number;
+  toBaseFactor: number;
+  baseQty: number;
+  baseUomCode: string;
   note?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
@@ -28,7 +29,8 @@ export class InvTransLine {
   private quantity: number;
   private uomCode: string;
   private toBaseFactor: number;
-  private baseQty: number;
+  private baseQty?: number;
+  private baseUomCode: string;
   private note?: string | null;
   private createdAt?: Date;
   private updatedAt?: Date;
@@ -46,6 +48,7 @@ export class InvTransLine {
     this.uomCode = data.uomCode;
     this.toBaseFactor = data.toBaseFactor ?? 1;
     this.baseQty = data.baseQty ?? (data.quantity * this.toBaseFactor);
+    this.baseUomCode = data.baseUomCode;
     this.note = data.note;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
@@ -70,6 +73,10 @@ export class InvTransLine {
     }
     if (!data.uomCode) {
       throw new InvalidInventoryLineException('UOM code is required');
+    }
+
+    if (!data.baseUomCode) {
+      throw new InvalidInventoryLineException('Base UOM code is required');
     }
   }
 
@@ -100,6 +107,10 @@ export class InvTransLine {
 
   public getUomCode(): string {
     return this.uomCode;
+  }
+
+  public getBaseUomCode(): string {
+    return this.baseUomCode;
   }
 
   public getToBaseFactor(): number {
@@ -182,6 +193,7 @@ export class InvTransLine {
       uomCode: this.uomCode,
       toBaseFactor: this.toBaseFactor,
       baseQty: this.baseQty,
+      baseUomCode: this.baseUomCode,
       note: this.note,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
@@ -199,6 +211,7 @@ export class InvTransLine {
       uomCode: data.uomCode,
       toBaseFactor: Number(data.toBaseFactor),
       baseQty: Number(data.baseQty),
+      baseUomCode: data.baseUomCode,
       note: data.note,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,

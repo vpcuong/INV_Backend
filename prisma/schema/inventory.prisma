@@ -72,6 +72,7 @@ model InvTransLine {
   uomCode   String  @db.VarChar(10)
   toBaseFactor Decimal @default(1) @db.Decimal(10, 4)
   baseQty      Decimal @default(0) @db.Decimal(18, 4)
+  baseUomCode   String @db.VarChar(10)
 
   // Line-level note
   note      String?  @db.VarChar(500)
@@ -81,9 +82,12 @@ model InvTransLine {
   // Relations
   header  InvTransHeader @relation(fields: [headerId], references: [id], onDelete: Cascade)
   itemSku ItemSKU        @relation(fields: [itemSkuId], references: [id])
-  uom     UOM            @relation(fields: [uomCode], references: [code])
+  uom     UOM            @relation("invTransLineUoms", fields: [uomCode], references: [code])
+  baseUom UOM            @relation("invTransLineBaseUoms", fields: [baseUomCode], references: [code])
 
   @@unique([headerId, lineNum])
   @@index([headerId])
   @@index([itemSkuId])
+  //uoms UOM[] @relation("invTransLineUoms")
+  //uoms UOM[] @relation("invTransLineBaseUoms")
 }

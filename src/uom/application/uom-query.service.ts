@@ -176,4 +176,5 @@ export class UomQueryService {
       toFactor: toConv.toBaseFactor,
     };
   }
+
 }

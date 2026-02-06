@@ -25,6 +25,8 @@ import { PoService } from '../../po/po.service';
 import { SOService } from '../../so/application/so.service';
 import { WarehouseService } from '../../warehouse/application/warehouse.service';
 import { SkuUomService } from '../../items/application/sku-uom.service';
+import { UomService } from '../../uom/application/uom.service';
+import { ItemAggregateService } from '@/items/application/item-aggregate.service';
 
 @Injectable()
 export class InventoryService {
@@ -38,7 +40,9 @@ export class InventoryService {
     private readonly poService: PoService,
     private readonly soService: SOService,
     private readonly warehouseService: WarehouseService,
-    private readonly skuUomService: SkuUomService
+    private readonly skuUomService: SkuUomService,
+    private readonly itemAggregateService: ItemAggregateService,
+    private readonly uomService: UomService
   ) {}
 
   /**
@@ -71,14 +75,40 @@ export class InventoryService {
     // Create lines with conversion factor lookup
     const lines: InvTransLine[] = [];
     for (const lineDto of dto.lines) {
-        const toBaseFactor = await this.getConversionFactor(lineDto.itemSkuId, lineDto.uomCode);
-        
+        //const toBaseFactor = await this.getConversionFactor(lineDto.itemSkuId, lineDto.uomCode);
+        const item = await this.itemAggregateService.getItemBySkuPublicId(lineDto.itemSkuId);
+
+        if(!item) {
+          throw new BadRequestException(`Item SKU ${lineDto.itemSkuId} not found`);
+        }
+        const sku = item.findSkuByPublicId(lineDto.itemSkuId);
+
+        if(!sku) {
+          throw new BadRequestException(`Item SKU ${lineDto.itemSkuId} not found`);
+        }
+
+        let toBaseFactor = 1, baseQty = lineDto.quantity, baseUomCode = lineDto.uomCode;
+        if(sku.getUomCode() !== lineDto.uomCode) {
+          // If UoM is different from SKU Base
+          const uomClass = await this.uomService.findClassByCode(lineDto.uomCode);
+          // Convert quantity
+          const convertedQty = uomClass.convertQuantity(lineDto.uomCode, sku.getUomCode(), lineDto.quantity);
+          // Find conversion
+          const uomConv = uomClass.getConversions().find(u => u.getUomCode() === sku.getUomCode());
+          // Resolve
+          toBaseFactor = uomConv.getToBaseFactor();
+          baseQty = convertedQty;
+          baseUomCode = sku.getUomCode();
+        }
+
         lines.push(new InvTransLine({
           lineNum: lineDto.lineNum,
-          itemSkuId: lineDto.itemSkuId,
+          itemSkuId: sku.getId()!,
           quantity: lineDto.quantity,
           uomCode: lineDto.uomCode,
           toBaseFactor: toBaseFactor, // Pass resolved factor
+          baseQty: baseQty,
+          baseUomCode: baseUomCode,
           note: lineDto.note,
         }));
     }
@@ -192,9 +222,11 @@ export class InventoryService {
         throw new BadRequestException(`Item SKU ${lineDto.itemSkuId} not found in open SO lines`);
       }
 
+      const item = await this.itemAggregateService.getItemBySkuPublicId(lineDto.itemSkuId);
+      const sku = item.findSkuByPublicId(lineDto.itemSkuId);
       // Calculate pending qty for this SKU
       const pendingQty = pendingDrafts.reduce((sum, t) => {
-        const matchingLines = t.getLines().filter(l => l.getItemSkuId() === lineDto.itemSkuId);
+        const matchingLines = t.getLines().filter(l => l.getItemSkuId() === sku.getId());
         return sum + matchingLines.reduce((s, l) => s + l.getQuantity(), 0);
       }, 0);
 
@@ -437,14 +469,17 @@ export class InventoryService {
       throw new NotFoundException(`Transaction with Public ID ${publicId} not found`);
     }
 
-    const toBaseFactor = await this.getConversionFactor(lineDto.itemSkuId, lineDto.uomCode);
+    const item = await this.itemAggregateService.getItemBySkuPublicId(lineDto.itemSkuId);
+    const sku = item.findSkuByPublicId(lineDto.itemSkuId);
 
     const line = new InvTransLine({
       lineNum: lineDto.lineNum,
-      itemSkuId: lineDto.itemSkuId,
+      itemSkuId: sku.getId()!,
       quantity: lineDto.quantity,
       uomCode: lineDto.uomCode,
-      toBaseFactor: toBaseFactor,
+      toBaseFactor: 0,
+      baseQty: lineDto.quantity * 0,
+      baseUomCode: lineDto.uomCode,
       note: lineDto.note,
     });
 

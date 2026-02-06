@@ -22,13 +22,19 @@ export class InvTransHeaderRepository implements IInvTransHeaderRepository {
   ): Promise<InvTransHeader> {
     const db = this.getDb(transaction);
     const { id, publicId, createdAt, updatedAt, lines, ...headerData } = header.toPersistence();
+    // Remove undefined values to avoid Prisma validation errors
+    Object.keys(headerData).forEach(key => headerData[key] === undefined && delete headerData[key]);
     const lineData = header.getLines().map(line => line.toPersistence());
-
     const created = await db.invTransHeader.create({
       data: {
         ...headerData,
         lines: {
-          create: lineData.map(({ id, publicId, headerId, createdAt: lCreatedAt, updatedAt: lUpdatedAt, rowMode, ...ld }) => ld),
+          create: lineData.map(({ id, publicId, headerId, createdAt: lCreatedAt, updatedAt: lUpdatedAt, rowMode, itemSkuId, uomCode, baseUomCode, ...ld }) => ({
+            ...ld,
+            itemSku: { connect: { id: itemSkuId } },
+            uom: { connect: { code: uomCode } },
+            baseUom: { connect: { code: baseUomCode } },
+          })),
         },
       },
       include: {
@@ -157,8 +163,13 @@ export class InvTransHeaderRepository implements IInvTransHeaderRepository {
               };
             }),
             create: newLines.map(line => {
-              const { id: lineId, publicId: linePublicId, headerId, createdAt: lCreatedAt, updatedAt: lUpdatedAt, rowMode, ...lineData } = line.toPersistence();
-              return lineData;
+              const { id: lineId, publicId: linePublicId, headerId, createdAt: lCreatedAt, updatedAt: lUpdatedAt, rowMode, itemSkuId, uomCode, baseUomCode, ...lineData } = line.toPersistence();
+              return {
+                ...lineData,
+                itemSku: { connect: { id: itemSkuId } },
+                uom: { connect: { code: uomCode } },
+                baseUom: { connect: { code: baseUomCode } },
+              };
             }),
           },
         },

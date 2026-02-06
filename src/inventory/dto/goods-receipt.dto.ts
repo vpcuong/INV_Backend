@@ -17,10 +17,9 @@ export class CreateGoodsReceiptLineDto {
   @Min(1)
   lineNum: number;
 
-  @ApiProperty({ description: 'Item SKU ID', example: 101 })
+  @ApiProperty({ description: 'Item SKU ID', example: '' })
   @IsNumber()
-  @IsNotEmpty()
-  itemSkuId: number;
+  itemSkuId: string;
 
   @ApiProperty({ description: 'Quantity', example: 50 })
   @IsNumber()

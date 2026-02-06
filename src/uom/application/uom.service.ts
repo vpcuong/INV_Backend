@@ -7,6 +7,7 @@ import { CreateUomDto } from '../presentation/dto/create-uom.dto';
 import {
   DuplicateUomClassCodeException,
   UomClassNotFoundException,
+  UomNotFoundException,
 } from '../domain/exceptions/uom-domain.exception';
 
 @Injectable()
@@ -100,6 +101,14 @@ export class UomService {
     const uomClass = await this.repository.findByCode(code);
     if (!uomClass) {
       throw new UomClassNotFoundException(code);
+    }
+    return uomClass;
+  }
+
+  async findClassByUomCode(uomCode: string): Promise<UomClass> {
+    const uomClass = await this.repository.findClassByUomCode(uomCode);
+    if (!uomClass) {
+      throw new UomNotFoundException(uomCode);
     }
     return uomClass;
   }

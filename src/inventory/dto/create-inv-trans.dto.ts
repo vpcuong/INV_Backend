@@ -18,10 +18,9 @@ export class CreateInvTransLineDto {
   @Min(1)
   lineNum: number;
 
-  @ApiProperty({ description: 'Item SKU ID', example: 101 })
-  @IsNumber()
-  @IsNotEmpty()
-  itemSkuId: number;
+  @ApiProperty({ description: 'Item SKU ID', example: '' })
+  @IsString()
+  itemSkuId: string;
 
   @ApiProperty({ description: 'Quantity', example: 10 })
   @IsNumber()

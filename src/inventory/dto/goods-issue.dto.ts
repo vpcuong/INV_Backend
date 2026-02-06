@@ -18,9 +18,9 @@ export class CreateGoodsIssueLineDto {
   lineNum: number;
 
   @ApiProperty({ description: 'Item SKU ID', example: 101 })
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  itemSkuId: number;
+  itemSkuId: string;
 
   @ApiProperty({ description: 'Quantity', example: 10 })
   @IsNumber()
