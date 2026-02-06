@@ -12,9 +12,12 @@ import {
   INV_TRANS_NUMBER_GENERATOR,
   STOCK_SERVICE,
 } from './constant/inventory.token';
+import { WarehouseModule } from '../warehouse/warehouse.module';
+import { SoModule } from '../so/so.module';
+import { PoModule } from '../po/po.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, WarehouseModule, SoModule, PoModule],
   providers: [
     InventoryService,
     InventoryQueryService,

@@ -17,6 +17,13 @@ import {
   INV_TRANS_NUMBER_GENERATOR,
   STOCK_SERVICE,
 } from '../constant/inventory.token';
+import { CreateGoodsReceiptDto, CreateGoodsReceiptFromPoDto } from '../dto/goods-receipt.dto';
+import { CreateGoodsIssueDto, CreateGoodsIssueFromSoDto } from '../dto/goods-issue.dto';
+import { CreateAdjustmentDto } from '../dto/adjustment.dto';
+import { CreateStockTransferDto } from '../dto/stock-transfer.dto';
+import { PoService } from '../../po/po.service';
+import { SOService } from '../../so/application/so.service';
+import { WarehouseService } from '../../warehouse/application/warehouse.service';
 
 @Injectable()
 export class InventoryService {
@@ -26,11 +33,14 @@ export class InventoryService {
     @Inject(INV_TRANS_NUMBER_GENERATOR)
     private readonly numberGenerator: InvTransNumberGeneratorService,
     @Inject(STOCK_SERVICE)
-    private readonly stockService: StockService
+    private readonly stockService: StockService,
+    private readonly poService: PoService,
+    private readonly soService: SOService,
+    private readonly warehouseService: WarehouseService
   ) {}
 
   /**
-   * Create a new inventory transaction (GOODS_RECEIPT, GOODS_ISSUE, STOCK_TRANSFER, ADJUSTMENT)
+   * Create Generic (Legacy - to be potentially deprecated or kept for internal use)
    */
   async create(dto: CreateInvTransHeaderDto): Promise<any> {
     // Generate transaction number
@@ -66,6 +76,146 @@ export class InventoryService {
 
     const created = await this.repository.create(header);
     return this.toDto(created);
+  }
+
+  // =================================================================================================
+  // GOODS RECEIPT
+  // =================================================================================================
+
+  async createGoodsReceipt(dto: CreateGoodsReceiptDto): Promise<any> {
+    // Validate Warehouse
+    await this.validateWarehouse(dto.toWarehouseId);
+
+    return this.create({
+      type: InvTransType.GOODS_RECEIPT,
+      status: InvTransStatus.DRAFT,
+      toWarehouseId: dto.toWarehouseId,
+      transactionDate: dto.transactionDate,
+      note: dto.note,
+      createdBy: dto.createdBy,
+      lines: dto.lines.map((l, i) => ({ ...l, lineNum: l.lineNum || i + 1 })),
+    } as CreateInvTransHeaderDto);
+  }
+
+  async createGoodsReceiptFromPo(dto: CreateGoodsReceiptFromPoDto): Promise<any> {
+    // Validate Warehouse
+    await this.validateWarehouse(dto.toWarehouseId);
+
+    // Validate PO exists
+    const po = await this.poService.findOne(dto.poId);
+    if (!po) {
+      throw new NotFoundException(`Purchase Order ${dto.poId} not found`);
+    }
+
+    return this.create({
+      type: InvTransType.GOODS_RECEIPT,
+      status: InvTransStatus.DRAFT,
+      toWarehouseId: dto.toWarehouseId,
+      referenceType: 'PO',
+      referenceId: po.id,
+      referenceNum: po.poNum,
+      transactionDate: dto.transactionDate,
+      note: dto.note || `Goods Receipt from PO ${po.poNum}`,
+      createdBy: dto.createdBy,
+      lines: dto.lines.map((l, i) => ({ ...l, lineNum: l.lineNum || i + 1 })),
+    } as CreateInvTransHeaderDto);
+  }
+
+  // =================================================================================================
+  // GOODS ISSUE
+  // =================================================================================================
+
+  async createGoodsIssue(dto: CreateGoodsIssueDto): Promise<any> {
+    // Validate Warehouse
+    await this.validateWarehouse(dto.fromWarehouseId);
+
+    return this.create({
+      type: InvTransType.GOODS_ISSUE,
+      status: InvTransStatus.DRAFT,
+      fromWarehouseId: dto.fromWarehouseId,
+      transactionDate: dto.transactionDate,
+      note: dto.note,
+      createdBy: dto.createdBy,
+      lines: dto.lines.map((l, i) => ({ ...l, lineNum: l.lineNum || i + 1 })),
+    } as CreateInvTransHeaderDto);
+  }
+
+  async createGoodsIssueFromSo(dto: CreateGoodsIssueFromSoDto): Promise<any> {
+    // Validate Warehouse
+    await this.validateWarehouse(dto.fromWarehouseId);
+
+    // Validate SO exists
+    const so = await this.soService.findOne(dto.soId);
+    // NotFoundException is thrown by soService.findOne if not found, checking just in case
+    if (!so) {
+      throw new NotFoundException(`Sales Order ${dto.soId} not found`);
+    }
+
+    return this.create({
+      type: InvTransType.GOODS_ISSUE,
+      status: InvTransStatus.DRAFT,
+      fromWarehouseId: dto.fromWarehouseId,
+      referenceType: 'SO',
+      referenceId: so.id,
+      referenceNum: so.soNum,
+      transactionDate: dto.transactionDate,
+      note: dto.note || `Goods Issue for SO ${so.soNum}`,
+      createdBy: dto.createdBy,
+      lines: dto.lines.map((l, i) => ({ ...l, lineNum: l.lineNum || i + 1 })),
+    } as CreateInvTransHeaderDto);
+  }
+
+  // =================================================================================================
+  // ADJUSTMENT
+  // =================================================================================================
+
+  async createAdjustment(dto: CreateAdjustmentDto): Promise<any> {
+    // Validate Warehouse
+    await this.validateWarehouse(dto.fromWarehouseId);
+
+    return this.create({
+      type: InvTransType.ADJUSTMENT,
+      status: InvTransStatus.DRAFT,
+      fromWarehouseId: dto.fromWarehouseId,
+      reasonCode: dto.reasonCode,
+      transactionDate: dto.transactionDate,
+      note: dto.note,
+      createdBy: dto.createdBy,
+      lines: dto.lines.map((l, i) => ({ ...l, lineNum: l.lineNum || i + 1 })),
+    } as CreateInvTransHeaderDto);
+  }
+
+  // =================================================================================================
+  // STOCK TRANSFER
+  // =================================================================================================
+
+  async createStockTransfer(dto: CreateStockTransferDto): Promise<any> {
+    // Validate Warehouses
+    await this.validateWarehouse(dto.fromWarehouseId);
+    await this.validateWarehouse(dto.toWarehouseId);
+
+    if (dto.fromWarehouseId === dto.toWarehouseId) {
+      throw new BadRequestException('Source and Destination warehouse cannot be the same');
+    }
+
+    return this.create({
+      type: InvTransType.STOCK_TRANSFER,
+      status: InvTransStatus.DRAFT,
+      fromWarehouseId: dto.fromWarehouseId,
+      toWarehouseId: dto.toWarehouseId,
+      transactionDate: dto.transactionDate,
+      note: dto.note,
+      createdBy: dto.createdBy,
+      lines: dto.lines.map((l, i) => ({ ...l, lineNum: l.lineNum || i + 1 })),
+    } as CreateInvTransHeaderDto);
+  }
+
+  // Helper
+  private async validateWarehouse(id: number): Promise<void> {
+    const warehouse = await this.warehouseService.findOne(id);
+    if (!warehouse) {
+      throw new NotFoundException(`Warehouse with ID ${id} not found`);
+    }
   }
 
   /**

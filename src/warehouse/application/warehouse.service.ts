@@ -26,6 +26,10 @@ export class WarehouseService {
     private readonly prisma: PrismaService,
   ) {}
 
+  async findOne(id: number): Promise<Warehouse | null> {
+    return this.warehouseRepository.findById(id);
+  }
+
   // Warehouse CRUD operations
   async createWarehouse(dto: CreateWarehouseDto): Promise<any> {
     // Check if code already exists
