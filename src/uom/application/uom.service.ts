@@ -1,9 +1,13 @@
-import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { IUomRepository } from '../domain/uom.repository.interface';
 import { UomClass } from '../domain/uom-class.entity';
 import { Uom } from '../domain/uom.entity';
 import { CreateUomClassDto } from '../presentation/dto/create-uom-class.dto';
 import { CreateUomDto } from '../presentation/dto/create-uom.dto';
+import {
+  DuplicateUomClassCodeException,
+  UomClassNotFoundException,
+} from '../domain/exceptions/uom-domain.exception';
 
 @Injectable()
 export class UomService {
@@ -12,48 +16,91 @@ export class UomService {
   ) {}
 
   async createClass(dto: CreateUomClassDto): Promise<UomClass> {
-      const existing = await this.repository.findByCode(dto.code);
-      if (existing) {
-          throw new BadRequestException(`UOM Class ${dto.code} already exists`);
-      }
+    const existing = await this.repository.findByCode(dto.code);
+    if (existing) {
+      throw new DuplicateUomClassCodeException(dto.code);
+    }
 
-      const uomClass = new UomClass(dto.code, dto.name, dto.description, dto.baseUomCode);
-      
-      if (dto.uoms) {
-          for (const uDto of dto.uoms) {
-              uomClass.addUom(
-                  new Uom(uDto.code, uDto.name, uDto.description),
-                  uDto.toBaseFactor
-              );
-          }
-      }
+    const uomClass = new UomClass({
+      code: dto.code,
+      name: dto.name,
+      description: dto.description,
+      baseUomCode: dto.baseUomCode,
+    });
 
-      return this.repository.save(uomClass);
+    if (dto.uoms) {
+      for (const uDto of dto.uoms) {
+        uomClass.addUom(
+          new Uom({ code: uDto.code, name: uDto.name, description: uDto.description }),
+          uDto.toBaseFactor,
+        );
+      }
+    }
+
+    return this.repository.save(uomClass);
   }
 
   async addUomToClass(classCode: string, dto: CreateUomDto): Promise<UomClass> {
-      const uomClass = await this.repository.findByCode(classCode);
-      if (!uomClass) {
-          throw new NotFoundException(`UOM Class ${classCode} not found`);
-      }
+    const uomClass = await this.repository.findByCode(classCode);
+    if (!uomClass) {
+      throw new UomClassNotFoundException(classCode);
+    }
 
-      uomClass.addUom(
-          new Uom(dto.code, dto.name, dto.description),
-          dto.toBaseFactor
-      );
+    uomClass.addUom(
+      new Uom({ code: dto.code, name: dto.name, description: dto.description }),
+      dto.toBaseFactor,
+    );
 
-      return this.repository.save(uomClass);
+    return this.repository.save(uomClass);
+  }
+
+  async updateConversion(
+    classCode: string,
+    uomCode: string,
+    toBaseFactor: number,
+  ): Promise<UomClass> {
+    const uomClass = await this.repository.findByCode(classCode);
+    if (!uomClass) {
+      throw new UomClassNotFoundException(classCode);
+    }
+
+    uomClass.updateConversion(uomCode, toBaseFactor);
+    return this.repository.save(uomClass);
+  }
+
+  async removeUomFromClass(classCode: string, uomCode: string): Promise<UomClass> {
+    const uomClass = await this.repository.findByCode(classCode);
+    if (!uomClass) {
+      throw new UomClassNotFoundException(classCode);
+    }
+
+    uomClass.removeUom(uomCode);
+    return this.repository.save(uomClass);
+  }
+
+  async updateUomInClass(
+    classCode: string,
+    uomCode: string,
+    data: { name?: string; description?: string | null; isActive?: boolean },
+  ): Promise<UomClass> {
+    const uomClass = await this.repository.findByCode(classCode);
+    if (!uomClass) {
+      throw new UomClassNotFoundException(classCode);
+    }
+
+    uomClass.updateUom(uomCode, data);
+    return this.repository.save(uomClass);
   }
 
   async findAllClasses(): Promise<UomClass[]> {
-      return this.repository.findAll();
+    return this.repository.findAll();
   }
 
   async findClassByCode(code: string): Promise<UomClass> {
-      const uomClass = await this.repository.findByCode(code);
-      if (!uomClass) {
-          throw new NotFoundException(`UOM Class ${code} not found`);
-      }
-      return uomClass;
+    const uomClass = await this.repository.findByCode(code);
+    if (!uomClass) {
+      throw new UomClassNotFoundException(code);
+    }
+    return uomClass;
   }
 }

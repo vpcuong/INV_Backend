@@ -1,22 +1,44 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Param, NotFoundException } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { UomService } from '../../application/uom.service';
+import { UomQueryService } from '../../application/uom-query.service';
 import { CreateUomDto } from '../dto/create-uom.dto';
 
-@ApiTags('uoms')
+@ApiTags('UOMs')
 @Controller('uoms')
 export class UomController {
-    constructor(private readonly service: UomService) {}
+  constructor(
+    private readonly service: UomService,
+    private readonly queryService: UomQueryService,
+  ) {}
 
-    @Post('class/:classCode')
-    @ApiOperation({ summary: 'Add UOM to Class' })
-    create(@Param('classCode') classCode: string, @Body() dto: CreateUomDto) {
-        return this.service.addUomToClass(classCode, dto);
+  @Post('class/:classCode')
+  @ApiOperation({ summary: 'Add UOM to Class' })
+  @ApiParam({ name: 'classCode', description: 'UOM Class code' })
+  create(@Param('classCode') classCode: string, @Body() dto: CreateUomDto) {
+    return this.service.addUomToClass(classCode, dto);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all UOMs' })
+  findAll() {
+    return this.queryService.findAllUoms();
+  }
+
+  @Get('active')
+  @ApiOperation({ summary: 'Get all active UOMs' })
+  findAllActive() {
+    return this.queryService.findActiveUoms();
+  }
+
+  @Get(':code')
+  @ApiOperation({ summary: 'Get UOM by code' })
+  @ApiParam({ name: 'code', description: 'UOM code' })
+  async findByCode(@Param('code') code: string) {
+    const result = await this.queryService.findUomByCode(code);
+    if (!result) {
+      throw new NotFoundException(`UOM ${code} not found`);
     }
-    
-    // Note: The legacy CreateUomDto has 'classCode' inside body. 
-    // If we want to support legacy POST /uoms with body containing classCode, we might need a wrapper.
-    // For now, I'm separating it to be clearer: /uoms/class/:classCode
-    
-    // Additional read methods can be added here
+    return result;
+  }
 }

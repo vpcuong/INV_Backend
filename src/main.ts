@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import morgan from 'morgan';
 import { HttpExceptionFilter } from './common/exception-filters/http-exception.filter';
+import { StripInternalFieldsInterceptor } from './common/interceptors/strip-internal-fields.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -22,6 +23,9 @@ async function bootstrap() {
 
   // Log all 4xx errors for debugging
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  // Strip internal fields (rowMode, etc.) from all responses
+  app.useGlobalInterceptors(new StripInternalFieldsInterceptor());
 
   app.enableCors();
   app.setGlobalPrefix('api');

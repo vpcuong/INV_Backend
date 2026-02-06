@@ -4,83 +4,100 @@ import { IUomRepository } from '../domain/uom.repository.interface';
 import { UomClass } from '../domain/uom-class.entity';
 import { Uom } from '../domain/uom.entity';
 import { UomConversion } from '../domain/uom-conversion.entity';
+import { RowMode } from '../../common/enums/row-mode.enum';
 
 @Injectable()
 export class UomRepository implements IUomRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async save(uomClass: UomClass): Promise<UomClass> {
-    const { code, name, description, baseUomCode, isActive } = uomClass as any; // Access private via casting or add getters
-    // Note: In a real DDD entity, we should have getters. I will add getters to entity if missing or use public props for now.
-    // The previous entity definition used public properties in constructor, so we can access them directly if we didn't mark them private.
-    // Checking entity definition: `constructor(public readonly code: string, public name: string ...)` -> props are public.
-    // But `uoms` and `conversions` are private. I added getters `getUoms()` etc.
-
-    // Using transaction to ensure consistency
     await this.prisma.$transaction(async (tx) => {
       // Upsert Class
       await tx.uOMClass.upsert({
-        where: { code: uomClass.code },
+        where: { code: uomClass.getCode() },
         create: {
-          code: uomClass.code,
-          name: uomClass.name,
-          description: uomClass.description,
-          baseUOMCode: uomClass.baseUomCode,
-          isActive: uomClass.isActive,
+          code: uomClass.getCode(),
+          name: uomClass.getName(),
+          description: uomClass.getDescription(),
+          baseUOMCode: uomClass.getBaseUomCode(),
+          isActive: uomClass.getIsActive(),
         },
         update: {
-            name: uomClass.name,
-            description: uomClass.description,
-            baseUOMCode: uomClass.baseUomCode,
-            isActive: uomClass.isActive,
+          name: uomClass.getName(),
+          description: uomClass.getDescription(),
+          baseUOMCode: uomClass.getBaseUomCode(),
+          isActive: uomClass.getIsActive(),
         },
       });
 
-      // Sync UoMs
+      // Sync UoMs using RowMode
       const uoms = uomClass.getUoms();
       for (const uom of uoms) {
-          await tx.uOM.upsert({
-              where: { code: uom.code },
-              create: {
-                  code: uom.code,
-                  name: uom.name,
-                  description: uom.description,
-                  isActive: uom.isActive,
-                  classCode: uomClass.code,
-              },
-              update: {
-                  name: uom.name,
-                  description: uom.description,
-                  isActive: uom.isActive,
-              }
+        if (uom.getRowMode() === RowMode.NEW) {
+          await tx.uOM.create({
+            data: {
+              code: uom.getCode(),
+              name: uom.getName(),
+              description: uom.getDescription(),
+              isActive: uom.getIsActive(),
+              classCode: uomClass.getCode(),
+            },
           });
+        } else if (uom.getRowMode() === RowMode.UPDATED) {
+          await tx.uOM.update({
+            where: { code: uom.getCode() },
+            data: {
+              name: uom.getName(),
+              description: uom.getDescription(),
+              isActive: uom.getIsActive(),
+            },
+          });
+        } else if (uom.getRowMode() === RowMode.DELETED) {
+          await tx.uOM.delete({
+            where: { code: uom.getCode() },
+          });
+        }
       }
 
-      // Sync Conversions
+      // Sync Conversions using RowMode
       const conversions = uomClass.getConversions();
       for (const conv of conversions) {
-          await tx.uOMConversion.upsert({
-              where: {
-                  uomClassCode_uomCode: {
-                      uomClassCode: uomClass.code,
-                      uomCode: conv.uomCode
-                  }
-              },
-              create: {
-                  uomClassCode: uomClass.code,
-                  uomCode: conv.uomCode,
-                  toBaseFactor: conv.toBaseFactor,
-                  isActive: conv.isActive
-              },
-              update: {
-                  toBaseFactor: conv.toBaseFactor,
-                  isActive: conv.isActive
-              }
+        if (conv.getRowMode() === RowMode.NEW) {
+          await tx.uOMConversion.create({
+            data: {
+              uomClassCode: uomClass.getCode(),
+              uomCode: conv.getUomCode(),
+              toBaseFactor: conv.getToBaseFactor(),
+              isActive: conv.getIsActive(),
+            },
           });
+        } else if (conv.getRowMode() === RowMode.UPDATED) {
+          await tx.uOMConversion.update({
+            where: {
+              uomClassCode_uomCode: {
+                uomClassCode: uomClass.getCode(),
+                uomCode: conv.getUomCode(),
+              },
+            },
+            data: {
+              toBaseFactor: conv.getToBaseFactor(),
+              isActive: conv.getIsActive(),
+            },
+          });
+        } else if (conv.getRowMode() === RowMode.DELETED) {
+          await tx.uOMConversion.delete({
+            where: {
+              uomClassCode_uomCode: {
+                uomClassCode: uomClass.getCode(),
+                uomCode: conv.getUomCode(),
+              },
+            },
+          });
+        }
       }
     });
 
-    return uomClass;
+    return this.findByCode(uomClass.getCode()) as Promise<UomClass>;
   }
 
   async findByCode(code: string): Promise<UomClass | null> {
@@ -95,42 +112,52 @@ export class UomRepository implements IUomRepository {
     if (!data) return null;
 
     return UomClass.create({
-        code: data.code,
-        name: data.name,
-        description: data.description,
-        baseUomCode: data.baseUOMCode,
-        isActive: data.isActive,
-        uoms: data.uoms.map(u => new Uom(u.code, u.name, u.description, u.isActive)),
-        conversions: data.uomConvs.map(c => new UomConversion(c.uomCode, c.toBaseFactor, c.isActive))
+      code: data.code,
+      name: data.name,
+      description: data.description,
+      baseUomCode: data.baseUOMCode,
+      isActive: data.isActive,
+      uoms: data.uoms.map(
+        (u) => new Uom({ code: u.code, name: u.name, description: u.description, isActive: u.isActive }),
+      ),
+      conversions: data.uomConvs.map(
+        (c) => new UomConversion({ uomCode: c.uomCode, toBaseFactor: c.toBaseFactor, isActive: c.isActive }),
+      ),
     });
   }
 
   async findAll(): Promise<UomClass[]> {
     const classes = await this.prisma.client.uOMClass.findMany({
-        include: {
-            uoms: true,
-            uomConvs: true
-        }
+      include: {
+        uoms: true,
+        uomConvs: true,
+      },
     });
 
-    return classes.map(data => UomClass.create({
+    return classes.map((data) =>
+      UomClass.create({
         code: data.code,
         name: data.name,
         description: data.description,
         baseUomCode: data.baseUOMCode,
         isActive: data.isActive,
-        uoms: data.uoms.map(u => new Uom(u.code, u.name, u.description, u.isActive)),
-        conversions: data.uomConvs.map(c => new UomConversion(c.uomCode, c.toBaseFactor, c.isActive))
-    }));
+        uoms: data.uoms.map(
+          (u) => new Uom({ code: u.code, name: u.name, description: u.description, isActive: u.isActive }),
+        ),
+        conversions: data.uomConvs.map(
+          (c) => new UomConversion({ uomCode: c.uomCode, toBaseFactor: c.toBaseFactor, isActive: c.isActive }),
+        ),
+      }),
+    );
   }
 
   async remove(code: string): Promise<void> {
     await this.prisma.client.uOMClass.delete({
-        where: { code }
+      where: { code },
     });
   }
 
   async findUomByCode(uomCode: string): Promise<any> {
-       return this.prisma.client.uOM.findUnique({ where: { code: uomCode } });
+    return this.prisma.client.uOM.findUnique({ where: { code: uomCode } });
   }
 }
