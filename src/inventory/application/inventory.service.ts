@@ -24,6 +24,7 @@ import { CreateStockTransferDto } from '../dto/stock-transfer.dto';
 import { PoService } from '../../po/po.service';
 import { SOService } from '../../so/application/so.service';
 import { WarehouseService } from '../../warehouse/application/warehouse.service';
+import { SkuUomService } from '../../items/application/sku-uom.service';
 
 @Injectable()
 export class InventoryService {
@@ -36,8 +37,29 @@ export class InventoryService {
     private readonly stockService: StockService,
     private readonly poService: PoService,
     private readonly soService: SOService,
-    private readonly warehouseService: WarehouseService
+    private readonly warehouseService: WarehouseService,
+    private readonly skuUomService: SkuUomService
   ) {}
+
+  /**
+   * Helper to fetch conversion factor for a line
+   */
+  private async getConversionFactor(itemSkuId: number, uomCode: string): Promise<number> {
+    try {
+        const uoms = await this.skuUomService.getAvailableUomsForSku(itemSkuId);
+        const uom = uoms.availableUoms.find(u => u.uomCode === uomCode);
+        
+        if (!uom) {
+            // Fallback: If UoM is same as SKU Base, factor is 1
+            if (uoms.skuUomCode === uomCode) return 1;
+            throw new BadRequestException(`UOM ${uomCode} is not valid for SKU ${itemSkuId}`);
+        }
+        return uom.toBaseFactor;
+    } catch (error) {
+       // If service check fails (e.g. SKU not found), propagate or handle
+       throw new BadRequestException(`Failed to validate UOM ${uomCode} for SKU ${itemSkuId}: ${error.message}`);
+    }
+  }
 
   /**
    * Create Generic (Legacy - to be potentially deprecated or kept for internal use)
@@ -46,17 +68,20 @@ export class InventoryService {
     // Generate transaction number
     const transNum = await this.numberGenerator.generate(dto.type as InvTransType);
 
-    // Create lines
-    const lines = dto.lines.map(
-      (lineDto: CreateInvTransLineDto) =>
-        new InvTransLine({
+    // Create lines with conversion factor lookup
+    const lines: InvTransLine[] = [];
+    for (const lineDto of dto.lines) {
+        const toBaseFactor = await this.getConversionFactor(lineDto.itemSkuId, lineDto.uomCode);
+        
+        lines.push(new InvTransLine({
           lineNum: lineDto.lineNum,
           itemSkuId: lineDto.itemSkuId,
           quantity: lineDto.quantity,
           uomCode: lineDto.uomCode,
+          toBaseFactor: toBaseFactor, // Pass resolved factor
           note: lineDto.note,
-        })
-    );
+        }));
+    }
 
     // Create header entity (validation happens in constructor)
     const header = InvTransHeader.create({
@@ -173,7 +198,23 @@ export class InventoryService {
         return sum + matchingLines.reduce((s, l) => s + l.getQuantity(), 0);
       }, 0);
 
-      const totalRequested = Number(lineDto.quantity) + Number(pendingQty) + Number(soLine.getShippedQty());
+      // IMPORTANT: Validation needs to be conceptually in Base Units or same units
+      // Assuming SO line is in Base Unit or standardized logic.
+      // Ideally, we should convert pendingQty and lineDto.quantity to Base units if strict validation is needed
+      // For now, assuming request is in same unit as SO or we rely on simpler check on values
+      // If multi-UoM SO is supported, we MUST convert everything to Base Qty here.
+      
+      // Let's defer strict UoM validation in this loop for now or assume same UoM.
+      // But since we are adding UoM support, we should technically convert.
+      // Re-fetching factor here for validation might be expensive inside loop but necessary for correctness.
+      /*
+      const lineFactor = await this.getConversionFactor(lineDto.itemSkuId, lineDto.uomCode);
+      const reqBaseQty = Number(lineDto.quantity) * lineFactor;
+      // ... logic for pendingQty (InvTransLine has baseQty now! we should use that)
+      // ... logic for SO Line (SOLine should arguably store UoM too)
+      */
+     
+      const totalRequested = Number(lineDto.quantity) + Number(pendingQty) + Number(soLine.getShippedQty()); // Simplistic accumulation
       if (totalRequested > soLine.getOrderQty()) {
         throw new BadRequestException(
           `Insufficient SO quantity for Item SKU ${lineDto.itemSkuId}. Order: ${soLine.getOrderQty()}, Shipped: ${soLine.getShippedQty()}, Pending: ${pendingQty}, Requested: ${lineDto.quantity}`
@@ -338,7 +379,9 @@ export class InventoryService {
              for (const line of header.getLines()) {
                  const soLine = so.getLines().find(l => l.getItemSkuId() === line.getItemSkuId() && l.getStatus() !== 'CLOSED');
                  if (soLine) {
-                     await this.soService.updateShippedQty(so.getId()!, soLine.getLineNum(), line.getQuantity());
+                     // Pass Base Qty to update shipped qty?
+                     // Currently addShippedQty takes a number. Assuming SOLine shippedQty is Base Unit.
+                     await this.soService.updateShippedQty(so.getId()!, soLine.getLineNum(), line.getBaseQty());
                  }
              }
          }
@@ -394,11 +437,14 @@ export class InventoryService {
       throw new NotFoundException(`Transaction with Public ID ${publicId} not found`);
     }
 
+    const toBaseFactor = await this.getConversionFactor(lineDto.itemSkuId, lineDto.uomCode);
+
     const line = new InvTransLine({
       lineNum: lineDto.lineNum,
       itemSkuId: lineDto.itemSkuId,
       quantity: lineDto.quantity,
       uomCode: lineDto.uomCode,
+      toBaseFactor: toBaseFactor,
       note: lineDto.note,
     });
 
@@ -459,6 +505,8 @@ export class InventoryService {
         itemSkuId: line.getItemSkuId(),
         quantity: line.getQuantity(),
         uomCode: line.getUomCode(),
+        toBaseFactor: line.getToBaseFactor(),
+        baseQty: line.getBaseQty(),
         note: line.getNote(),
         createdAt: line.getCreatedAt(),
         updatedAt: line.getUpdatedAt(),

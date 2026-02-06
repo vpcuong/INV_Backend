@@ -70,6 +70,8 @@ model InvTransLine {
   itemSkuId Int
   quantity  Decimal @db.Decimal(18, 4)
   uomCode   String  @db.VarChar(10)
+  toBaseFactor Decimal @default(1) @db.Decimal(10, 4)
+  baseQty      Decimal @default(0) @db.Decimal(18, 4)
 
   // Line-level note
   note      String?  @db.VarChar(500)

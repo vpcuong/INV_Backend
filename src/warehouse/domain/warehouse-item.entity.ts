@@ -10,6 +10,7 @@ export interface WarehouseItemConstructorData {
   itemSkuId: number;
   quantity?: number;
   reservedQty?: number;
+  uomCode?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -17,6 +18,7 @@ export interface WarehouseItemConstructorData {
 export interface UpdateWarehouseItemData {
   quantity?: number;
   reservedQty?: number;
+  uomCode?: string | null;
 }
 
 export class WarehouseItem {
@@ -25,6 +27,7 @@ export class WarehouseItem {
   private itemSkuId: number;
   private quantity: number;
   private reservedQty: number;
+  private uomCode?: string | null;
   private createdAt: Date;
   private updatedAt: Date;
   private rowMode: RowMode | null = null;
@@ -37,6 +40,7 @@ export class WarehouseItem {
     this.itemSkuId = data.itemSkuId;
     this.quantity = data.quantity ?? 0;
     this.reservedQty = data.reservedQty ?? 0;
+    this.uomCode = data.uomCode;
     this.createdAt = data.createdAt ?? new Date();
     this.updatedAt = data.updatedAt ?? new Date();
   }
@@ -55,6 +59,10 @@ export class WarehouseItem {
     return this.quantity - this.reservedQty;
   }
 
+  /**
+   * Adjust quantity (normalized base qty)
+   * @param adjustment Delta amount (in base UoM)
+   */
   public adjustQuantity(adjustment: number): void {
     const newQty = this.quantity + adjustment;
     if (newQty < 0) {
@@ -85,6 +93,12 @@ export class WarehouseItem {
     this.quantity = quantity;
     this.updatedAt = new Date();
     this.rowMode = this.rowMode ?? RowMode.UPDATED;
+  }
+
+  public setUomCode(uomCode: string): void {
+      this.uomCode = uomCode;
+      this.updatedAt = new Date();
+      this.rowMode = this.rowMode ?? RowMode.UPDATED;
   }
 
   public reserve(qty: number): void {
@@ -134,6 +148,10 @@ export class WarehouseItem {
     return this.reservedQty;
   }
 
+  public getUomCode(): string | null | undefined {
+    return this.uomCode;
+  }
+
   public getCreatedAt(): Date {
     return this.createdAt;
   }
@@ -166,6 +184,7 @@ export class WarehouseItem {
       itemSkuId: this.itemSkuId,
       quantity: this.quantity,
       reservedQty: this.reservedQty,
+      uomCode: this.uomCode,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };
@@ -178,6 +197,7 @@ export class WarehouseItem {
       itemSkuId: data.itemSkuId,
       quantity: Number(data.quantity),
       reservedQty: Number(data.reservedQty),
+      uomCode: data.uomCode,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     });

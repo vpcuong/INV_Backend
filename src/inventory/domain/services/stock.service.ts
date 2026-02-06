@@ -28,13 +28,15 @@ export class StockService {
 
     for (const line of lines) {
       const itemSkuId = line.getItemSkuId();
-      const quantity = line.getQuantity();
+      // USE BASE QUANTITY FOR STOCK UPDATE
+      const quantity = line.getBaseQty(); 
+      const uomCode = line.getUomCode();
 
       switch (type) {
         case InvTransType.GOODS_RECEIPT:
           // Add stock to toWarehouse
           if (toWarehouseId) {
-            const result = await this.addStock(toWarehouseId, itemSkuId, quantity);
+            const result = await this.addStock(toWarehouseId, itemSkuId, quantity, uomCode);
             results.push(result);
           }
           break;
@@ -42,7 +44,7 @@ export class StockService {
         case InvTransType.GOODS_ISSUE:
           // Remove stock from fromWarehouse
           if (fromWarehouseId) {
-            const result = await this.removeStock(fromWarehouseId, itemSkuId, quantity);
+            const result = await this.removeStock(fromWarehouseId, itemSkuId, quantity, uomCode);
             results.push(result);
           }
           break;
@@ -50,9 +52,9 @@ export class StockService {
         case InvTransType.STOCK_TRANSFER:
           // Remove from source, add to destination
           if (fromWarehouseId && toWarehouseId) {
-            const removeResult = await this.removeStock(fromWarehouseId, itemSkuId, quantity);
+            const removeResult = await this.removeStock(fromWarehouseId, itemSkuId, quantity, uomCode);
             results.push(removeResult);
-            const addResult = await this.addStock(toWarehouseId, itemSkuId, quantity);
+            const addResult = await this.addStock(toWarehouseId, itemSkuId, quantity, uomCode);
             results.push(addResult);
           }
           break;
@@ -64,7 +66,7 @@ export class StockService {
           if (fromWarehouseId) {
             // For now, treat adjustment as setting the quantity delta
             // Positive = add, Negative = remove (if you support negative in UI)
-            const result = await this.addStock(fromWarehouseId, itemSkuId, quantity);
+            const result = await this.addStock(fromWarehouseId, itemSkuId, quantity, uomCode);
             results.push(result);
           }
           break;
@@ -80,7 +82,8 @@ export class StockService {
   private async addStock(
     warehouseId: number,
     itemSkuId: number,
-    quantity: number
+    quantity: number,
+    uomCode: string
   ): Promise<StockUpdateResult> {
     const existing = await this.prisma.client.warehouseItem.findUnique({
       where: {
@@ -106,9 +109,12 @@ export class StockService {
         itemSkuId,
         quantity: newQty,
         reservedQty: 0,
+        uomCode: uomCode, // Set initial UoM
       },
       update: {
         quantity: newQty,
+        // Optionally update uomCode to latest transaction's UoM if desired, or keep base
+        // uomCode: uomCode 
       },
     });
 
@@ -121,7 +127,8 @@ export class StockService {
   private async removeStock(
     warehouseId: number,
     itemSkuId: number,
-    quantity: number
+    quantity: number,
+    uomCode: string
   ): Promise<StockUpdateResult> {
     const existing = await this.prisma.client.warehouseItem.findUnique({
       where: {
@@ -143,6 +150,7 @@ export class StockService {
           itemSkuId,
           quantity: newQty,
           reservedQty: 0,
+          uomCode: uomCode,
         },
       });
     } else {

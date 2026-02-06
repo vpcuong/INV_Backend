@@ -12,6 +12,8 @@ export interface InvTransLineConstructorData {
   itemSkuId: number;
   quantity: number;
   uomCode: string;
+  toBaseFactor?: number;
+  baseQty?: number;
   note?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
@@ -25,6 +27,8 @@ export class InvTransLine {
   private itemSkuId: number;
   private quantity: number;
   private uomCode: string;
+  private toBaseFactor: number;
+  private baseQty: number;
   private note?: string | null;
   private createdAt?: Date;
   private updatedAt?: Date;
@@ -40,6 +44,8 @@ export class InvTransLine {
     this.itemSkuId = data.itemSkuId;
     this.quantity = data.quantity;
     this.uomCode = data.uomCode;
+    this.toBaseFactor = data.toBaseFactor ?? 1;
+    this.baseQty = data.baseQty ?? (data.quantity * this.toBaseFactor);
     this.note = data.note;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
@@ -94,6 +100,14 @@ export class InvTransLine {
 
   public getUomCode(): string {
     return this.uomCode;
+  }
+
+  public getToBaseFactor(): number {
+    return this.toBaseFactor;
+  }
+
+  public getBaseQty(): number {
+    return this.baseQty;
   }
 
   public getNote(): string | null | undefined {
@@ -160,16 +174,17 @@ export class InvTransLine {
   public toPersistence(): any {
     return {
       id: this.id,
-      publicId: this.publicId,
+      publicId: this.publicId, // Prisma will ignore if undefined on create
       headerId: this.headerId,
       lineNum: this.lineNum,
       itemSkuId: this.itemSkuId,
       quantity: this.quantity,
       uomCode: this.uomCode,
+      toBaseFactor: this.toBaseFactor,
+      baseQty: this.baseQty,
       note: this.note,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
-      rowMode: this.rowMode,
     };
   }
 
@@ -182,6 +197,8 @@ export class InvTransLine {
       itemSkuId: data.itemSkuId,
       quantity: Number(data.quantity),
       uomCode: data.uomCode,
+      toBaseFactor: Number(data.toBaseFactor),
+      baseQty: Number(data.baseQty),
       note: data.note,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,

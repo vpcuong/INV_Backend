@@ -13,9 +13,6 @@ import { ColorsModule } from './colors/colors.module';
 import { GendersModule } from './genders/genders.module';
 import { SizesModule } from './sizes/sizes.module';
 import { MaterialsModule } from './materials/materials.module';
-import { UomClassesModule } from './uom-classes/uom-classes.module';
-import { UomsModule } from './uoms/uoms.module';
-import { UomConversionsModule } from './uom-conversions/uom-conversions.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
 import { SupplierItemPackagingsModule } from './supplier-item-packagings/supplier-item-packagings.module';
 import { CustomersModule } from './customers/customers.module';
@@ -27,6 +24,7 @@ import { WarehouseModule } from './warehouse/warehouse.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { FilteringModule } from './common/filtering';
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware';
+import { UomModule } from './uom/uom.module';
 
 @Module({
   imports: [
@@ -43,9 +41,7 @@ import { RequestLoggerMiddleware } from './common/middleware/request-logger.midd
     GendersModule,
     SizesModule,
     MaterialsModule,
-    UomClassesModule,
-    UomsModule,
-    UomConversionsModule,
+    UomModule,
     SuppliersModule,
     SupplierItemPackagingsModule,
     CustomersModule,
