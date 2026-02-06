@@ -12,5 +12,10 @@ export interface IInvTransHeaderRepository {
   delete(id: number, transaction?: PrismaTransaction): Promise<InvTransHeader>;
   findLastTransByPrefix(prefix: string, transaction?: PrismaTransaction): Promise<{ transNum: string } | null>;
   findOneWithRelations(id: number, transaction?: PrismaTransaction): Promise<any | null>;
+  findByReference(
+    refType: string,
+    refId: number,
+    transaction?: PrismaTransaction
+  ): Promise<InvTransHeader[]>;
   transaction<T>(callback: (repo: IInvTransHeaderRepository) => Promise<T>): Promise<T>;
 }

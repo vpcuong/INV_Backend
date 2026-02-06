@@ -151,15 +151,45 @@ export class InventoryService {
       throw new NotFoundException(`Sales Order ${dto.soId} not found`);
     }
 
+    // Validate Quantity (Order - Shipped - Pending >= Current Request)
+    const pendingTransactions = await this.repository.findByReference('SO', so.getId());
+    const pendingDrafts = pendingTransactions.filter(
+      t => t.getType() === InvTransType.GOODS_ISSUE && t.getStatus() === InvTransStatus.DRAFT
+    );
+
+    for (const lineDto of dto.lines) {
+      // Find matching SO line (First open line with matching SKU)
+      const soLine = so.getLines().find(
+        l => l.getItemSkuId() === lineDto.itemSkuId && (l.getStatus() === 'OPEN' || l.getStatus() === 'PARTIAL')
+      );
+      
+      if (!soLine) {
+        throw new BadRequestException(`Item SKU ${lineDto.itemSkuId} not found in open SO lines`);
+      }
+
+      // Calculate pending qty for this SKU
+      const pendingQty = pendingDrafts.reduce((sum, t) => {
+        const matchingLines = t.getLines().filter(l => l.getItemSkuId() === lineDto.itemSkuId);
+        return sum + matchingLines.reduce((s, l) => s + l.getQuantity(), 0);
+      }, 0);
+
+      const totalRequested = Number(lineDto.quantity) + Number(pendingQty) + Number(soLine.getShippedQty());
+      if (totalRequested > soLine.getOrderQty()) {
+        throw new BadRequestException(
+          `Insufficient SO quantity for Item SKU ${lineDto.itemSkuId}. Order: ${soLine.getOrderQty()}, Shipped: ${soLine.getShippedQty()}, Pending: ${pendingQty}, Requested: ${lineDto.quantity}`
+        );
+      }
+    }
+
     return this.create({
       type: InvTransType.GOODS_ISSUE,
       status: InvTransStatus.DRAFT,
       fromWarehouseId: dto.fromWarehouseId,
       referenceType: 'SO',
-      referenceId: so.id,
-      referenceNum: so.soNum,
+      referenceId: so.getId(),
+      referenceNum: so.getSONum(),
       transactionDate: dto.transactionDate,
-      note: dto.note || `Goods Issue for SO ${so.soNum}`,
+      note: dto.note || `Goods Issue for SO ${so.getSONum()}`,
       createdBy: dto.createdBy,
       lines: dto.lines.map((l, i) => ({ ...l, lineNum: l.lineNum || i + 1 })),
     } as CreateInvTransHeaderDto);
@@ -299,6 +329,25 @@ export class InventoryService {
       header.getToWarehouseId(),
       header.getLines()
     );
+
+    // Update SO Shipped Qty if Goods Issue from SO
+    if (header.getType() === InvTransType.GOODS_ISSUE && header.getReferenceType() === 'SO' && header.getReferenceId()) {
+      try {
+         const so = await this.soService.findOne(header.getReferenceId()!);
+         if (so) {
+             for (const line of header.getLines()) {
+                 const soLine = so.getLines().find(l => l.getItemSkuId() === line.getItemSkuId() && l.getStatus() !== 'CLOSED');
+                 if (soLine) {
+                     await this.soService.updateShippedQty(so.getId()!, soLine.getLineNum(), line.getQuantity());
+                 }
+             }
+         }
+      } catch (error) {
+        console.error("Failed to update SO shipped quantity", error);
+        // We log but don't fail the transaction completion itself as stock is already moved?
+        // Ideally should be one transaction.
+      }
+    }
 
     const updated = await this.repository.update(header.getId()!, header);
     return this.toDto(updated);

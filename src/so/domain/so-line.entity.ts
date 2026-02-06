@@ -21,6 +21,7 @@ export interface SOLineConstructorData {
   taxPercent?: number;
   taxAmount?: number;
   totalAmount?: number; // Optional now, auto-calculated
+  shippedQty?: number;
   needByDate?: Date | null;
   status?: string;
   warehouseCode?: string | null;
@@ -37,6 +38,7 @@ export class SOLine {
   private itemSkuId: number;
   private description?: string | null;
   private orderQty: number;
+  private shippedQty: number;
   private uomCode: string;
   private unitPrice: number;
   private discountPercent: number;
@@ -57,6 +59,7 @@ export class SOLine {
     
     // Initialize basic fields first to calculate pricing
     this.orderQty = data.orderQty;
+    this.shippedQty = data.shippedQty ?? 0;
     this.unitPrice = data.unitPrice;
 
     // Handle Discount Logic: Validate Consistency or Auto-calculate
@@ -254,6 +257,33 @@ export class SOLine {
     this.updatedAt = new Date();
   }
 
+  /**
+   * Business rule: Update shipped quantity (add delta)
+   * Automatically updates status to CLOSED if fully shipped
+   */
+  public addShippedQty(delta: number): void {
+    const newShippedQty = Number(this.shippedQty) + Number(delta);
+    
+    if (newShippedQty < 0) {
+      throw new InvalidQuantityException('Shipped quantity cannot be negative', newShippedQty);
+    }
+    
+    this.shippedQty = newShippedQty;
+    
+    // Auto-close line if fully shipped
+    if (this.shippedQty >= this.orderQty && this.status !== SOLineStatus.CLOSED && this.status !== SOLineStatus.CANCELLED) {
+      this.status = SOLineStatus.CLOSED;
+    } else if (this.shippedQty > 0 && this.shippedQty < this.orderQty && this.status === SOLineStatus.OPEN) {
+      this.status = SOLineStatus.PARTIAL;
+    } else if (this.shippedQty === 0 && this.status === SOLineStatus.PARTIAL) {
+      // Revert to OPEN if shipped qty goes back to 0 (e.g. cancellation of shipment)
+      this.status = SOLineStatus.OPEN;
+    }
+
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
+    this.updatedAt = new Date();
+  }
+
   private recalculateDiscount(): void {
     const baseAmount = this.orderQty * this.unitPrice;
     this.discountAmount = (baseAmount * this.discountPercent) / 100;
@@ -312,6 +342,9 @@ export class SOLine {
   public getOrderQty(): number {
     return this.orderQty;
   }
+  public getShippedQty(): number {
+    return this.shippedQty;
+  }
   public getUomCode(): string {
     return this.uomCode;
   }
@@ -367,6 +400,7 @@ export class SOLine {
       itemSkuId: this.itemSkuId,
       description: this.description,
       orderQty: this.orderQty,
+      shippedQty: this.shippedQty,
       uomCode: this.uomCode,
       unitPrice: this.unitPrice,
       discountPercent: this.discountPercent,
@@ -395,6 +429,7 @@ export class SOLine {
       itemSkuId: data.itemSkuId,
       description: data.description,
       orderQty: Number(data.orderQty),
+      shippedQty: data.shippedQty ? Number(data.shippedQty) : 0,
       uomCode: data.uomCode,
       unitPrice: Number(data.unitPrice),
       // For persistence load, assume data is correct. But constructor will re-calc/validate.

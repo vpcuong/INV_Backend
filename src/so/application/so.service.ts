@@ -851,4 +851,21 @@ export class SOService {
       })),
     };
   }
+
+  async updateShippedQty(soId: number, lineNum: number, quantityDelta: number): Promise<void> {
+    const soHeader = await this.soHeaderRepository.findOne(soId);
+    if (!soHeader) {
+      throw new NotFoundException(`Sales Order ${soId} not found`);
+    }
+
+    const line = soHeader.getLines().find(l => l.getLineNum() === lineNum);
+    if (!line) {
+      throw new NotFoundException(`SO Line ${lineNum} not found in SO ${soId}`);
+    }
+
+    // Delegate calculation to domain entity
+    line.addShippedQty(quantityDelta);
+
+    await this.soHeaderRepository.update(soId, soHeader);
+  }
 }

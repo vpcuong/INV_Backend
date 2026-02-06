@@ -192,6 +192,29 @@ export class InvTransHeaderRepository implements IInvTransHeaderRepository {
     return InvTransHeader.fromPersistence(deleted);
   }
 
+  async findByReference(
+    refType: string,
+    refId: number,
+    transaction?: PrismaTransaction
+  ): Promise<InvTransHeader[]> {
+    const db = this.getDb(transaction);
+    const headers = await db.invTransHeader.findMany({
+      where: {
+        referenceType: refType,
+        referenceId: refId,
+      },
+      include: {
+        lines: {
+          orderBy: {
+            lineNum: 'asc',
+          },
+        },
+      },
+    });
+
+    return headers.map((h) => InvTransHeader.fromPersistence(h));
+  }
+
   async findLastTransByPrefix(
     prefix: string,
     transaction?: PrismaTransaction
