@@ -1,9 +1,10 @@
-import { IsOptional, IsString, IsNumber, IsDateString, IsEnum } from 'class-validator';
+import { IsOptional, IsNumber, IsString, IsDateString, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { FilterDto } from '../../common/filtering/dto/filter.dto';
 import { InvTransType, InvTransStatus } from '../enums/inv-trans.enum';
 
-export class InvTransFilterDto {
+export class InvTransFilterDto extends FilterDto {
   @ApiPropertyOptional({ description: 'Transaction Type', enum: InvTransType })
   @IsOptional()
   @IsEnum(InvTransType)
@@ -14,62 +15,35 @@ export class InvTransFilterDto {
   @IsEnum(InvTransStatus)
   status?: InvTransStatus;
 
-  @ApiPropertyOptional({ description: 'Source Warehouse ID', example: 1 })
+  @ApiPropertyOptional({ description: 'Source Warehouse ID' })
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
   fromWarehouseId?: number;
 
-  @ApiPropertyOptional({ description: 'Destination Warehouse ID', example: 2 })
+  @ApiPropertyOptional({ description: 'Destination Warehouse ID' })
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
   toWarehouseId?: number;
 
-  @ApiPropertyOptional({ description: 'Reference Type', example: 'PO' })
+  @ApiPropertyOptional({ description: 'Reference Type' })
   @IsOptional()
   @IsString()
   referenceType?: string;
 
-  @ApiPropertyOptional({ description: 'Reference Number', example: 'PO-2023-001' })
+  @ApiPropertyOptional({ description: 'Reference Number' })
   @IsOptional()
   @IsString()
   referenceNum?: string;
 
-  @ApiPropertyOptional({ description: 'Date From', example: '2023-01-01T00:00:00Z' })
+  @ApiPropertyOptional({ description: 'Date From' })
   @IsOptional()
   @IsDateString()
   transactionDateFrom?: string;
 
-  @ApiPropertyOptional({ description: 'Date To', example: '2023-01-31T23:59:59Z' })
+  @ApiPropertyOptional({ description: 'Date To' })
   @IsOptional()
   @IsDateString()
   transactionDateTo?: string;
-
-  @ApiPropertyOptional({ description: 'Search term', example: 'INV-123' })
-  @IsOptional()
-  @IsString()
-  search?: string;
-
-  @ApiPropertyOptional({ description: 'Page number', example: 1, default: 1 })
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  page?: number;
-
-  @ApiPropertyOptional({ description: 'Limit per page', example: 10, default: 10 })
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  limit?: number;
-
-  @ApiPropertyOptional({ description: 'Sort by field', example: 'createdAt' })
-  @IsOptional()
-  @IsString()
-  sortBy?: string;
-
-  @ApiPropertyOptional({ description: 'Sort order', enum: ['asc', 'desc'], default: 'desc' })
-  @IsOptional()
-  @IsString()
-  sortOrder?: 'asc' | 'desc';
 }

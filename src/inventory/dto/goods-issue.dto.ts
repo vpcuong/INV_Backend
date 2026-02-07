@@ -63,9 +63,9 @@ export class CreateGoodsIssueDto {
 
 export class CreateGoodsIssueFromSoDto {
   @ApiProperty({ description: 'Sales Order ID', example: 1001 })
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  soId: number; // Required SO reference
+  soId: string; // Required SO reference
 
   @ApiProperty({ description: 'Warehouse ID (Source)', example: 1 })
   @IsNumber()

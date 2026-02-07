@@ -174,6 +174,14 @@ export class SOService {
     return this.findOneWithRelations(soHeader.getId()!);
   }
 
+  async findSOByPublicId(publicId: string): Promise<SOHeader> {
+    const soHeader = await this.soHeaderRepository.findByPublicId(publicId);
+    if (!soHeader) {
+      throw new NotFoundException(`Sales Order with public ID ${publicId} not found`);
+    }
+    return soHeader;
+  }
+
   /**
    * Use Case: Update Sales Order by Public ID
    */

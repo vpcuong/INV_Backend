@@ -197,7 +197,7 @@ export class InventoryService {
     await this.validateWarehouse(dto.fromWarehouseId);
 
     // Validate SO exists
-    const so = await this.soService.findOne(dto.soId);
+    const so = await this.soService.findSOByPublicId(dto.soId);
     // NotFoundException is thrown by soService.findOne if not found, checking just in case
     if (!so) {
       throw new NotFoundException(`Sales Order ${dto.soId} not found`);
@@ -210,17 +210,18 @@ export class InventoryService {
     );
 
     for (const lineDto of dto.lines) {
-      // Find matching SO line (First open line with matching SKU)
+
+      const item = await this.itemAggregateService.getItemBySkuPublicId(lineDto.itemSkuId);
+      const sku = item.findSkuByPublicId(lineDto.itemSkuId);
+
+       // Find matching SO line (First open line with matching SKU)
       const soLine = so.getLines().find(
-        l => l.getItemSkuId() === lineDto.itemSkuId && (l.getStatus() === 'OPEN' || l.getStatus() === 'PARTIAL')
+        l => l.getItemSkuId() === sku.getId() && (l.getStatus() === 'OPEN' || l.getStatus() === 'PARTIAL')
       );
       
       if (!soLine) {
         throw new BadRequestException(`Item SKU ${lineDto.itemSkuId} not found in open SO lines`);
       }
-
-      const item = await this.itemAggregateService.getItemBySkuPublicId(lineDto.itemSkuId);
-      const sku = item.findSkuByPublicId(lineDto.itemSkuId);
       // Calculate pending qty for this SKU
       const pendingQty = pendingDrafts.reduce((sum, t) => {
         const matchingLines = t.getLines().filter(l => l.getItemSkuId() === sku.getId());

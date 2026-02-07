@@ -125,7 +125,8 @@ export class InventoryController {
   @Get('export')
   export(@Query() filterDto: InvTransFilterDto) {
     // This could check permissions, etc.
-    // For now, it just reuses the finding logic but in a real app would stream CSV/Excel
+    // For now, it just reuses the finding logic 
+    // but in a real app would stream CSV/Excel
     return this.queryService.findAll(filterDto);
   }
 

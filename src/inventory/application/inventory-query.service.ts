@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { InvTransFilterDto } from '../dto/inv-trans-filter.dto';
 import { QueryBuilderService } from '../../common/filtering/query-builder.service';
+import { FilterConfig } from '../../common/filtering/interfaces/filter-config.interface';
 
 @Injectable()
 export class InventoryQueryService {
@@ -10,75 +11,40 @@ export class InventoryQueryService {
     private readonly queryBuilder: QueryBuilderService
   ) {}
 
-  async findAll(filterDto: InvTransFilterDto): Promise<{
-    data: any[];
-    total: number;
-    page: number;
-    limit: number;
-  }> {
-    const page = filterDto.page || 1;
-    const limit = filterDto.limit || 20;
-    const skip = (page - 1) * limit;
-
-    // Build where clause
-    const where: any = {};
-
-    if (filterDto.type) {
-      where.type = filterDto.type;
-    }
-    if (filterDto.status) {
-      where.status = filterDto.status;
-    }
-    if (filterDto.fromWarehouseId) {
-      where.fromWarehouseId = filterDto.fromWarehouseId;
-    }
-    if (filterDto.toWarehouseId) {
-      where.toWarehouseId = filterDto.toWarehouseId;
-    }
-    if (filterDto.referenceType) {
-      where.referenceType = filterDto.referenceType;
-    }
-    if (filterDto.referenceNum) {
-      where.referenceNum = { contains: filterDto.referenceNum, mode: 'insensitive' };
-    }
-    if (filterDto.transactionDateFrom || filterDto.transactionDateTo) {
-      where.transactionDate = {};
-      if (filterDto.transactionDateFrom) {
-        where.transactionDate.gte = new Date(filterDto.transactionDateFrom);
-      }
-      if (filterDto.transactionDateTo) {
-        where.transactionDate.lte = new Date(filterDto.transactionDateTo);
-      }
-    }
-    if (filterDto.search) {
-      where.OR = [
-        { transNum: { contains: filterDto.search, mode: 'insensitive' } },
-        { referenceNum: { contains: filterDto.search, mode: 'insensitive' } },
-        { note: { contains: filterDto.search, mode: 'insensitive' } },
-      ];
-    }
-
-    // Build order by
-    const orderBy: any = {};
-    if (filterDto.sortBy) {
-      orderBy[filterDto.sortBy] = filterDto.sortOrder || 'desc';
-    } else {
-      orderBy.transactionDate = 'desc';
-    }
-
-    const [data, total] = await Promise.all([
-      this.prisma.client.invTransHeader.findMany({
-        where,
-        orderBy,
-        skip,
-        take: limit,
-        include: {
+  async findAll(filterDto: InvTransFilterDto) {
+    const config: FilterConfig = {
+      searchableFields: ['transNum', 'referenceNum', 'note'],
+      filterableFields: [
+        'type',
+        'status',
+        'fromWarehouseId',
+        'toWarehouseId',
+        'referenceType',
+        'referenceNum',
+        'createdBy',
+      ],
+      sortableFields: [
+        'transNum',
+        'type',
+        'status',
+        'transactionDate',
+        'createdAt',
+        'updatedAt',
+      ],
+      defaultSort: [{ field: 'transactionDate', order: 'desc' }],
+      maxLimit: 100,
+      relations: [
+        {
           fromWarehouse: {
             select: { id: true, code: true, name: true },
           },
+        },
+        {
           toWarehouse: {
             select: { id: true, code: true, name: true },
           },
+        },
+        {
           lines: {
             include: {
               itemSku: {
@@ -91,21 +57,64 @@ export class InventoryQueryService {
             },
             orderBy: { lineNum: 'asc' },
           },
-          reason: true,
-          _count: {
-            select: { lines: true },
-          },
         },
-      }),
-      this.prisma.client.invTransHeader.count({ where }),
+        'reason',
+      ],
+    };
+
+    const query = this.queryBuilder.buildQuery(filterDto, config);
+
+    // Apply quick filters (domain-specific filters beyond generic FilterDto)
+    if (!query.where.AND) {
+      query.where.AND = [];
+    }
+    if (filterDto.type) {
+      query.where.AND.push({ type: filterDto.type });
+    }
+    if (filterDto.status) {
+      query.where.AND.push({ status: filterDto.status });
+    }
+    if (filterDto.fromWarehouseId) {
+      query.where.AND.push({ fromWarehouseId: filterDto.fromWarehouseId });
+    }
+    if (filterDto.toWarehouseId) {
+      query.where.AND.push({ toWarehouseId: filterDto.toWarehouseId });
+    }
+    if (filterDto.referenceType) {
+      query.where.AND.push({ referenceType: filterDto.referenceType });
+    }
+    if (filterDto.referenceNum) {
+      query.where.AND.push({
+        referenceNum: { contains: filterDto.referenceNum, mode: 'insensitive' },
+      });
+    }
+    if (filterDto.transactionDateFrom || filterDto.transactionDateTo) {
+      const dateFilter: any = {};
+      if (filterDto.transactionDateFrom) {
+        dateFilter.gte = new Date(filterDto.transactionDateFrom);
+      }
+      if (filterDto.transactionDateTo) {
+        dateFilter.lte = new Date(filterDto.transactionDateTo);
+      }
+      query.where.AND.push({ transactionDate: dateFilter });
+    }
+
+    // Clean up empty AND array
+    if (query.where.AND.length === 0) {
+      delete query.where.AND;
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.client.invTransHeader.findMany(query),
+      this.prisma.client.invTransHeader.count({ where: query.where }),
     ]);
 
-    return {
+    return this.queryBuilder.buildPaginatedResponse(
       data,
       total,
-      page,
-      limit,
-    };
+      filterDto.page || 1,
+      filterDto.limit
+    );
   }
 
   async findByPublicId(publicId: string): Promise<any | null> {
