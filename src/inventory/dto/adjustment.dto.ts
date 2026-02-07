@@ -33,11 +33,6 @@ export class CreateAdjustmentDto {
   @IsOptional()
   note?: string;
 
-  @ApiProperty({ description: 'Created By', example: 'admin' })
-  @IsString()
-  @IsNotEmpty()
-  createdBy: string;
-
   @ApiProperty({ description: 'Adjustment Lines', type: [CreateInvTransLineDto] })
   @IsArray()
   @ValidateNested({ each: true })

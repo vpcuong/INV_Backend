@@ -8,7 +8,7 @@ import { UpdatePOWithLinesDto } from './dto/update-po-with-lines.dto';
 export class PoService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createDto: CreatePOHeaderDto) {
+  async create(createDto: CreatePOHeaderDto, createdBy: string) {
     // Auto-generate PO number if not provided
     const poNum = await this.generatePONumber();
 
@@ -23,7 +23,7 @@ export class PoService {
         exchangeRate: createDto.exchangeRate || 1,
         totalAmount: createDto.totalAmount,
         note: createDto.note,
-        createdBy: 'test user',
+        createdBy,
         lines: createDto.lines
           ? {
               create: createDto.lines.map((line) => ({
@@ -38,7 +38,7 @@ export class PoService {
                 warehouseCode: line.warehouseCode,
                 status: (line.status || 'OPEN') as any,
                 note: line.note,
-                createdBy: line.createdBy,
+                createdBy,
               })),
             }
           : undefined,
@@ -145,7 +145,7 @@ export class PoService {
     });
   }
 
-  async updateWithLines(id: number, dto: UpdatePOWithLinesDto) {
+  async updateWithLines(id: number, dto: UpdatePOWithLinesDto, createdBy?: string) {
     return this.prisma.client.$transaction(async (tx) => {
       // 1. Verify PO exists
       let poHeader = await tx.pOHeader.findUnique({
@@ -216,7 +216,7 @@ export class PoService {
                 warehouseCode: line.warehouseCode,
                 status: (line.status || 'OPEN') as any,
                 note: line.note,
-                createdBy: line.createdBy,
+                createdBy,
               },
             });
           }

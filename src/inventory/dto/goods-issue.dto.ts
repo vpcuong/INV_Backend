@@ -54,11 +54,6 @@ export class CreateGoodsIssueDto {
   @IsOptional()
   note?: string;
 
-  @ApiProperty({ description: 'Created By', example: 'admin' })
-  @IsString()
-  @IsNotEmpty()
-  createdBy: string;
-
   @ApiProperty({ description: 'Issue Lines', type: [CreateGoodsIssueLineDto] })
   @IsArray()
   @ValidateNested({ each: true })
@@ -86,11 +81,6 @@ export class CreateGoodsIssueFromSoDto {
   @IsString()
   @IsOptional()
   note?: string;
-
-  @ApiProperty({ description: 'Created By', example: 'admin' })
-  @IsString()
-  @IsNotEmpty()
-  createdBy: string;
 
   @ApiProperty({ description: 'Issue Lines', type: [CreateGoodsIssueLineDto] })
   @IsArray()

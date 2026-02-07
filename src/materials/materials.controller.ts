@@ -10,12 +10,14 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { MaterialService } from './application/material.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('Materials')
+@ApiBearerAuth()
 @Controller('materials')
 export class MaterialsController {
   constructor(private readonly materialsService: MaterialService) {}
@@ -25,8 +27,11 @@ export class MaterialsController {
   @ApiOperation({ summary: 'Create a new material' })
   @ApiResponse({ status: 201, description: 'Material created successfully' })
   @ApiResponse({ status: 409, description: 'Material code already exists' })
-  create(@Body() createMaterialDto: CreateMaterialDto) {
-    return this.materialsService.create(createMaterialDto);
+  create(
+    @Body() createMaterialDto: CreateMaterialDto,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.materialsService.create(createMaterialDto, user.userId);
   }
 
   @Get()
@@ -50,7 +55,7 @@ export class MaterialsController {
   @ApiResponse({ status: 404, description: 'Material not found' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateMaterialDto: UpdateMaterialDto
+    @Body() updateMaterialDto: UpdateMaterialDto,
   ) {
     return this.materialsService.update(id, updateMaterialDto);
   }

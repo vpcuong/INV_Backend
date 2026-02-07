@@ -89,15 +89,6 @@ export class CreateCustomerDto {
   isActive?: boolean;
 
   @ApiPropertyOptional({
-    description: 'Created by user',
-    example: 'admin',
-  })
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  createdBy?: string;
-
-  @ApiPropertyOptional({
     description: 'Sort order',
     example: 0,
     default: 0,

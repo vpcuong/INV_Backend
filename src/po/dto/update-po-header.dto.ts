@@ -100,12 +100,4 @@ export class UpdatePOHeaderDto {
   @IsOptional()
   @IsString()
   note?: string;
-
-  @ApiPropertyOptional({
-    description: 'Created by user',
-    example: 'admin@example.com',
-  })
-  @IsOptional()
-  @IsString()
-  createdBy?: string;
 }

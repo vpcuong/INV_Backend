@@ -9,7 +9,7 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { SOService } from './application/so.service';
 import { SOQueryService } from './application/so-query.service';
 import { CreateSOHeaderDto } from './dto/create-so-header.dto';
@@ -19,8 +19,10 @@ import { SOFilterDto } from './dto/so-filter.dto';
 import { CreateSOLineDto } from './dto/composed/create-so-line.dto';
 import { UpdateSOLineDto } from './dto/update-so-line.dto';
 import { ULIDValidationPipe } from '../common/pipes/ulid-validation.pipe';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('Sales Orders')
+@ApiBearerAuth()
 @Controller('so')
 export class SalesOrdersController {
   constructor(
@@ -38,8 +40,11 @@ export class SalesOrdersController {
     status: 400,
     description: 'Invalid data or business rule violation',
   })
-  async create(@Body() createDto: CreateSOHeaderDto) {
-    return this.soService.create(createDto);
+  async create(
+    @Body() createDto: CreateSOHeaderDto,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.soService.create(createDto, user.userId);
   }
 
   @Get()

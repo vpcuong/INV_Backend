@@ -50,14 +50,4 @@ export class CreateMaterialDto {
   @Min(0)
   sortOrder?: number;
 
-  @ApiProperty({
-    description: 'Created by user',
-    example: 'admin',
-    required: false,
-    maxLength: 50,
-  })
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  createdBy?: string;
 }

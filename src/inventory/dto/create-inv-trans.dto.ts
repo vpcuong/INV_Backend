@@ -84,11 +84,6 @@ export class CreateInvTransHeaderDto {
   @IsOptional()
   note?: string;
 
-  @ApiProperty({ description: 'Created By', example: 'admin' })
-  @IsString()
-  @IsNotEmpty()
-  createdBy: string;
-
   @ApiProperty({ description: 'Transaction Lines', type: [CreateInvTransLineDto] })
   @IsArray()
   @ValidateNested({ each: true })

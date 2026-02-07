@@ -33,11 +33,6 @@ export class CreateStockTransferDto {
   @IsOptional()
   note?: string;
 
-  @ApiProperty({ description: 'Created By', example: 'admin' })
-  @IsString()
-  @IsNotEmpty()
-  createdBy: string;
-
   @ApiProperty({ description: 'Transfer Lines', type: [CreateInvTransLineDto] })
   @IsArray()
   @ValidateNested({ each: true })

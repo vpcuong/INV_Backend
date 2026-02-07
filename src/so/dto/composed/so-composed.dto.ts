@@ -109,13 +109,4 @@ export class SOMetadataDto {
   @IsOptional()
   @IsString()
   internalNote?: string;
-
-  @ApiProperty({
-    description: 'Created by user',
-    example: 'admin@example.com',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  createdBy?: string;
 }

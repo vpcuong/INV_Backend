@@ -9,13 +9,15 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { PoService } from './po.service';
 import { CreatePOHeaderDto } from './dto/create-po-header.dto';
 import { UpdatePOHeaderDto } from './dto/update-po-header.dto';
 import { UpdatePOWithLinesDto } from './dto/update-po-with-lines.dto';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('Purchase Orders')
+@ApiBearerAuth()
 @Controller('po')
 export class PoController {
   constructor(private readonly poService: PoService) {}
@@ -26,8 +28,11 @@ export class PoController {
     status: 201,
     description: 'Purchase order created successfully',
   })
-  create(@Body() createDto: CreatePOHeaderDto) {
-    return this.poService.create(createDto);
+  create(
+    @Body() createDto: CreatePOHeaderDto,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.poService.create(createDto, user.userId);
   }
 
   @Get()
@@ -77,9 +82,10 @@ export class PoController {
   @ApiResponse({ status: 404, description: 'Purchase order not found' })
   updateWithLines(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdatePOWithLinesDto
+    @Body() dto: UpdatePOWithLinesDto,
+    @CurrentUser() user: { userId: string },
   ) {
-    return this.poService.updateWithLines(id, dto);
+    return this.poService.updateWithLines(id, dto, user.userId);
   }
 
   @Patch(':id')

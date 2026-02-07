@@ -17,7 +17,7 @@ export class SizeService {
     private readonly sizeRepository: ISizeRepository
   ) {}
 
-  async create(createSizeDto: CreateSizeDto): Promise<Size> {
+  async create(createSizeDto: CreateSizeDto, createdBy: string): Promise<Size> {
     // Check if code already exists
     const existing = await this.sizeRepository.findByCode(createSizeDto.code);
     if (existing) {
@@ -30,7 +30,7 @@ export class SizeService {
       code: createSizeDto.code,
       desc: createSizeDto.desc,
       sortOrder: createSizeDto.sortOrder,
-      createdBy: createSizeDto.createdBy,
+      createdBy,
     });
 
     return this.sizeRepository.create(size);

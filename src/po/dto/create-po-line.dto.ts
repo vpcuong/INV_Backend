@@ -100,13 +100,4 @@ export class CreatePOLineDto {
   @IsOptional()
   @IsString()
   note?: string;
-
-  @ApiProperty({
-    description: 'Created by username',
-    example: 'admin',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  createdBy?: string;
 }

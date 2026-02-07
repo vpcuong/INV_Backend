@@ -10,12 +10,14 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { SizeService } from './application/size.service';
 import { CreateSizeDto } from './dto/create-size.dto';
 import { UpdateSizeDto } from './dto/update-size.dto';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('sizes')
+@ApiBearerAuth()
 @Controller('sizes')
 export class SizesController {
   constructor(private readonly sizesService: SizeService) {}
@@ -25,8 +27,11 @@ export class SizesController {
   @ApiOperation({ summary: 'Create a new size' })
   @ApiResponse({ status: 201, description: 'Size created successfully' })
   @ApiResponse({ status: 409, description: 'Size code already exists' })
-  create(@Body() createSizeDto: CreateSizeDto) {
-    return this.sizesService.create(createSizeDto);
+  create(
+    @Body() createSizeDto: CreateSizeDto,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.sizesService.create(createSizeDto, user.userId);
   }
 
   @Get()

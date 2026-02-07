@@ -53,11 +53,6 @@ export class CreateGoodsReceiptDto {
   @IsOptional()
   note?: string;
 
-  @ApiProperty({ description: 'Created By', example: 'manager' })
-  @IsString()
-  @IsNotEmpty()
-  createdBy: string;
-
   @ApiProperty({ description: 'Receipt Lines', type: [CreateGoodsReceiptLineDto] })
   @IsArray()
   @ValidateNested({ each: true })
@@ -85,11 +80,6 @@ export class CreateGoodsReceiptFromPoDto {
   @IsString()
   @IsOptional()
   note?: string;
-
-  @ApiProperty({ description: 'Created By', example: 'manager' })
-  @IsString()
-  @IsNotEmpty()
-  createdBy: string;
 
   @ApiProperty({ description: 'Receipt Lines', type: [CreateGoodsReceiptLineDto] })
   @IsArray()

@@ -45,7 +45,7 @@ export class SOService {
   /**
    * Use Case: Create new Sales Order
    */
-  async create(createDto: CreateSOHeaderDto): Promise<any> {
+  async create(createDto: CreateSOHeaderDto, createdBy: string): Promise<any> {
     const itemSkus = await Promise.all(
       createDto.lines.map(async (line) => {
         const item = await this.itemAggregateService.getItemBySkuPublicId(line.itemSkuId);
@@ -117,7 +117,7 @@ export class SOService {
       customerPoNum: createDto.metadata?.customerPoNum,
       headerNote: createDto.metadata?.headerNote,
       internalNote: createDto.metadata?.internalNote,
-      createdBy: createDto.metadata?.createdBy || 'system',
+      createdBy,
       lines,
     });
 

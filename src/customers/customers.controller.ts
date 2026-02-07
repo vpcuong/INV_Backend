@@ -9,14 +9,16 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { CustomerService } from './application/customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { CustomerQueryService } from './application/customer-query.service';
 import { CustomerFilterDto } from './dto/customer-filter.dto';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('Customers')
+@ApiBearerAuth()
 @Controller('customers')
 export class CustomersController {
   constructor(
@@ -29,8 +31,11 @@ export class CustomersController {
   @ApiResponse({ status: 201, description: 'Customer created successfully' })
   @ApiResponse({ status: 400, description: 'Bad request - validation error' })
   @ApiResponse({ status: 409, description: 'Customer code already exists' })
-  create(@Body() createDto: CreateCustomerDto) {
-    return this.customersService.create(createDto);
+  create(
+    @Body() createDto: CreateCustomerDto,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.customersService.create(createDto, user.userId);
   }
 
   @Get()

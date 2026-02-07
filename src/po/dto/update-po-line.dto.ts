@@ -99,12 +99,4 @@ export class UpdatePOLineDto {
   @IsOptional()
   @IsString()
   note?: string;
-
-  @ApiPropertyOptional({
-    description: 'Created by username',
-    example: 'admin',
-  })
-  @IsOptional()
-  @IsString()
-  createdBy?: string;
 }

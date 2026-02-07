@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { InventoryService } from '../application/inventory.service';
 import { InventoryQueryService } from '../application/inventory-query.service';
 import { CreateInvTransHeaderDto, CreateInvTransLineDto } from '../dto/create-inv-trans.dto';
@@ -19,7 +20,10 @@ import { CreateGoodsReceiptDto, CreateGoodsReceiptFromPoDto } from '../dto/goods
 import { CreateGoodsIssueDto, CreateGoodsIssueFromSoDto } from '../dto/goods-issue.dto';
 import { CreateAdjustmentDto } from '../dto/adjustment.dto';
 import { CreateStockTransferDto } from '../dto/stock-transfer.dto';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 
+@ApiTags('Inventory')
+@ApiBearerAuth()
 @Controller('inventory')
 export class InventoryController {
   constructor(
@@ -32,8 +36,11 @@ export class InventoryController {
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() dto: CreateInvTransHeaderDto) {
-    return this.inventoryService.create(dto);
+  create(
+    @Body() dto: CreateInvTransHeaderDto,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.inventoryService.create(dto, user.userId);
   }
 
   // =================================================================================================
@@ -42,14 +49,20 @@ export class InventoryController {
 
   @Post('goods-receipt')
   @HttpCode(HttpStatus.CREATED)
-  createGoodsReceipt(@Body() dto: CreateGoodsReceiptDto) {
-    return this.inventoryService.createGoodsReceipt(dto);
+  createGoodsReceipt(
+    @Body() dto: CreateGoodsReceiptDto,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.inventoryService.createGoodsReceipt(dto, user.userId);
   }
 
   @Post('goods-receipt/from-po')
   @HttpCode(HttpStatus.CREATED)
-  createGoodsReceiptFromPo(@Body() dto: CreateGoodsReceiptFromPoDto) {
-    return this.inventoryService.createGoodsReceiptFromPo(dto);
+  createGoodsReceiptFromPo(
+    @Body() dto: CreateGoodsReceiptFromPoDto,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.inventoryService.createGoodsReceiptFromPo(dto, user.userId);
   }
 
   // =================================================================================================
@@ -58,14 +71,20 @@ export class InventoryController {
 
   @Post('goods-issue')
   @HttpCode(HttpStatus.CREATED)
-  createGoodsIssue(@Body() dto: CreateGoodsIssueDto) {
-    return this.inventoryService.createGoodsIssue(dto);
+  createGoodsIssue(
+    @Body() dto: CreateGoodsIssueDto,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.inventoryService.createGoodsIssue(dto, user.userId);
   }
 
   @Post('goods-issue/from-so')
   @HttpCode(HttpStatus.CREATED)
-  createGoodsIssueFromSo(@Body() dto: CreateGoodsIssueFromSoDto) {
-    return this.inventoryService.createGoodsIssueFromSo(dto);
+  createGoodsIssueFromSo(
+    @Body() dto: CreateGoodsIssueFromSoDto,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.inventoryService.createGoodsIssueFromSo(dto, user.userId);
   }
 
   // =================================================================================================
@@ -74,8 +93,11 @@ export class InventoryController {
 
   @Post('adjustment')
   @HttpCode(HttpStatus.CREATED)
-  createAdjustment(@Body() dto: CreateAdjustmentDto) {
-    return this.inventoryService.createAdjustment(dto);
+  createAdjustment(
+    @Body() dto: CreateAdjustmentDto,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.inventoryService.createAdjustment(dto, user.userId);
   }
 
   // =================================================================================================
@@ -84,8 +106,11 @@ export class InventoryController {
 
   @Post('stock-transfer')
   @HttpCode(HttpStatus.CREATED)
-  createStockTransfer(@Body() dto: CreateStockTransferDto) {
-    return this.inventoryService.createStockTransfer(dto);
+  createStockTransfer(
+    @Body() dto: CreateStockTransferDto,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.inventoryService.createStockTransfer(dto, user.userId);
   }
 
   // =================================================================================================

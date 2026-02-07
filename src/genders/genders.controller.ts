@@ -10,12 +10,14 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { GenderService } from './application/gender.service';
 import { CreateGenderDto } from './dto/create-gender.dto';
 import { UpdateGenderDto } from './dto/update-gender.dto';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('Genders')
+@ApiBearerAuth()
 @Controller('genders')
 export class GendersController {
   constructor(private readonly gendersService: GenderService) {}
@@ -25,8 +27,11 @@ export class GendersController {
   @ApiOperation({ summary: 'Create a new gender' })
   @ApiResponse({ status: 201, description: 'Gender created successfully' })
   @ApiResponse({ status: 409, description: 'Gender code already exists' })
-  create(@Body() createGenderDto: CreateGenderDto) {
-    return this.gendersService.create(createGenderDto);
+  create(
+    @Body() createGenderDto: CreateGenderDto,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.gendersService.create(createGenderDto, user.userId);
   }
 
   @Get()
@@ -50,7 +55,7 @@ export class GendersController {
   @ApiResponse({ status: 404, description: 'Gender not found' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateGenderDto: UpdateGenderDto
+    @Body() updateGenderDto: UpdateGenderDto,
   ) {
     return this.gendersService.update(id, updateGenderDto);
   }

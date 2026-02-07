@@ -68,7 +68,7 @@ export class InventoryService {
   /**
    * Create Generic (Legacy - to be potentially deprecated or kept for internal use)
    */
-  async create(dto: CreateInvTransHeaderDto): Promise<any> {
+  async create(dto: CreateInvTransHeaderDto, createdBy: string): Promise<any> {
     // Generate transaction number
     const transNum = await this.numberGenerator.generate(dto.type as InvTransType);
 
@@ -125,7 +125,7 @@ export class InventoryService {
       reasonId: dto.reasonId,
       transactionDate: dto.transactionDate ? new Date(dto.transactionDate) : undefined,
       note: dto.note,
-      createdBy: dto.createdBy,
+      createdBy,
       lines,
     });
 
@@ -137,7 +137,7 @@ export class InventoryService {
   // GOODS RECEIPT
   // =================================================================================================
 
-  async createGoodsReceipt(dto: CreateGoodsReceiptDto): Promise<any> {
+  async createGoodsReceipt(dto: CreateGoodsReceiptDto, createdBy: string): Promise<any> {
     // Validate Warehouse
     await this.validateWarehouse(dto.toWarehouseId);
 
@@ -147,12 +147,11 @@ export class InventoryService {
       toWarehouseId: dto.toWarehouseId,
       transactionDate: dto.transactionDate,
       note: dto.note,
-      createdBy: dto.createdBy,
       lines: dto.lines.map((l, i) => ({ ...l, lineNum: l.lineNum || i + 1 })),
-    } as CreateInvTransHeaderDto);
+    } as CreateInvTransHeaderDto, createdBy);
   }
 
-  async createGoodsReceiptFromPo(dto: CreateGoodsReceiptFromPoDto): Promise<any> {
+  async createGoodsReceiptFromPo(dto: CreateGoodsReceiptFromPoDto, createdBy: string): Promise<any> {
     // Validate Warehouse
     await this.validateWarehouse(dto.toWarehouseId);
 
@@ -171,16 +170,15 @@ export class InventoryService {
       referenceNum: po.poNum,
       transactionDate: dto.transactionDate,
       note: dto.note || `Goods Receipt from PO ${po.poNum}`,
-      createdBy: dto.createdBy,
       lines: dto.lines.map((l, i) => ({ ...l, lineNum: l.lineNum || i + 1 })),
-    } as CreateInvTransHeaderDto);
+    } as CreateInvTransHeaderDto, createdBy);
   }
 
   // =================================================================================================
   // GOODS ISSUE
   // =================================================================================================
 
-  async createGoodsIssue(dto: CreateGoodsIssueDto): Promise<any> {
+  async createGoodsIssue(dto: CreateGoodsIssueDto, createdBy: string): Promise<any> {
     // Validate Warehouse
     await this.validateWarehouse(dto.fromWarehouseId);
 
@@ -190,12 +188,11 @@ export class InventoryService {
       fromWarehouseId: dto.fromWarehouseId,
       transactionDate: dto.transactionDate,
       note: dto.note,
-      createdBy: dto.createdBy,
       lines: dto.lines.map((l, i) => ({ ...l, lineNum: l.lineNum || i + 1 })),
-    } as CreateInvTransHeaderDto);
+    } as CreateInvTransHeaderDto, createdBy);
   }
 
-  async createGoodsIssueFromSo(dto: CreateGoodsIssueFromSoDto): Promise<any> {
+  async createGoodsIssueFromSo(dto: CreateGoodsIssueFromSoDto, createdBy: string): Promise<any> {
     // Validate Warehouse
     await this.validateWarehouse(dto.fromWarehouseId);
 
@@ -263,16 +260,15 @@ export class InventoryService {
       referenceNum: so.getSONum(),
       transactionDate: dto.transactionDate,
       note: dto.note || `Goods Issue for SO ${so.getSONum()}`,
-      createdBy: dto.createdBy,
       lines: dto.lines.map((l, i) => ({ ...l, lineNum: l.lineNum || i + 1 })),
-    } as CreateInvTransHeaderDto);
+    } as CreateInvTransHeaderDto, createdBy);
   }
 
   // =================================================================================================
   // ADJUSTMENT
   // =================================================================================================
 
-  async createAdjustment(dto: CreateAdjustmentDto): Promise<any> {
+  async createAdjustment(dto: CreateAdjustmentDto, createdBy: string): Promise<any> {
     // Validate Warehouse
     await this.validateWarehouse(dto.fromWarehouseId);
 
@@ -283,16 +279,15 @@ export class InventoryService {
       reasonId: dto.reasonId,
       transactionDate: dto.transactionDate,
       note: dto.note,
-      createdBy: dto.createdBy,
       lines: dto.lines.map((l, i) => ({ ...l, lineNum: l.lineNum || i + 1 })),
-    } as CreateInvTransHeaderDto);
+    } as CreateInvTransHeaderDto, createdBy);
   }
 
   // =================================================================================================
   // STOCK TRANSFER
   // =================================================================================================
 
-  async createStockTransfer(dto: CreateStockTransferDto): Promise<any> {
+  async createStockTransfer(dto: CreateStockTransferDto, createdBy: string): Promise<any> {
     // Validate Warehouses
     await this.validateWarehouse(dto.fromWarehouseId);
     await this.validateWarehouse(dto.toWarehouseId);
@@ -308,9 +303,8 @@ export class InventoryService {
       toWarehouseId: dto.toWarehouseId,
       transactionDate: dto.transactionDate,
       note: dto.note,
-      createdBy: dto.createdBy,
       lines: dto.lines.map((l, i) => ({ ...l, lineNum: l.lineNum || i + 1 })),
-    } as CreateInvTransHeaderDto);
+    } as CreateInvTransHeaderDto, createdBy);
   }
 
   // Helper
