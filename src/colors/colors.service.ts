@@ -7,9 +7,12 @@ import { UpdateColorDto } from './dto/update-color.dto';
 export class ColorsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createColorDto: CreateColorDto) {
+  async create(createColorDto: CreateColorDto, createdBy: string) {
     return this.prisma.client.color.create({
-      data: createColorDto,
+      data: {
+        ...createColorDto,
+        createdBy,
+      },
     });
   }
 

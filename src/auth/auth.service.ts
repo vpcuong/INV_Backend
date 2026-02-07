@@ -19,29 +19,37 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const existingUser = await this.prisma.client.user.findUnique({
+    const existingByUserId = await this.prisma.client.user.findUnique({
+      where: { userId: registerDto.userId },
+    });
+    if (existingByUserId) {
+      throw new ConflictException('User ID already exists');
+    }
+
+    const existingByEmail = await this.prisma.client.user.findUnique({
       where: { email: registerDto.email },
     });
-
-    if (existingUser) {
-      throw new ConflictException('User with this email already exists');
+    if (existingByEmail) {
+      throw new ConflictException('Email already exists');
     }
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
     const user = await this.prisma.client.user.create({
       data: {
+        userId: registerDto.userId,
         email: registerDto.email,
         password: hashedPassword,
         name: registerDto.name,
       },
     });
 
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    const tokens = await this.generateTokens(user.id, user.userId, user.role);
 
     return {
       user: {
         id: user.id,
+        userId: user.userId,
         email: user.email,
         name: user.name,
         role: user.role,
@@ -52,7 +60,7 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const user = await this.prisma.client.user.findUnique({
-      where: { email: loginDto.email },
+      where: { userId: loginDto.userId },
     });
 
     if (!user) {
@@ -72,11 +80,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    const tokens = await this.generateTokens(user.id, user.userId, user.role);
 
     return {
       user: {
         id: user.id,
+        userId: user.userId,
         email: user.email,
         name: user.name,
         role: user.role,
@@ -85,11 +94,12 @@ export class AuthService {
     };
   }
 
-  async validateUser(userId: number) {
+  async validateUser(id: number) {
     const user = await this.prisma.client.user.findUnique({
-      where: { id: userId },
+      where: { id },
       select: {
         id: true,
+        userId: true,
         email: true,
         name: true,
         role: true,
@@ -104,8 +114,8 @@ export class AuthService {
     return user;
   }
 
-  private async generateTokens(userId: number, email: string, role: string) {
-    const payload = { sub: userId, email, role };
+  private async generateTokens(id: number, userId: string, role: string) {
+    const payload = { sub: id, userId, role };
 
     const accessToken = this.jwtService.sign(payload);
 
@@ -115,7 +125,7 @@ export class AuthService {
         '7d') as any,
     });
 
-    await this.saveRefreshToken(userId, refreshToken);
+    await this.saveRefreshToken(id, refreshToken);
 
     return {
       access_token: accessToken,
@@ -144,7 +154,6 @@ export class AuthService {
         secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
       });
 
-      // Find matching token in DB
       const storedTokens = await this.prisma.client.refreshToken.findMany({
         where: { userId: payload.sub },
       });
@@ -168,7 +177,7 @@ export class AuthService {
         throw new UnauthorizedException('User not found');
       }
 
-      return this.generateTokens(user.id, user.email, user.role);
+      return this.generateTokens(user.id, user.userId, user.role);
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error;

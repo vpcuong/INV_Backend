@@ -1,7 +1,16 @@
-import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsOptional, MaxLength, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
+  @ApiProperty({ description: 'User ID for login', example: 'phucuo.bmn' })
+  @IsString()
+  @MinLength(3)
+  @MaxLength(50)
+  @Matches(/^[a-zA-Z0-9._-]+$/, {
+    message: 'userId can only contain letters, numbers, dots, hyphens and underscores',
+  })
+  userId!: string;
+
   @ApiProperty({ description: 'Email address', example: 'user@example.com' })
   @IsEmail()
   email!: string;
