@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
 import { InventoryController } from './controllers/inventory.controller';
+import { AdjustReasonController } from './controllers/adjust-reason.controller';
 import { InventoryService } from './application/inventory.service';
 import { InventoryQueryService } from './application/inventory-query.service';
+import { AdjustReasonService } from './application/adjust-reason.service';
 import { InvTransHeaderRepository } from './infrastructure/inventory.repository';
+import { AdjustReasonRepository } from './infrastructure/adjust-reason.repository';
 import { InvTransNumberGeneratorService } from './domain/services/inv-trans-number-generator.service';
 import { StockService } from './domain/services/stock.service';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -11,6 +14,7 @@ import {
   INV_TRANS_HEADER_REPOSITORY,
   INV_TRANS_NUMBER_GENERATOR,
   STOCK_SERVICE,
+  ADJUST_REASON_REPOSITORY,
 } from './constant/inventory.token';
 import { WarehouseModule } from '../warehouse/warehouse.module';
 import { SoModule } from '../so/so.module';
@@ -23,6 +27,7 @@ import { UomModule } from '../uom/uom.module';
   providers: [
     InventoryService,
     InventoryQueryService,
+    AdjustReasonService,
     QueryBuilderService,
     {
       provide: INV_TRANS_HEADER_REPOSITORY,
@@ -39,8 +44,12 @@ import { UomModule } from '../uom/uom.module';
       provide: STOCK_SERVICE,
       useClass: StockService,
     },
+    {
+      provide: ADJUST_REASON_REPOSITORY,
+      useClass: AdjustReasonRepository,
+    },
   ],
-  controllers: [InventoryController],
-  exports: [InventoryService, InventoryQueryService],
+  controllers: [InventoryController, AdjustReasonController],
+  exports: [InventoryService, InventoryQueryService, AdjustReasonService],
 })
 export class InventoryModule {}

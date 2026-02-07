@@ -32,3 +32,24 @@ export class InvalidWarehouseConfigException extends InventoryDomainException {
     this.name = 'InvalidWarehouseConfigException';
   }
 }
+
+export class InvalidAdjustReasonException extends InventoryDomainException {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidAdjustReasonException';
+  }
+}
+
+export class AdjustReasonNotFoundException extends InventoryDomainException {
+  constructor(identifier: string | number) {
+    super(`Adjust reason '${identifier}' not found`);
+    this.name = 'AdjustReasonNotFoundException';
+  }
+}
+
+export class DuplicateAdjustReasonCodeException extends InventoryDomainException {
+  constructor(code: string) {
+    super(`Adjust reason with code '${code}' already exists`);
+    this.name = 'DuplicateAdjustReasonCodeException';
+  }
+}

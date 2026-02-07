@@ -14,6 +14,13 @@ enum InvTransStatus {
   CANCELLED
 }
 
+enum InventoryAdjustDirection {
+  INCREASE
+  DECREASE
+  BOTH
+}
+
+
 // ============================================
 // HEADER - Phiếu xuất/nhập/chuyển kho
 // ============================================
@@ -34,8 +41,8 @@ model InvTransHeader {
   referenceNum  String? @db.VarChar(50)
 
   // For ADJUSTMENT type
-  reasonCode String? @db.VarChar(20)
-
+  
+  reasonId Int?
   // Metadata
   transactionDate DateTime @default(now())
   note            String?  @db.VarChar(500)
@@ -46,6 +53,7 @@ model InvTransHeader {
   // Relations
   fromWarehouse Warehouse?     @relation("InvTransFrom", fields: [fromWarehouseId], references: [id])
   toWarehouse   Warehouse?     @relation("InvTransTo", fields: [toWarehouseId], references: [id])
+  reason    InventoryAdjustReason? @relation(fields: [reasonId], references: [id])
   lines         InvTransLine[]
 
   @@index([transNum])
@@ -91,3 +99,25 @@ model InvTransLine {
   //uoms UOM[] @relation("invTransLineUoms")
   //uoms UOM[] @relation("invTransLineBaseUoms")
 }
+
+model InventoryAdjustReason {
+  id               Int   @id @default(autoincrement())
+  
+  code             String   @unique @db.VarChar(30)
+  name             String   @db.VarChar(255)
+  description      String?
+
+  direction        InventoryAdjustDirection
+
+  affectCost       Boolean  @default(true)
+  requireNote      Boolean  @default(false)
+  requireApproval  Boolean  @default(false)
+
+  isActive         Boolean  @default(true)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  trans InvTransHeader[]
+}
+

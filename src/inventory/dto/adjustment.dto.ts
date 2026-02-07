@@ -18,10 +18,10 @@ export class CreateAdjustmentDto {
   @IsNotEmpty()
   fromWarehouseId: number; // Required for Adjustment
 
-  @ApiProperty({ description: 'Reason Code', example: 'CYCLE_COUNT' })
-  @IsString()
+  @ApiProperty({ description: 'Adjustment Reason ID', example: 1 })
+  @IsNumber()
   @IsNotEmpty()
-  reasonCode: string; // Required for Adjustment
+  reasonId: number; // Required for Adjustment
 
   @ApiProperty({ description: 'Transaction Date', required: false, example: '2023-01-05T00:00:00Z' })
   @IsDateString()

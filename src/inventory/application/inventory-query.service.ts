@@ -91,6 +91,7 @@ export class InventoryQueryService {
             },
             orderBy: { lineNum: 'asc' },
           },
+          reason: true,
           _count: {
             select: { lines: true },
           },
@@ -113,6 +114,7 @@ export class InventoryQueryService {
       include: {
         fromWarehouse: true,
         toWarehouse: true,
+        reason: true,
         lines: {
           include: {
             itemSku: {

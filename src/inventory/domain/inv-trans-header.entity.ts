@@ -17,7 +17,7 @@ export interface InvTransHeaderConstructorData {
   referenceType?: string | null;
   referenceId?: number | null;
   referenceNum?: string | null;
-  reasonCode?: string | null;
+  reasonId?: number | null;
   transactionDate?: Date;
   note?: string | null;
   createdBy: string;
@@ -37,7 +37,7 @@ export class InvTransHeader {
   private referenceType?: string | null;
   private referenceId?: number | null;
   private referenceNum?: string | null;
-  private reasonCode?: string | null;
+  private reasonId?: number | null;
   private transactionDate: Date;
   private note?: string | null;
   private readonly createdBy: string;
@@ -54,7 +54,7 @@ export class InvTransHeader {
     referenceType: string | null | undefined,
     referenceId: number | null | undefined,
     referenceNum: string | null | undefined,
-    reasonCode: string | null | undefined,
+    reasonId: number | null | undefined,
     transactionDate: Date,
     note: string | null | undefined,
     createdBy: string,
@@ -72,7 +72,7 @@ export class InvTransHeader {
     this.referenceType = referenceType;
     this.referenceId = referenceId;
     this.referenceNum = referenceNum;
-    this.reasonCode = reasonCode;
+    this.reasonId = reasonId;
     this.transactionDate = transactionDate;
     this.note = note;
     this.createdBy = createdBy;
@@ -158,9 +158,9 @@ export class InvTransHeader {
             'fromWarehouseId is required'
           );
         }
-        if (!this.reasonCode) {
+        if (!this.reasonId) {
           throw new InvalidInventoryTransactionException(
-            'Reason code is required for adjustments'
+            'Reason is required for adjustments'
           );
         }
         break;
@@ -177,7 +177,7 @@ export class InvTransHeader {
       data.referenceType,
       data.referenceId,
       data.referenceNum,
-      data.reasonCode,
+      data.reasonId,
       data.transactionDate ?? new Date(),
       data.note,
       data.createdBy,
@@ -230,8 +230,8 @@ export class InvTransHeader {
     return this.referenceNum;
   }
 
-  public getReasonCode(): string | null | undefined {
-    return this.reasonCode;
+  public getReasonId(): number | null | undefined {
+    return this.reasonId;
   }
 
   public getTransactionDate(): Date {
@@ -383,7 +383,7 @@ export class InvTransHeader {
       referenceType: this.referenceType,
       referenceId: this.referenceId,
       referenceNum: this.referenceNum,
-      reasonCode: this.reasonCode,
+      reasonId: this.reasonId,
       transactionDate: this.transactionDate,
       note: this.note,
       createdBy: this.createdBy,
@@ -405,7 +405,7 @@ export class InvTransHeader {
       data.referenceType,
       data.referenceId,
       data.referenceNum,
-      data.reasonCode,
+      data.reasonId,
       new Date(data.transactionDate),
       data.note,
       data.createdBy,

@@ -64,10 +64,10 @@ export class UpdateInvTransHeaderDto {
   @IsOptional()
   referenceNum?: string;
 
-  @ApiProperty({ description: 'Reason Code', required: false, example: 'CORRECTION' })
-  @IsString()
+  @ApiProperty({ description: 'Adjustment Reason ID', required: false, example: 1 })
+  @IsNumber()
   @IsOptional()
-  reasonCode?: string;
+  reasonId?: number;
 
   @ApiProperty({ description: 'Note', required: false, example: 'Correction for previous error' })
   @IsString()

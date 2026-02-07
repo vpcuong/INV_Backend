@@ -101,6 +101,7 @@ export class InvTransHeaderRepository implements IInvTransHeaderRepository {
         },
         fromWarehouse: true,
         toWarehouse: true,
+        reason: true,
       },
     });
 
@@ -258,6 +259,7 @@ export class InvTransHeaderRepository implements IInvTransHeaderRepository {
       include: {
         fromWarehouse: true,
         toWarehouse: true,
+        reason: true,
         lines: {
           include: {
             itemSku: {

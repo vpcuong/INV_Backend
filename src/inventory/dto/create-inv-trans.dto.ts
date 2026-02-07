@@ -69,10 +69,10 @@ export class CreateInvTransHeaderDto {
   @IsOptional()
   referenceNum?: string;
 
-  @ApiProperty({ description: 'Reason Code', required: false, example: 'DAMAGED' })
-  @IsString()
+  @ApiProperty({ description: 'Adjustment Reason ID', required: false, example: 1 })
+  @IsNumber()
   @IsOptional()
-  reasonCode?: string;
+  reasonId?: number;
 
   @ApiProperty({ description: 'Transaction Date', required: false, example: '2023-01-01T00:00:00Z' })
   @IsDateString()
