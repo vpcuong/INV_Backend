@@ -46,6 +46,7 @@ model Item {
   status          String   @default("active")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  createdBy       String?  @db.VarChar(50)
   purchasingPrice Float?
   isManufactured  Boolean? @default(false)
   isPurchasable   Boolean? @default(false)
@@ -79,6 +80,7 @@ model ItemModel {
   status     String   @default("active")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  createdBy  String?  @db.VarChar(50)
 
   // 1 - 1
   item     Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
@@ -108,6 +110,7 @@ model ItemSKU {
   status       String   @default("active")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  createdBy    String?  @db.VarChar(50)
   costPrice    Float?   @default(0)
   sellingPrice Float?   @default(0)
   uomCode      String?

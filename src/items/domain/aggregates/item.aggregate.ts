@@ -62,6 +62,7 @@ export interface ItemConstructorData {
   skus?: ItemSku[];
   createdAt?: Date;
   updatedAt?: Date;
+  createdBy?: string;
 }
 
 export interface UpdateItemData {
@@ -88,6 +89,7 @@ export interface CreateModelData {
   desc?: string | null;
   customerId?: number | null;
   status?: string;
+  createdBy?: string;
 }
 
 export interface CreateSkuData {
@@ -108,6 +110,7 @@ export interface CreateSkuData {
   costPrice?: number | null;
   sellingPrice?: number | null;
   uomCode?: string | null;
+  createdBy?: string;
 }
 
 export interface CreateUomData {
@@ -174,6 +177,7 @@ export class Item {
   private uomCode?: string | null;
   private createdAt?: Date;
   private updatedAt?: Date;
+  private createdBy?: string;
 
   // Child collections
   private itemUoms: ItemUom[] = [];
@@ -210,6 +214,7 @@ export class Item {
     this.skus = data.skus ?? [];
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
+    this.createdBy = data.createdBy;
   }
 
   /**
@@ -335,6 +340,7 @@ export class Item {
       desc: data.desc,
       customerId: data.customerId,
       status: data.status,
+      createdBy: data.createdBy,
     });
 
     this.models.push(model);
@@ -546,6 +552,7 @@ export class Item {
       costPrice: data.costPrice,
       sellingPrice: data.sellingPrice,
       uomCode: data.uomCode,
+      createdBy: data.createdBy,
     });
 
     this.skus.push(sku);
@@ -1016,6 +1023,10 @@ export class Item {
     return this.updatedAt;
   }
 
+  public getCreatedBy(): string | undefined {
+    return this.createdBy;
+  }
+
   /**
    * Check if item is active
    * @returns Boolean
@@ -1070,6 +1081,7 @@ export class Item {
       uomCode: this.uomCode,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      createdBy: this.createdBy,
     };
   }
 
@@ -1112,6 +1124,7 @@ export class Item {
       isSellable: data.isSellable,
       sellingPrice: data.sellingPrice,
       uomCode: data.uomCode,
+      createdBy: data.createdBy,
       itemUoms:
         data.itemUoms?.map((u: any) => ItemUom.fromPersistence(u)) ?? [],
       models:

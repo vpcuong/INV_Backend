@@ -6,7 +6,8 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { ItemAggregateService } from '../application/item-aggregate.service';
 import { ItemQueryService } from '../application/item-query.service';
 import { SkuFilterDto } from '../dto/sku-filter.dto';
@@ -25,6 +26,7 @@ import { CreateSkuDto } from '../dto/create-sku.dto';
  * sử dụng endpoint /skus/:publicId trong SkusController
  */
 @ApiTags('Item SKUs')
+@ApiBearerAuth()
 @Controller('items/:itemPublicId')
 export class ItemSkusController {
   constructor(
@@ -40,8 +42,9 @@ export class ItemSkusController {
   createForItem(
     @Param('itemPublicId') itemPublicId: string,
     @Body() dto: CreateSkuDto,
+    @CurrentUser() user: { userId: string },
   ) {
-    return this.itemAggregateService.addSkuToItemByPublicId(itemPublicId, null, dto);
+    return this.itemAggregateService.addSkuToItemByPublicId(itemPublicId, null, dto, user.userId);
   }
 
   @Get('skus')
@@ -64,8 +67,9 @@ export class ItemSkusController {
     @Param('itemPublicId') itemPublicId: string,
     @Param('modelPublicId') modelPublicId: string,
     @Body() dto: CreateSkuDto,
+    @CurrentUser() user: { userId: string },
   ) {
-    return this.itemAggregateService.addSkuToItemByPublicId(itemPublicId, modelPublicId, dto);
+    return this.itemAggregateService.addSkuToItemByPublicId(itemPublicId, modelPublicId, dto, user.userId);
   }
 
   @Get('models/:modelPublicId/skus')

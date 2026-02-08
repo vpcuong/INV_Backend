@@ -8,7 +8,8 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { ItemAggregateService } from '../application/item-aggregate.service';
 import { ItemQueryService } from '../application/item-query.service';
 import { CreateItemDto } from '../dto/create-item.dto';
@@ -25,6 +26,7 @@ import { ItemFilterDto } from '../dto/item-filter.dto';
  * Sử dụng publicId (ULID) thay vì internal ID để bảo mật
  */
 @ApiTags('Items')
+@ApiBearerAuth()
 @Controller('items')
 export class ItemsController {
   constructor(
@@ -35,8 +37,11 @@ export class ItemsController {
   @Post()
   @ApiOperation({ summary: 'Create a new item' })
   @ApiResponse({ status: 201, description: 'Item created successfully' })
-  create(@Body() dto: CreateItemDto) {
-    return this.itemAggregateService.createItem(dto);
+  create(
+    @Body() dto: CreateItemDto,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.itemAggregateService.createItem(dto, user.userId);
   }
 
   @Get()

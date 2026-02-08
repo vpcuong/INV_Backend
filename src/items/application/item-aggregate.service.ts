@@ -44,7 +44,7 @@ export class ItemAggregateService {
 
   // ==================== ITEM OPERATIONS ====================
 
-  async createItem(dto: CreateItemDto): Promise<any> {
+  async createItem(dto: CreateItemDto, createdBy: string): Promise<any> {
     // Check for duplicate code
     const exists = await this.repository.existsByCode(dto.code);
     if (exists) {
@@ -69,6 +69,7 @@ export class ItemAggregateService {
       isSellable: dto.isSellable,
       sellingPrice: dto.sellingPrice,
       uomCode: dto.uomCode,
+      createdBy,
     });
 
     const savedItem = await this.repository.save(item);
@@ -270,7 +271,7 @@ export class ItemAggregateService {
 
   // ==================== MODEL OPERATIONS ====================
 
-  async addModelToItem(itemId: number, dto: CreateModelDto): Promise<ItemModel> {
+  async addModelToItem(itemId: number, dto: CreateModelDto, createdBy: string): Promise<ItemModel> {
     const item = await this.repository.findByIdWithModels(itemId);
     if (!item) {
       throw new ItemNotFoundException(itemId);
@@ -282,7 +283,7 @@ export class ItemAggregateService {
       throw new ConflictException(`Model with code ${dto.code} already exists`);
     }
 
-    const model = item.addModel(dto as CreateModelData);
+    const model = item.addModel({ ...dto, createdBy } as CreateModelData);
     await this.repository.saveWithChildren(item);
     await this.publishEvents(item);
 
@@ -364,7 +365,7 @@ export class ItemAggregateService {
    * @param itemPublicId - Item's ULID public identifier
    * @param dto - Model creation data
    */
-  async addModelToItemByPublicId(itemPublicId: string, dto: CreateModelDto): Promise<ItemModel> {
+  async addModelToItemByPublicId(itemPublicId: string, dto: CreateModelDto, createdBy: string): Promise<ItemModel> {
     const item = await this.repository.findByPublicIdComplete(itemPublicId);
     if (!item) {
       throw new NotFoundException(`Item with publicId ${itemPublicId} not found`);
@@ -375,7 +376,7 @@ export class ItemAggregateService {
       throw new ConflictException(`Model with code ${dto.code} already exists`);
     }
 
-    const model = item.addModel(dto as CreateModelData);
+    const model = item.addModel({ ...dto, createdBy } as CreateModelData);
     await this.repository.saveWithChildren(item);
     await this.publishEvents(item);
 
@@ -605,6 +606,7 @@ export class ItemAggregateService {
     itemId: number,
     modelId: number | null,
     dto: CreateSkuDto,
+    createdBy: string,
   ): Promise<ItemSku> {
     const item = await this.repository.findByIdComplete(itemId);
     if (!item) {
@@ -617,7 +619,7 @@ export class ItemAggregateService {
       throw new ConflictException(`SKU with code ${dto.skuCode} already exists`);
     }
 
-    const sku = item.addSku(modelId, dto as CreateSkuData);
+    const sku = item.addSku(modelId, { ...dto, createdBy } as CreateSkuData);
     await this.repository.saveWithChildren(item);
     await this.publishEvents(item);
 
@@ -732,6 +734,7 @@ export class ItemAggregateService {
     itemPublicId: string,
     modelPublicId: string | null,
     dto: CreateSkuDto,
+    createdBy: string,
   ): Promise<ItemSku> {
     const item = await this.repository.findByPublicIdComplete(itemPublicId);
     if (!item) {
@@ -752,7 +755,7 @@ export class ItemAggregateService {
       throw new ConflictException(`SKU with code ${dto.skuCode} already exists`);
     }
 
-    const sku = item.addSku(modelId, dto as CreateSkuData);
+    const sku = item.addSku(modelId, { ...dto, createdBy } as CreateSkuData);
     await this.repository.saveWithChildren(item);
     await this.publishEvents(item);
 

@@ -36,6 +36,7 @@ export interface ItemSkuConstructorData {
   uomCode?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
+  createdBy?: string;
   skuUoms?: SkuUom[];
 }
 
@@ -85,6 +86,7 @@ export class ItemSku {
   private uomCode?: string | null;
   private createdAt?: Date;
   private updatedAt?: Date;
+  private createdBy?: string;
   private skuUoms: SkuUom[] = [];
   private rowMode: RowMode | null = null;
 
@@ -118,6 +120,7 @@ export class ItemSku {
     this.uomCode = data.uomCode;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
+    this.createdBy = data.createdBy;
     this.skuUoms = data.skuUoms ?? [];
 
     // New record (no id) → mark as NEW
@@ -511,6 +514,10 @@ export class ItemSku {
     return this.updatedAt;
   }
 
+  public getCreatedBy(): string | undefined {
+    return this.createdBy;
+  }
+
   //#endregion
 
   public toPersistence(): any {
@@ -538,6 +545,7 @@ export class ItemSku {
       uomCode: this.uomCode,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      createdBy: this.createdBy,
       skuUoms: this.skuUoms.map((uom) => uom.toPersistence()),
     };
   }
@@ -571,6 +579,7 @@ export class ItemSku {
       uomCode: data.uomCode,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
+      createdBy: data.createdBy,
       skuUoms: skuUoms,
     });
   }

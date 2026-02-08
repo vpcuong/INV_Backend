@@ -20,6 +20,7 @@ export interface ItemModelConstructorData {
   status?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  createdBy?: string;
 }
 
 export interface UpdateItemModelData {
@@ -41,6 +42,7 @@ export class ItemModel {
   private status: string;
   private createdAt?: Date;
   private updatedAt?: Date;
+  private createdBy?: string;
   private rowMode: RowMode | null = null;
 
   constructor(data: ItemModelConstructorData) {
@@ -55,6 +57,7 @@ export class ItemModel {
     this.status = data.status ?? ItemModelStatus.ACTIVE;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
+    this.createdBy = data.createdBy;
 
     // New record (no id) → mark as NEW
     if (!data.id) {
@@ -175,6 +178,10 @@ export class ItemModel {
     return this.updatedAt;
   }
 
+  public getCreatedBy(): string | undefined {
+    return this.createdBy;
+  }
+
   //#endregion
 
   public toPersistence(): any {
@@ -188,6 +195,7 @@ export class ItemModel {
       status: this.status,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      createdBy: this.createdBy,
     };
   }
 
@@ -202,6 +210,7 @@ export class ItemModel {
       status: data.status,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
+      createdBy: data.createdBy,
     });
   }
 }

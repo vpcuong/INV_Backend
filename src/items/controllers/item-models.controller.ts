@@ -6,7 +6,8 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { ItemAggregateService } from '../application/item-aggregate.service';
 import { ItemQueryService } from '../application/item-query.service';
 import { ModelFilterDto } from '../dto/model-filter.dto';
@@ -23,6 +24,7 @@ import { CreateModelDto } from '../dto/create-model.dto';
  * sử dụng endpoint /models/:publicId trong ModelsController
  */
 @ApiTags('Item Models')
+@ApiBearerAuth()
 @Controller('items/:itemPublicId/models')
 export class ItemModelsController {
   constructor(
@@ -36,8 +38,9 @@ export class ItemModelsController {
   create(
     @Param('itemPublicId') itemPublicId: string,
     @Body() dto: CreateModelDto,
+    @CurrentUser() user: { userId: string },
   ) {
-    return this.itemAggregateService.addModelToItemByPublicId(itemPublicId, dto);
+    return this.itemAggregateService.addModelToItemByPublicId(itemPublicId, dto, user.userId);
   }
 
   @Get()
