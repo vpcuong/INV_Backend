@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { InvTransType } from '../../enums/inv-trans.enum';
 import { InvTransLine } from '../inv-trans-line.entity';
+import { IStockRepository } from '../../domain/stock.repository.interface';
+import { STOCK_REPOSITORY } from '@/inventory/constant/inventory.token';
 
 export interface StockUpdateResult {
   warehouseId: number;
@@ -12,7 +14,10 @@ export interface StockUpdateResult {
 
 @Injectable()
 export class StockService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService, 
+    @Inject(STOCK_REPOSITORY)
+    private stockRepository: IStockRepository) {}
 
   /**
    * Update warehouse stock based on transaction type
@@ -85,38 +90,13 @@ export class StockService {
     quantity: number,
     uomCode: string
   ): Promise<StockUpdateResult> {
-    const existing = await this.prisma.client.warehouseItem.findUnique({
-      where: {
-        warehouseId_itemSkuId: {
-          warehouseId,
-          itemSkuId,
-        },
-      },
-    });
+  
+    const warehouse = await this.stockRepository.findStock(warehouseId, itemSkuId);
 
-    const previousQty = existing ? Number(existing.quantity) : 0;
+    const previousQty = warehouse?.quantity ?? 0;
     const newQty = previousQty + quantity;
 
-    await this.prisma.client.warehouseItem.upsert({
-      where: {
-        warehouseId_itemSkuId: {
-          warehouseId,
-          itemSkuId,
-        },
-      },
-      create: {
-        warehouseId,
-        itemSkuId,
-        quantity: newQty,
-        reservedQty: 0,
-        uomCode: uomCode, // Set initial UoM
-      },
-      update: {
-        quantity: newQty,
-        // Optionally update uomCode to latest transaction's UoM if desired, or keep base
-        // uomCode: uomCode 
-      },
-    });
+    await this.stockRepository.upsertStock(warehouseId, itemSkuId, newQty, uomCode);
 
     return { warehouseId, itemSkuId, previousQty, newQty };
   }
@@ -130,41 +110,19 @@ export class StockService {
     quantity: number,
     uomCode: string
   ): Promise<StockUpdateResult> {
-    const existing = await this.prisma.client.warehouseItem.findUnique({
-      where: {
-        warehouseId_itemSkuId: {
-          warehouseId,
-          itemSkuId,
-        },
-      },
-    });
+    console.log(`removeStock: warehouseId=${warehouseId}, itemSkuId=${itemSkuId}, quantity=${quantity}, uomCode=${uomCode}`);
+    const warehouseItem = await this.stockRepository.findStock(warehouseId, itemSkuId);
 
-    const previousQty = existing ? Number(existing.quantity) : 0;
+    const previousQty = warehouseItem?.quantity ?? 0;
     const newQty = Math.max(0, previousQty - quantity); // Prevent negative stock
 
-    if (!existing) {
-      // Create with 0 or negative (business decision needed)
-      await this.prisma.client.warehouseItem.create({
-        data: {
-          warehouseId,
-          itemSkuId,
-          quantity: newQty,
-          reservedQty: 0,
-          uomCode: uomCode,
-        },
-      });
+    if (!warehouseItem) {
+      // Stock not found, create new
+      console.log(`Stock not found, creating new stock for warehouseId=${warehouseId}, itemSkuId=${itemSkuId}, quantity=${quantity}, uomCode=${uomCode}`);
+      await this.stockRepository.upsertStock(warehouseId, itemSkuId, newQty, uomCode);
     } else {
-      await this.prisma.client.warehouseItem.update({
-        where: {
-          warehouseId_itemSkuId: {
-            warehouseId,
-            itemSkuId,
-          },
-        },
-        data: {
-          quantity: newQty,
-        },
-      });
+      console.log(`Stock found, updating stock for warehouseId=${warehouseId}, itemSkuId=${itemSkuId}, quantity=${quantity}, uomCode=${uomCode}`);
+      await this.stockRepository.updateStockQuantity(warehouseId, itemSkuId, newQty);
     }
 
     return { warehouseId, itemSkuId, previousQty, newQty };
@@ -178,20 +136,14 @@ export class StockService {
     itemSkuId: number,
     requiredQty: number
   ): Promise<boolean> {
-    const item = await this.prisma.client.warehouseItem.findUnique({
-      where: {
-        warehouseId_itemSkuId: {
-          warehouseId,
-          itemSkuId,
-        },
-      },
-    });
+    
+    const warehouseItem = await this.stockRepository.findStock(warehouseId, itemSkuId);
 
-    if (!item) {
+    if (!warehouseItem) {
       return false;
     }
 
-    const availableQty = Number(item.quantity) - Number(item.reservedQty);
+    const availableQty = warehouseItem.quantity - warehouseItem.reservedQty;
     return availableQty >= requiredQty;
   }
 
@@ -199,15 +151,12 @@ export class StockService {
    * Get current stock level
    */
   async getStock(warehouseId: number, itemSkuId: number): Promise<number> {
-    const item = await this.prisma.client.warehouseItem.findUnique({
-      where: {
-        warehouseId_itemSkuId: {
-          warehouseId,
-          itemSkuId,
-        },
-      },
-    });
+    
+    const warehouseItem = await this.stockRepository.findStock(warehouseId, itemSkuId);
+    if (warehouseItem) {
+      return warehouseItem.quantity;
+    }
 
-    return item ? Number(item.quantity) : 0;
+    return 0;
   }
 }
