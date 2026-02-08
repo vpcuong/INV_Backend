@@ -59,6 +59,12 @@ export class SOHeaderRepository implements ISOHeaderRepository {
     return headers.map((header) => SOHeader.fromPersistence(header));
   }
 
+  /**
+   * Find a sales order by ID
+   * @param id 
+   * @param transaction 
+   * @returns 
+   */
   async findOne(id: number, transaction?: PrismaTransaction): Promise<SOHeader | null> {
     const db = this.getDb(transaction);
     const header = await db.sOHeader.findUnique({

@@ -240,8 +240,6 @@ export class InventoryService {
       /*
       const lineFactor = await this.getConversionFactor(lineDto.itemSkuId, lineDto.uomCode);
       const reqBaseQty = Number(lineDto.quantity) * lineFactor;
-      // ... logic for pendingQty (InvTransLine has baseQty now! we should use that)
-      // ... logic for SO Line (SOLine should arguably store UoM too)
       */
      
       const totalRequested = Number(lineDto.quantity) + Number(pendingQty) + Number(soLine.getShippedQty()); // Simplistic accumulation
@@ -401,14 +399,14 @@ export class InventoryService {
     // Update SO Shipped Qty if Goods Issue from SO
     if (header.getType() === InvTransType.GOODS_ISSUE && header.getReferenceType() === 'SO' && header.getReferenceId()) {
       try {
-         const so = await this.soService.findOne(header.getReferenceId()!);
+         const so = await this.soService.findSOById(header.getReferenceId()!);
          if (so) {
              for (const line of header.getLines()) {
                  const soLine = so.getLines().find(l => l.getItemSkuId() === line.getItemSkuId() && l.getStatus() !== 'CLOSED');
                  if (soLine) {
                      // Pass Base Qty to update shipped qty?
                      // Currently addShippedQty takes a number. Assuming SOLine shippedQty is Base Unit.
-                     await this.soService.updateShippedQty(so.getId()!, soLine.getLineNum(), line.getBaseQty());
+                     await this.soService.addShippedQty(so.getId()!, soLine.getLineNum(), line.getBaseQty());
                  }
              }
          }

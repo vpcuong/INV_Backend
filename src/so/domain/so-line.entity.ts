@@ -262,22 +262,31 @@ export class SOLine {
    * Automatically updates status to CLOSED if fully shipped
    */
   public addShippedQty(delta: number): void {
+
+    if(delta <= 0) {
+      throw new InvalidQuantityException('Shipped quantity must be greater than 0', delta);
+    }
+
+    if(this.status === SOLineStatus.CANCELLED) {
+      throw new InvalidSOLineException('Line is cancelled');
+    }
+
+    if(this.status === SOLineStatus.CLOSED) {
+      throw new InvalidSOLineException('Line is closed');
+    }
+
     const newShippedQty = Number(this.shippedQty) + Number(delta);
-    
-    if (newShippedQty < 0) {
-      throw new InvalidQuantityException('Shipped quantity cannot be negative', newShippedQty);
+  
+    if(newShippedQty > this.orderQty) {
+      throw new InvalidQuantityException('Shipped quantity cannot be greater than order quantity', newShippedQty);
     }
     
     this.shippedQty = newShippedQty;
-    
-    // Auto-close line if fully shipped
-    if (this.shippedQty >= this.orderQty && this.status !== SOLineStatus.CLOSED && this.status !== SOLineStatus.CANCELLED) {
-      this.status = SOLineStatus.CLOSED;
-    } else if (this.shippedQty > 0 && this.shippedQty < this.orderQty && this.status === SOLineStatus.OPEN) {
+
+    if (this.shippedQty < this.orderQty && this.status === SOLineStatus.OPEN) {
       this.status = SOLineStatus.PARTIAL;
-    } else if (this.shippedQty === 0 && this.status === SOLineStatus.PARTIAL) {
-      // Revert to OPEN if shipped qty goes back to 0 (e.g. cancellation of shipment)
-      this.status = SOLineStatus.OPEN;
+    } else if (this.shippedQty === this.orderQty && this.status === SOLineStatus.PARTIAL) {
+      this.status = SOLineStatus.CLOSED;
     }
 
     this.rowMode = this.rowMode ?? RowMode.UPDATED;

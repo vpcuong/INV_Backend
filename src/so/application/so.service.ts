@@ -153,6 +153,17 @@ export class SOService {
   }
 
   /**
+   * Use Case: Get Sales Order by ID
+   */
+  async findSOById(id: number): Promise<SOHeader> {
+    const soHeader = await this.soHeaderRepository.findOne(id);
+    if (!soHeader) {
+      throw new NotFoundException(`Sales Order with ID ${id} not found`);
+    }
+    return soHeader;
+  }
+
+  /**
    * Use Case: Get Sales Order by SO Number
    */
   async findBySONum(soNum: string): Promise<any> {
@@ -860,7 +871,7 @@ export class SOService {
     };
   }
 
-  async updateShippedQty(soId: number, lineNum: number, quantityDelta: number): Promise<void> {
+  async addShippedQty(soId: number, lineNum: number, quantity: number): Promise<void> {
     const soHeader = await this.soHeaderRepository.findOne(soId);
     if (!soHeader) {
       throw new NotFoundException(`Sales Order ${soId} not found`);
@@ -871,8 +882,10 @@ export class SOService {
       throw new NotFoundException(`SO Line ${lineNum} not found in SO ${soId}`);
     }
 
+    console.log(`Adding ${quantity} to SO Line ${lineNum} in SO ${soId}`);
+
     // Delegate calculation to domain entity
-    line.addShippedQty(quantityDelta);
+    line.addShippedQty(quantity);
 
     await this.soHeaderRepository.update(soId, soHeader);
   }
