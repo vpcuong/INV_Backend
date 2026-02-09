@@ -14,6 +14,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiParam,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ItemQueryService } from '../application/item-query.service';
 import { ItemAggregateService } from '../application/item-aggregate.service';
@@ -28,6 +29,7 @@ import { UpdateModelDto } from '../dto/update-model.dto';
  * Cho phép thao tác với Model mà không cần biết itemPublicId
  */
 @ApiTags('Models')
+@ApiBearerAuth()
 @Controller('models')
 export class ModelsController {
   constructor(

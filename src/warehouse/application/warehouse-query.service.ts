@@ -45,13 +45,7 @@ export class WarehouseQueryService {
     const inventoryItems = await this.prisma.client.warehouseItem.findMany({
       where: { warehouseId: warehouse.getId() },
       include: {
-        itemSku: {
-          include: {
-            color: true,
-            size: true,
-            gender: true,
-          },
-        },
+        itemSku: true
       },
       orderBy: { itemSku: { skuCode: 'asc' } },
     });
@@ -63,9 +57,6 @@ export class WarehouseQueryService {
       skuPublicId: item.itemSku.publicId,
       skuCode: item.itemSku.skuCode,
       skuDesc: item.itemSku.desc,
-      color: item.itemSku.color?.desc,
-      size: item.itemSku.size?.desc,
-      gender: item.itemSku.gender?.desc,
       quantity: Number(item.quantity),
       reservedQty: Number(item.reservedQty),
       availableQty: Number(item.quantity) - Number(item.reservedQty),

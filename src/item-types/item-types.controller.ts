@@ -10,12 +10,13 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ItemTypeService } from './application/item-type.service';
 import { CreateItemTypeDto } from './dto/create-item-type.dto';
 import { UpdateItemTypeDto } from './dto/update-item-type.dto';
 
 @ApiTags('Item-types')
+@ApiBearerAuth()
 @Controller('item-types')
 export class ItemTypesController {
   constructor(private readonly itemTypesService: ItemTypeService) {}

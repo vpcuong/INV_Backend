@@ -48,6 +48,7 @@ async function bootstrap() {
     .addTag('Materials', 'Material management')
     .addTag('Colors', 'Color management')
     .addTag('Genders', 'Gender management')
+    .addTag('Themes', 'Themes management')
     // .addTag('Sizes', 'Size management')
     .addTag('UOMs', 'Unit of Measure management')
     // Partners Group

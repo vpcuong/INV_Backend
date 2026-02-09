@@ -16,14 +16,16 @@ import {
   ApiResponse,
   ApiConsumes,
   ApiBody,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ThemeService } from './application/theme.service';
 import { CreateThemeDto } from './dto/create-theme.dto';
 import { UpdateThemeDto } from './dto/update-theme.dto';
 
+@ApiBearerAuth()
 @Controller('themes')
-@ApiTags('themes')
+@ApiTags('Themes')
 export class ThemeController {
   constructor(private readonly themeService: ThemeService) {}
 

@@ -9,7 +9,7 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { SupplierService } from './application/supplier.service';
 import { SupplierQueryService } from './application/supplier-query.service';
 import { SupplierAggregationService } from './application/supplier-aggregation.service';
@@ -19,6 +19,7 @@ import { SupplierFilterDto } from './dto/supplier-filter.dto';
 import { SupplierAggregationRequestDto } from './dto/supplier-aggregation.dto';
 
 @ApiTags('Suppliers')
+@ApiBearerAuth()
 @Controller('suppliers')
 export class SuppliersController {
   constructor(

@@ -34,7 +34,7 @@ import { UomModule } from './uom/uom.module';
     PrismaModule,
     FilteringModule,
     ItemCategoriesModule,
-    ItemsModule, // Now contains Models, SKUs, UOMs, and SkuUom
+    ItemsModule,
     ItemTypesModule,
     AuthModule,
     ColorsModule,

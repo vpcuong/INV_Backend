@@ -1,9 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
 import { InvTransType } from '../../enums/inv-trans.enum';
 import { InvTransLine } from '../inv-trans-line.entity';
-import { IStockRepository } from '../../domain/stock.repository.interface';
-import { STOCK_REPOSITORY } from '@/inventory/constant/inventory.token';
+import { IStockRepository } from '../stock.repository.interface';
+import { STOCK_REPOSITORY } from '../../constant/inventory.token';
 
 export interface StockUpdateResult {
   warehouseId: number;
@@ -15,9 +14,9 @@ export interface StockUpdateResult {
 @Injectable()
 export class StockService {
   constructor(
-    private prisma: PrismaService, 
     @Inject(STOCK_REPOSITORY)
-    private stockRepository: IStockRepository) {}
+    private readonly stockRepository: IStockRepository,
+  ) {}
 
   /**
    * Update warehouse stock based on transaction type
@@ -110,18 +109,14 @@ export class StockService {
     quantity: number,
     uomCode: string
   ): Promise<StockUpdateResult> {
-    console.log(`removeStock: warehouseId=${warehouseId}, itemSkuId=${itemSkuId}, quantity=${quantity}, uomCode=${uomCode}`);
     const warehouseItem = await this.stockRepository.findStock(warehouseId, itemSkuId);
 
     const previousQty = warehouseItem?.quantity ?? 0;
     const newQty = Math.max(0, previousQty - quantity); // Prevent negative stock
 
     if (!warehouseItem) {
-      // Stock not found, create new
-      console.log(`Stock not found, creating new stock for warehouseId=${warehouseId}, itemSkuId=${itemSkuId}, quantity=${quantity}, uomCode=${uomCode}`);
       await this.stockRepository.upsertStock(warehouseId, itemSkuId, newQty, uomCode);
     } else {
-      console.log(`Stock found, updating stock for warehouseId=${warehouseId}, itemSkuId=${itemSkuId}, quantity=${quantity}, uomCode=${uomCode}`);
       await this.stockRepository.updateStockQuantity(warehouseId, itemSkuId, newQty);
     }
 

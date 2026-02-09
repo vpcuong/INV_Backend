@@ -11,10 +11,12 @@ import {
   HttpStatus,
   ParseIntPipe,
 } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { AdjustReasonService } from '../application/adjust-reason.service';
 import { CreateAdjustReasonDto } from '../dto/create-adjust-reason.dto';
 import { UpdateAdjustReasonDto } from '../dto/update-adjust-reason.dto';
 
+@ApiBearerAuth()
 @Controller('inventory/adjust-reasons')
 export class AdjustReasonController {
   constructor(private readonly service: AdjustReasonService) {}

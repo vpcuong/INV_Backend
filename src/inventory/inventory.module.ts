@@ -6,7 +6,6 @@ import { InventoryQueryService } from './application/inventory-query.service';
 import { AdjustReasonService } from './application/adjust-reason.service';
 import { InvTransHeaderRepository } from './infrastructure/inventory.repository';
 import { AdjustReasonRepository } from './infrastructure/adjust-reason.repository';
-import { WarehouseRepository } from '@/warehouse/infrastructure/warehouse.repository';
 import { InvTransNumberGeneratorService } from './domain/services/inv-trans-number-generator.service';
 import { StockRepository } from './infrastructure/stock.repository';
 import { StockService } from './domain/services/stock.service';
@@ -17,7 +16,6 @@ import {
   INV_TRANS_NUMBER_GENERATOR,
   STOCK_SERVICE,
   ADJUST_REASON_REPOSITORY,
-  WAREHOUSE_ITEM_REPOSITORY,
   STOCK_REPOSITORY
 } from './constant/inventory.token';
 import { WarehouseModule } from '../warehouse/warehouse.module';
@@ -51,10 +49,6 @@ import { UomModule } from '../uom/uom.module';
     {
       provide: ADJUST_REASON_REPOSITORY,
       useClass: AdjustReasonRepository,
-    },
-    {
-      provide: WAREHOUSE_ITEM_REPOSITORY,
-      useClass: WarehouseRepository,
     },
     {
       provide: STOCK_REPOSITORY,

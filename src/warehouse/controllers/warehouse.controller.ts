@@ -8,7 +8,7 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { WarehouseService } from '../application/warehouse.service';
 import { WarehouseQueryService } from '../application/warehouse-query.service';
 import { CreateWarehouseDto } from '../dto/create-warehouse.dto';
@@ -16,6 +16,7 @@ import { UpdateWarehouseDto } from '../dto/update-warehouse.dto';
 import { WarehouseFilterDto } from '../dto/warehouse-filter.dto';
 
 @ApiTags('Warehouses')
+@ApiBearerAuth()
 @Controller('warehouses')
 export class WarehouseController {
   constructor(

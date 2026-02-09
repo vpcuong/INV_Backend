@@ -8,12 +8,13 @@ import {
   Param,
   NotFoundException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { UomService } from '../../application/uom.service';
 import { UomQueryService } from '../../application/uom-query.service';
 import { UpdateUomConversionDto, ConvertUomDto } from '../dto/update-uom-conversion.dto';
 
 @ApiTags('UOM Conversions')
+@ApiBearerAuth()
 @Controller('uom-conversions')
 export class UomConversionListController {
   constructor(private readonly queryService: UomQueryService) {}
@@ -26,6 +27,7 @@ export class UomConversionListController {
 }
 
 @ApiTags('UOM Conversions')
+@ApiBearerAuth()
 @Controller('uom-classes/:classCode/conversions')
 export class UomConversionController {
   constructor(

@@ -14,6 +14,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiParam,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ItemQueryService } from '../application/item-query.service';
 import { ItemAggregateService } from '../application/item-aggregate.service';
@@ -29,6 +30,7 @@ import { ULIDValidationPipe } from '../../common/pipes/ulid-validation.pipe';
  * Cho phép thao tác với SKU mà không cần biết itemPublicId
  */
 @ApiTags('SKUs')
+@ApiBearerAuth()
 @Controller('skus')
 export class SkusController {
   constructor(

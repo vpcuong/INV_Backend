@@ -8,12 +8,13 @@ import {
   Delete,
   ParseIntPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { SupplierItemPackagingsService } from './supplier-item-packagings.service';
 import { CreateSupplierItemPackagingDto } from './dto/create-supplier-item-packaging.dto';
 import { UpdateSupplierItemPackagingDto } from './dto/update-supplier-item-packaging.dto';
 
 @ApiTags('supplier-item-packagings')
+@ApiBearerAuth()
 @Controller('supplier-item-packagings')
 export class SupplierItemPackagingsController {
   constructor(

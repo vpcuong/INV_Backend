@@ -1,10 +1,11 @@
 import { Controller, Get, Post, Body, Param, NotFoundException } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { UomService } from '../../application/uom.service';
 import { UomQueryService } from '../../application/uom-query.service';
 import { CreateUomClassDto } from '../dto/create-uom-class.dto';
 
 @ApiTags('UOMs')
+@ApiBearerAuth()
 @Controller('uom-classes')
 export class UomClassController {
   constructor(

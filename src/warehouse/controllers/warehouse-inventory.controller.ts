@@ -6,7 +6,7 @@ import {
   Patch,
   Param,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { WarehouseService } from '../application/warehouse.service';
 import { WarehouseQueryService } from '../application/warehouse-query.service';
 import {
@@ -18,6 +18,7 @@ import {
 } from '../dto/inventory.dto';
 
 @ApiTags('Warehouse Inventory')
+@ApiBearerAuth()
 @Controller('warehouses/:warehousePublicId/inventory')
 export class WarehouseInventoryController {
   constructor(
@@ -128,6 +129,7 @@ export class WarehouseInventoryController {
 }
 
 @ApiTags('Inventory')
+@ApiBearerAuth()
 @Controller('inventory')
 export class InventoryController {
   constructor(

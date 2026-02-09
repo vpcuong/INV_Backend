@@ -6,7 +6,7 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { ItemAggregateService } from '../application/item-aggregate.service';
 import { ItemQueryService } from '../application/item-query.service';
 import { CreateUomDto } from '../dto/create-uom.dto';
@@ -21,6 +21,7 @@ import { CreateUomDto } from '../dto/create-uom.dto';
  * - Query UOMs của Item
  */
 @ApiTags('Item UOMs')
+@ApiBearerAuth()
 @Controller('items/:itemPublicId/uoms')
 export class ItemUomsController {
   constructor(

@@ -8,12 +8,13 @@ import {
   Delete,
   ParseIntPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { CustomerAddressService } from './application/customer-address.service';
 import { CreateCustomerAddressDto } from './dto/create-customer-address.dto';
 import { UpdateCustomerAddressDto } from './dto/update-customer-address.dto';
 
 @ApiTags('customer-addresses')
+@ApiBearerAuth()
 @Controller('customer-addresses')
 export class CustomerAddressesController {
   constructor(private readonly service: CustomerAddressService) {}
