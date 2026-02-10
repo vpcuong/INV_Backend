@@ -45,22 +45,24 @@ export class WarehouseQueryService {
     const inventoryItems = await this.prisma.client.warehouseItem.findMany({
       where: { warehouseId: warehouse.getId() },
       include: {
-        itemSku: true
+        itemSku: true,
+        warehouse: true,
       },
       orderBy: { itemSku: { skuCode: 'asc' } },
     });
 
-    return inventoryItems.map((item: any) => ({
-      warehousePublicId: warehouse.getPublicId(),
-      warehouseCode: warehouse.getCode(),
-      warehouseName: warehouse.getName(),
-      skuPublicId: item.itemSku.publicId,
-      skuCode: item.itemSku.skuCode,
-      skuDesc: item.itemSku.desc,
-      quantity: Number(item.quantity),
-      reservedQty: Number(item.reservedQty),
-      availableQty: Number(item.quantity) - Number(item.reservedQty),
-    }));
+    // return inventoryItems.map((item: any) => ({
+    //   warehousePublicId: warehouse.getPublicId(),
+    //   warehouseCode: warehouse.getCode(),
+    //   warehouseName: warehouse.getName(),
+    //   skuPublicId: item.itemSku.publicId,
+    //   skuCode: item.itemSku.skuCode,
+    //   skuDesc: item.itemSku.desc,
+    //   quantity: Number(item.quantity),
+    //   reservedQty: Number(item.reservedQty),
+    //   availableQty: Number(item.quantity) - Number(item.reservedQty),
+    // }));
+      return inventoryItems;
   }
 
   async getInventoryBySku(skuPublicId: string): Promise<any[]> {

@@ -18,7 +18,7 @@ export class CreateGoodsReceiptLineDto {
   lineNum: number;
 
   @ApiProperty({ description: 'Item SKU ID', example: '' })
-  @IsNumber()
+  @IsString()
   itemSkuId: string;
 
   @ApiProperty({ description: 'Quantity', example: 50 })
