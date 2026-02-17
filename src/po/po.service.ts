@@ -1,51 +1,65 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
+import { POStatus, POLineStatus } from '@prisma/client';
+import { IPORepository, CreatePOLineData } from './domain/po.repository.interface';
+import { PONumberGeneratorService } from './domain/services/po-number-generator.service';
+import { PO_REPOSITORY, PO_NUMBER_GENERATOR } from './constant/po.token';
 import { CreatePOHeaderDto } from './dto/create-po-header.dto';
 import { UpdatePOHeaderDto } from './dto/update-po-header.dto';
 import { UpdatePOWithLinesDto } from './dto/update-po-with-lines.dto';
 
+const VALID_PO_TRANSITIONS: Record<POStatus, POStatus[]> = {
+  [POStatus.DRAFT]: [POStatus.APPROVED, POStatus.CANCELLED],
+  [POStatus.APPROVED]: [POStatus.PARTIALLY_RECEIVED, POStatus.RECEIVED, POStatus.CANCELLED],
+  [POStatus.PARTIALLY_RECEIVED]: [POStatus.RECEIVED, POStatus.CANCELLED],
+  [POStatus.RECEIVED]: [POStatus.CLOSED],
+  [POStatus.CLOSED]: [],
+  [POStatus.CANCELLED]: [],
+};
+
+const VALID_PO_LINE_TRANSITIONS: Record<POLineStatus, POLineStatus[]> = {
+  [POLineStatus.OPEN]: [POLineStatus.PARTIALLY_RECEIVED, POLineStatus.RECEIVED, POLineStatus.CANCELLED],
+  [POLineStatus.PARTIALLY_RECEIVED]: [POLineStatus.RECEIVED, POLineStatus.CANCELLED],
+  [POLineStatus.RECEIVED]: [],
+  [POLineStatus.CANCELLED]: [],
+};
+
 @Injectable()
 export class PoService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(PO_REPOSITORY)
+    private readonly repository: IPORepository,
+    @Inject(PO_NUMBER_GENERATOR)
+    private readonly numberGenerator: PONumberGeneratorService,
+  ) {}
 
   async create(createDto: CreatePOHeaderDto, createdBy: string) {
-    // Auto-generate PO number if not provided
-    const poNum = await this.generatePONumber();
+    const poNum = await this.numberGenerator.generate();
 
-    return this.prisma.client.pOHeader.create({
-      data: {
-        poNum,
-        supplierId: createDto.supplierId,
-        orderDate: createDto.orderDate || new Date(),
-        expectedDate: createDto.expectedDate,
-        status: (createDto.status || 'DRAFT') as any,
-        currencyCode: createDto.currencyCode,
-        exchangeRate: createDto.exchangeRate || 1,
-        totalAmount: createDto.totalAmount,
-        note: createDto.note,
+    return this.repository.create({
+      poNum,
+      supplierId: createDto.supplierId,
+      orderDate: createDto.orderDate || new Date(),
+      expectedDate: createDto.expectedDate,
+      status: (createDto.status as POStatus) || POStatus.DRAFT,
+      currencyCode: createDto.currencyCode,
+      exchangeRate: createDto.exchangeRate || 1,
+      totalAmount: createDto.totalAmount,
+      note: createDto.note,
+      createdBy,
+      lines: createDto.lines?.map((line): CreatePOLineData => ({
+        lineNum: line.lineNum,
+        skuId: line.skuId,
+        description: line.description,
+        uomCode: line.uomCode,
+        orderQty: line.orderQty,
+        unitPrice: line.unitPrice,
+        lineAmount: line.lineAmount,
+        receivedQty: line.receivedQty || 0,
+        warehouseCode: line.warehouseCode,
+        status: (line.status as POLineStatus) || POLineStatus.OPEN,
+        note: line.note,
         createdBy,
-        lines: createDto.lines
-          ? {
-              create: createDto.lines.map((line) => ({
-                lineNum: line.lineNum,
-                skuId: line.skuId,
-                description: line.description,
-                uomCode: line.uomCode,
-                orderQty: line.orderQty,
-                unitPrice: line.unitPrice,
-                lineAmount: line.lineAmount,
-                receivedQty: line.receivedQty || 0,
-                warehouseCode: line.warehouseCode,
-                status: (line.status || 'OPEN') as any,
-                note: line.note,
-                createdBy,
-              })),
-            }
-          : undefined,
-      },
-      include: {
-        lines: true,
-      },
+      })),
     });
   }
 
@@ -57,55 +71,16 @@ export class PoService {
   }) {
     const { skip, take, supplierId, status } = params || {};
 
-    return this.prisma.client.pOHeader.findMany({
+    return this.repository.findAll({
       skip,
       take,
-      where: {
-        ...(supplierId && { supplierId }),
-        ...(status && { status: status as any }),
-      },
-      include: {
-        supplier: {
-          select: {
-            id: true,
-            code: true,
-            name: true,
-          },
-        },
-        lines: {
-          orderBy: {
-            lineNum: 'asc',
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      supplierId,
+      status: status as POStatus,
     });
   }
 
   async findOne(id: number) {
-    const poHeader = await this.prisma.client.pOHeader.findUnique({
-      where: { id },
-      include: {
-        supplier: true,
-        lines: {
-          include: {
-            sku: {
-              include: {
-                color: true,
-                gender: true,
-                size: true,
-              },
-            },
-            uom: true,
-          },
-          orderBy: {
-            lineNum: 'asc',
-          },
-        },
-      },
-    });
+    const poHeader = await this.repository.findOne(id);
 
     if (!poHeader) {
       throw new NotFoundException(`Purchase Order with ID ${id} not found`);
@@ -115,165 +90,173 @@ export class PoService {
   }
 
   async update(id: number, updateDto: UpdatePOHeaderDto) {
-    // Check if PO exists
-    await this.findOne(id);
+    const po = await this.findOne(id);
 
-    return this.prisma.client.pOHeader.update({
-      where: { id },
-      data: {
-        ...updateDto,
-        status: updateDto.status as any,
-      },
-      include: {
-        supplier: true,
-        lines: {
-          include: {
-            sku: {
-              include: {
-                color: true,
-                gender: true,
-                size: true,
-              },
-            },
-            uom: true,
-          },
-          orderBy: {
-            lineNum: 'asc',
-          },
-        },
-      },
+    if (updateDto.status) {
+      this.validatePOStatusTransition(po.status, updateDto.status as POStatus);
+    }
+
+    return this.repository.update(id, {
+      ...updateDto,
+      status: updateDto.status as POStatus,
     });
   }
 
   async updateWithLines(id: number, dto: UpdatePOWithLinesDto, createdBy?: string) {
-    return this.prisma.client.$transaction(async (tx) => {
-      // 1. Verify PO exists
-      let poHeader = await tx.pOHeader.findUnique({
-        where: { id },
-        include: { lines: true },
-      });
+    // Verify PO exists
+    const poHeader = await this.repository.findOneWithLines(id);
+    if (!poHeader) {
+      throw new NotFoundException(`Purchase Order with ID ${id} not found`);
+    }
 
-      if (!poHeader) {
-        throw new NotFoundException(`Purchase Order with ID ${id} not found`);
-      }
+    // Validate PO header status transition
+    if (dto.header?.status) {
+      this.validatePOStatusTransition(poHeader.status, dto.header.status as POStatus);
+    }
 
-      // 2. Update header if provided
-      if (dto.header) {
-        await tx.pOHeader.update({
-          where: { id },
-          data: {
-            ...dto.header,
-            status: dto.header.status as any,
-          },
-        });
-      }
-
-      // 3. Delete lines if specified
-      if (dto.linesToDelete && dto.linesToDelete.length > 0) {
-        await tx.pODetail.deleteMany({
-          where: {
-            id: { in: dto.linesToDelete },
-            poId: id,
-          },
-        });
-      }
-
-      // 4. Update or create lines
-      if (dto.lines && dto.lines.length > 0) {
-        for (const line of dto.lines) {
-          console.log('line', line.id);
-          if (line.id) {
-            // Update existing line
-            const { id: lineId, ...lineData } = line;
-            await tx.pODetail.update({
-              where: { id: lineId },
-              data: {
-                ...lineData,
-                status: lineData.status as any,
-              },
-            });
-          } else {
-            // Create new line - need to get the next line number
-            const maxLineNum = await tx.pODetail.aggregate({
-              where: { poId: id },
-              _max: { lineNum: true },
-            });
-
-            const nextLineNum =
-              line.lineNum || (maxLineNum._max.lineNum || 0) + 1;
-
-            await tx.pODetail.create({
-              data: {
-                poId: id,
-                lineNum: nextLineNum,
-                skuId: line.skuId!,
-                description: line.description,
-                uomCode: line.uomCode || '',
-                orderQty: line.orderQty!,
-                unitPrice: line.unitPrice!,
-                lineAmount: line.lineAmount!,
-                receivedQty: line.receivedQty || 0,
-                warehouseCode: line.warehouseCode,
-                status: (line.status || 'OPEN') as any,
-                note: line.note,
-                createdBy,
-              },
-            });
+    // Validate line status transitions
+    if (dto.lines) {
+      for (const line of dto.lines) {
+        if (line.id && line.status) {
+          const existingLine = poHeader.lines.find((l) => l.id === line.id);
+          if (existingLine) {
+            this.validatePOLineStatusTransition(existingLine.status, line.status as POLineStatus);
           }
         }
       }
+    }
 
-      // 5. Return updated PO with all lines
-      return tx.pOHeader.findUnique({
-        where: { id },
-        include: {
-          supplier: true,
-          lines: {
-            include: {
-              sku: {
-                include: {
-                  color: true,
-                  gender: true,
-                  size: true,
-                },
-              },
-              uom: true,
+    // Prepare header data
+    const headerData = dto.header
+      ? { ...dto.header, status: dto.header.status as POStatus }
+      : undefined;
+
+    // Separate lines into updates and creates
+    const linesToUpdate: { id: number; data: any }[] = [];
+    const linesToCreate: any[] = [];
+
+    if (dto.lines && dto.lines.length > 0) {
+      for (const line of dto.lines) {
+        if (line.id) {
+          const { id: lineId, ...lineData } = line;
+          linesToUpdate.push({
+            id: lineId,
+            data: {
+              ...lineData,
+              status: lineData.status as POLineStatus,
             },
-            orderBy: { lineNum: 'asc' },
-          },
-        },
-      });
-    });
+          });
+        } else {
+          const maxLineNum = await this.repository.getMaxLineNum(id);
+          const nextLineNum = line.lineNum || maxLineNum + 1;
+
+          linesToCreate.push({
+            poId: id,
+            lineNum: nextLineNum,
+            skuId: line.skuId!,
+            description: line.description,
+            uomCode: line.uomCode || '',
+            orderQty: line.orderQty!,
+            unitPrice: line.unitPrice!,
+            lineAmount: line.lineAmount!,
+            receivedQty: line.receivedQty || 0,
+            warehouseCode: line.warehouseCode,
+            status: (line.status as POLineStatus) || POLineStatus.OPEN,
+            note: line.note,
+            createdBy,
+          });
+        }
+      }
+    }
+
+    return this.repository.updateWithLines(
+      id,
+      headerData,
+      linesToUpdate,
+      linesToCreate,
+      dto.linesToDelete || [],
+    );
   }
 
   async remove(id: number) {
-    // Check if PO exists
     await this.findOne(id);
-
-    return this.prisma.client.pOHeader.delete({
-      where: { id },
-    });
+    await this.repository.remove(id);
   }
 
-  private async generatePONumber(): Promise<string> {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
+  /**
+   * Update receivedQty for a PO line and recalculate line status
+   * Called by inventory service after Goods Receipt
+   */
+  async updateLineReceivedQty(poId: number, skuId: number, additionalQty: number) {
+    const po = await this.repository.findOneWithLines(poId);
+    if (!po) {
+      throw new NotFoundException(`Purchase Order with ID ${poId} not found`);
+    }
 
-    // Get the count of POs created this month
-    const startOfMonth = new Date(year, today.getMonth(), 1);
-    const endOfMonth = new Date(year, today.getMonth() + 1, 0);
+    const line = po.lines.find((l) => l.skuId === skuId);
+    if (!line) {
+      throw new NotFoundException(`PO line with skuId ${skuId} not found in PO ${poId}`);
+    }
 
-    const count = await this.prisma.client.pOHeader.count({
-      where: {
-        createdAt: {
-          gte: startOfMonth,
-          lte: endOfMonth,
-        },
-      },
-    });
+    const currentReceivedQty = Number(line.receivedQty) || 0;
+    const newReceivedQty = currentReceivedQty + additionalQty;
+    const orderQty = Number(line.orderQty);
 
-    const sequence = String(count + 1).padStart(4, '0');
-    return `PO-${year}${month}-${sequence}`;
+    // Determine new line status
+    let newLineStatus: POLineStatus;
+    if (newReceivedQty >= orderQty) {
+      newLineStatus = POLineStatus.RECEIVED;
+    } else if (newReceivedQty > 0) {
+      newLineStatus = POLineStatus.PARTIALLY_RECEIVED;
+    } else {
+      newLineStatus = line.status;
+    }
+
+    await this.repository.updateLineReceivedQty(line.id, newReceivedQty, newLineStatus);
+  }
+
+  /**
+   * Recalculate PO header status based on line statuses
+   * Called after updating line receivedQty
+   */
+  async recalculatePOStatus(poId: number) {
+    const po = await this.repository.findOneWithLines(poId);
+    if (!po || po.lines.length === 0) return;
+
+    const allReceived = po.lines.every((l) => l.status === POLineStatus.RECEIVED);
+    const someReceived = po.lines.some(
+      (l) => l.status === POLineStatus.RECEIVED || l.status === POLineStatus.PARTIALLY_RECEIVED,
+    );
+
+    let newStatus: POStatus;
+    if (allReceived) {
+      newStatus = POStatus.RECEIVED;
+    } else if (someReceived) {
+      newStatus = POStatus.PARTIALLY_RECEIVED;
+    } else {
+      return; // No change needed
+    }
+
+    if (po.status !== newStatus) {
+      await this.repository.updatePOStatus(poId, newStatus);
+    }
+  }
+
+  private validatePOStatusTransition(current: POStatus, next: POStatus) {
+    const validNext = VALID_PO_TRANSITIONS[current];
+    if (!validNext || !validNext.includes(next)) {
+      throw new BadRequestException(
+        `Invalid PO status transition: ${current} → ${next}. Valid transitions: ${validNext?.join(', ') || 'none'}`,
+      );
+    }
+  }
+
+  private validatePOLineStatusTransition(current: POLineStatus, next: POLineStatus) {
+    const validNext = VALID_PO_LINE_TRANSITIONS[current];
+    if (!validNext || !validNext.includes(next)) {
+      throw new BadRequestException(
+        `Invalid PO line status transition: ${current} → ${next}. Valid transitions: ${validNext?.join(', ') || 'none'}`,
+      );
+    }
   }
 }

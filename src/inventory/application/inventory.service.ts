@@ -396,6 +396,22 @@ export class InventoryService {
       header.getLines()
     );
 
+    // Update PO Received Qty if Goods Receipt from PO
+    if (header.getType() === InvTransType.GOODS_RECEIPT && header.getReferenceType() === 'PO' && header.getReferenceId()) {
+      try {
+        for (const line of header.getLines()) {
+          await this.poService.updateLineReceivedQty(
+            header.getReferenceId()!,
+            line.getItemSkuId(),
+            line.getBaseQty(),
+          );
+        }
+        await this.poService.recalculatePOStatus(header.getReferenceId()!);
+      } catch (error) {
+        console.error('Failed to update PO received quantity', error);
+      }
+    }
+
     // Update SO Shipped Qty if Goods Issue from SO
     if (header.getType() === InvTransType.GOODS_ISSUE && header.getReferenceType() === 'SO' && header.getReferenceId()) {
       try {
