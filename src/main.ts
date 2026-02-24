@@ -9,6 +9,12 @@ import { StripInternalFieldsInterceptor } from './common/interceptors/strip-inte
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors({ 
+    origin: '*',
+    // methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    // credentials: true,
+    // allowedHeaders: 'Content-Type, Accept, Authorization, ngrok-skip-browser-warning',
+  });
   // Enable Morgan HTTP request logger
   app.use(morgan('dev'));
 
@@ -26,8 +32,6 @@ async function bootstrap() {
 
   // Strip internal fields (rowMode, etc.) from all responses
   app.useGlobalInterceptors(new StripInternalFieldsInterceptor());
-
-  app.enableCors();
   app.setGlobalPrefix('api');
 
   // Swagger Configuration

@@ -42,6 +42,7 @@ export class CreateGoodsIssueDto {
   @ApiProperty({ description: 'Warehouse ID (Source)', example: 1 })
   @IsNumber()
   @IsNotEmpty()
+  @Type(() => Number)
   fromWarehouseId: number; // Required for Goods Issue
 
   @ApiProperty({ description: 'Transaction Date', required: false, example: '2023-01-01T00:00:00Z' })

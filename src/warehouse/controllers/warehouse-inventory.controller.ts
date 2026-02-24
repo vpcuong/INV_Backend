@@ -37,6 +37,18 @@ export class WarehouseInventoryController {
     return this.warehouseQueryService.getInventory(warehousePublicId);
   }
 
+  @Get(':skuPublicId')
+  @ApiOperation({ summary: 'Get stock of a specific SKU in a warehouse' })
+  @ApiResponse({ status: 200, description: 'Return stock for the SKU in this warehouse' })
+  @ApiParam({ name: 'warehousePublicId', description: 'Warehouse Public ID (ULID)' })
+  @ApiParam({ name: 'skuPublicId', description: 'SKU Public ID (ULID)' })
+  getInventoryBySku(
+    @Param('warehousePublicId') warehousePublicId: string,
+    @Param('skuPublicId') skuPublicId: string,
+  ) {
+    return this.warehouseQueryService.getInventoryBySku_Warehouse(warehousePublicId, skuPublicId);
+  }
+
   @Post()
   @ApiOperation({ summary: 'Add or set inventory for a SKU in warehouse' })
   @ApiResponse({ status: 201, description: 'Inventory added/updated' })

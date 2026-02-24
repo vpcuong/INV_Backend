@@ -95,6 +95,39 @@ export class WarehouseQueryService {
     }));
   }
 
+  async getInventoryBySku_Warehouse(warehousePublicId: string, skuPublicId: string): Promise<any> {
+    const [warehouse, sku] = await Promise.all([
+      this.warehouseRepository.findByPublicId(warehousePublicId),
+      this.prisma.client.itemSKU.findUnique({ where: { publicId: skuPublicId } }),
+    ]);
+
+    if (!warehouse) throw new WarehouseNotFoundException(warehousePublicId);
+    if (!sku) throw new NotFoundException(`SKU with publicId ${skuPublicId} not found`);
+
+    const item = await this.prisma.client.warehouseItem.findUnique({
+      where: {
+        warehouseId_itemSkuId: {
+          warehouseId: warehouse.getId(),
+          itemSkuId: sku.id,
+        },
+      },
+    });
+
+    const quantity = Number(item?.quantity ?? 0);
+    const reservedQty = Number(item?.reservedQty ?? 0);
+
+    return {
+      warehousePublicId: warehouse.getPublicId(),
+      warehouseCode: warehouse.getCode(),
+      warehouseName: warehouse.getName(),
+      skuPublicId: sku.publicId,
+      skuCode: sku.skuCode,
+      quantity,
+      reservedQty,
+      availableQty: quantity - reservedQty,
+    };
+  }
+
   async getStockSummary(warehousePublicId: string): Promise<any> {
     const warehouse =
       await this.warehouseRepository.findByPublicId(warehousePublicId);

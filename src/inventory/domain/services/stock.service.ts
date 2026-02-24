@@ -1,8 +1,10 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { InvTransType } from '../../enums/inv-trans.enum';
 import { InvTransLine } from '../inv-trans-line.entity';
 import { IStockRepository } from '../stock.repository.interface';
 import { STOCK_REPOSITORY } from '../../constant/inventory.token';
+import { ItemQueryService } from '../../../items/application/item-query.service';
+import { WarehouseService } from '../../../warehouse/application/warehouse.service';
 
 export interface StockUpdateResult {
   warehouseId: number;
@@ -16,6 +18,8 @@ export class StockService {
   constructor(
     @Inject(STOCK_REPOSITORY)
     private readonly stockRepository: IStockRepository,
+    private readonly itemQueryService: ItemQueryService,
+    private readonly warehouseService: WarehouseService,
   ) {}
 
   /**
@@ -48,7 +52,7 @@ export class StockService {
         case InvTransType.GOODS_ISSUE:
           // Remove stock from fromWarehouse
           if (fromWarehouseId) {
-            const result = await this.removeStock(fromWarehouseId, itemSkuId, quantity, uomCode);
+            const result = await this.removeStock(fromWarehouseId, itemSkuId, quantity);
             results.push(result);
           }
           break;
@@ -56,7 +60,7 @@ export class StockService {
         case InvTransType.STOCK_TRANSFER:
           // Remove from source, add to destination
           if (fromWarehouseId && toWarehouseId) {
-            const removeResult = await this.removeStock(fromWarehouseId, itemSkuId, quantity, uomCode);
+            const removeResult = await this.removeStock(fromWarehouseId, itemSkuId, quantity);
             results.push(removeResult);
             const addResult = await this.addStock(toWarehouseId, itemSkuId, quantity, uomCode);
             results.push(addResult);
@@ -107,18 +111,29 @@ export class StockService {
     warehouseId: number,
     itemSkuId: number,
     quantity: number,
-    uomCode: string
   ): Promise<StockUpdateResult> {
     const warehouseItem = await this.stockRepository.findStock(warehouseId, itemSkuId);
 
-    const previousQty = warehouseItem?.quantity ?? 0;
-    const newQty = Math.max(0, previousQty - quantity); // Prevent negative stock
+    const [sku, warehouse] = await Promise.all([
+      this.itemQueryService.findSkuById(itemSkuId),
+      this.warehouseService.findOne(warehouseId),
+    ]);
+    const skuCode = sku?.skuCode ?? `SKU#${itemSkuId}`;
+    const warehouseCode = warehouse?.getCode() ?? `WH#${warehouseId}`;
 
     if (!warehouseItem) {
-      await this.stockRepository.upsertStock(warehouseId, itemSkuId, newQty, uomCode);
-    } else {
-      await this.stockRepository.updateStockQuantity(warehouseId, itemSkuId, newQty);
+      throw new BadRequestException(`No stock found for SKU ${skuCode} in warehouse ${warehouseCode}`);
     }
+
+    const previousQty = warehouseItem.quantity;
+
+    if (previousQty < quantity) {
+      throw new BadRequestException(`Insufficient stock for SKU ${skuCode} in warehouse ${warehouseCode}`);
+    }
+
+    const newQty = previousQty - quantity;
+
+    await this.stockRepository.updateStockQuantity(warehouseId, itemSkuId, newQty);
 
     return { warehouseId, itemSkuId, previousQty, newQty };
   }
