@@ -249,6 +249,18 @@ export class SOLine {
   }
 
   /**
+   * Business rule: Close line (force close regardless of shipped qty)
+   */
+  public close(): void {
+    if (this.status === SOLineStatus.CANCELLED) {
+      return; // skip cancelled lines
+    }
+    this.status = SOLineStatus.CLOSED;
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
+    this.updatedAt = new Date();
+  }
+
+  /**
    * Business rule: Cancel line
    */
   public cancel(): void {

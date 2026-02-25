@@ -6,6 +6,7 @@ import {
   IsDateString,
   Min,
   IsInt,
+  Max,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
@@ -103,6 +104,31 @@ export class SOQuickFiltersDto {
   @IsOptional()
   @IsString()
   search?: string;
+}
+
+/**
+ * DTO for cursor-based pagination
+ */
+export class SOCursorFilterDto extends SOQuickFiltersDto {
+  @ApiPropertyOptional({
+    description: 'Cursor from previous page (opaque base64 string)',
+  })
+  @IsOptional()
+  @IsString()
+  cursor?: string;
+
+  @ApiPropertyOptional({
+    description: 'Items per page',
+    minimum: 1,
+    maximum: 100,
+    default: 20,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number = 20;
 }
 
 /**

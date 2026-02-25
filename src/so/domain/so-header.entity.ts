@@ -236,15 +236,11 @@ export class SOHeader {
   }
 
   public close(): void {
-    // Check if all lines are closed or cancelled (excluding deleted)
-    const activeLines = this.lines.filter(l => l.getRowMode() !== RowMode.DELETED);
-    const hasOpenLines = activeLines.some(
-      (line) => line.getStatus() === 'OPEN' || line.getStatus() === 'PARTIAL'
-    );
+    // Auto-close all active OPEN/PARTIAL lines
+    this.lines
+      .filter(l => l.getRowMode() !== RowMode.DELETED)
+      .forEach(line => line.close());
 
-    if (hasOpenLines) {
-      throw new InvalidSOException('Cannot close order with open lines');
-    }
     this.status = this.status.toClosed();
     this.updatedAt = new Date();
   }

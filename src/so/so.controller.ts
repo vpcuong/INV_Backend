@@ -15,7 +15,7 @@ import { SOQueryService } from './application/so-query.service';
 import { CreateSOHeaderDto } from './dto/create-so-header.dto';
 import { UpdateSOHeaderDto } from './dto/update-so-header.dto';
 import { UpdateSOWithLinesDto } from './dto/update-so-with-lines.dto';
-import { SOFilterDto } from './dto/so-filter.dto';
+import { SOCursorFilterDto, SOFilterDto } from './dto/so-filter.dto';
 import { CreateSOLineDto } from './dto/composed/create-so-line.dto';
 import { UpdateSOLineDto } from './dto/update-so-line.dto';
 import { ULIDValidationPipe } from '../common/pipes/ulid-validation.pipe';
@@ -52,6 +52,16 @@ export class SalesOrdersController {
   @ApiResponse({ status: 200, description: 'Returns all sales orders' })
   findAll(@Query() filterDto: SOFilterDto) {
     return this.soQueryService.findAllWithFilters(filterDto);
+  }
+
+  @Get('cursor')
+  @ApiOperation({
+    summary: 'Get sales orders with cursor-based pagination',
+    description: 'Use nextCursor from response as cursor param for next page. Suitable for infinite scroll.',
+  })
+  @ApiResponse({ status: 200, description: 'Returns sales orders with cursor info' })
+  findAllWithCursor(@Query() filterDto: SOCursorFilterDto) {
+    return this.soQueryService.findAllWithCursor(filterDto);
   }
 
   @Get('search')

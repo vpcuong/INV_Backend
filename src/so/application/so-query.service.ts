@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QueryBuilderService, RelationConfig } from '../../common/filtering';
-import { SOFilterDto } from '../dto/so-filter.dto';
+import { SOCursorFilterDto, SOFilterDto } from '../dto/so-filter.dto';
 
 @Injectable()
 export class SOQueryService {
@@ -61,6 +61,75 @@ export class SOQueryService {
       filterDto.page || 1,
       filterDto.limit
     );
+  }
+
+  /**
+   * Find all sales orders with cursor-based pagination
+   */
+  async findAllWithCursor(filterDto: SOCursorFilterDto) {
+    const limit = filterDto.limit ?? 20;
+
+    // Build where clause từ quick filters
+    const where: any = {};
+
+    if (filterDto.orderStatus) where.orderStatus = filterDto.orderStatus;
+    if (filterDto.customerId) where.customerId = filterDto.customerId;
+    if (filterDto.soNum) where.soNum = { contains: filterDto.soNum, mode: 'insensitive' };
+    if (filterDto.customerPoNum) where.customerPoNum = { contains: filterDto.customerPoNum, mode: 'insensitive' };
+    if (filterDto.channel) where.channel = filterDto.channel;
+
+    if (filterDto.orderDateFrom || filterDto.orderDateTo) {
+      where.orderDate = {};
+      if (filterDto.orderDateFrom) where.orderDate.gte = new Date(filterDto.orderDateFrom);
+      if (filterDto.orderDateTo) where.orderDate.lte = new Date(filterDto.orderDateTo);
+    }
+
+    if (filterDto.minOrderTotal !== undefined || filterDto.maxOrderTotal !== undefined) {
+      where.totalAmount = {};
+      if (filterDto.minOrderTotal !== undefined) where.totalAmount.gte = filterDto.minOrderTotal;
+      if (filterDto.maxOrderTotal !== undefined) where.totalAmount.lte = filterDto.maxOrderTotal;
+    }
+
+    if (filterDto.search) {
+      where.OR = [
+        { soNum: { contains: filterDto.search, mode: 'insensitive' } },
+        { customerPoNum: { contains: filterDto.search, mode: 'insensitive' } },
+        { headerNote: { contains: filterDto.search, mode: 'insensitive' } },
+        { internalNote: { contains: filterDto.search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Decode cursor
+    if (filterDto.cursor) {
+      const decoded = JSON.parse(Buffer.from(filterDto.cursor, 'base64url').toString());
+      where.OR = [
+        { orderDate: { lt: new Date(decoded.orderDate) } },
+        {
+          orderDate: { equals: new Date(decoded.orderDate) },
+          soNum: { lt: decoded.soNum },
+        },
+      ];
+    }
+
+    const data = await this.prisma.client.sOHeader.findMany({
+      where,
+      include: this.relationsToInclude(this.buildRelations(filterDto as SOFilterDto)),
+      orderBy: [{ orderDate: 'desc' }, { soNum: 'desc' }],
+      take: limit + 1,
+    });
+
+    const hasMore = data.length > limit;
+    const items = hasMore ? data.slice(0, limit) : data;
+    const lastItem = items[items.length - 1];
+
+    const nextCursor = hasMore && lastItem
+      ? Buffer.from(JSON.stringify({
+          orderDate: lastItem.orderDate,
+          soNum: lastItem.soNum,
+        })).toString('base64url')
+      : null;
+
+    return { data: items, nextCursor, hasMore, limit };
   }
 
   /**
