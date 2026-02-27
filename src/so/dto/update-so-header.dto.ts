@@ -100,4 +100,14 @@ export class UpdateSOHeaderDto {
   @Type(() => SOMetadataDto)
   @IsOptional()
   metadata?: SOMetadataDto;
+
+  @ApiPropertyOptional({
+    description: 'Deposit amount',
+    example: 500000,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  depositAmount?: number;
 }

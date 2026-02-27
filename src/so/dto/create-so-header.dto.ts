@@ -102,6 +102,16 @@ export class CreateSOHeaderDto {
   discountValue?: number;
 
   @ApiProperty({
+    description: 'Deposit amount',
+    example: 500000,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  depositAmount?: number;
+
+  @ApiProperty({
     description: 'Order lines',
     type: [CreateSOLineDto],
     required: false,

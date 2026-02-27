@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { SalesOrdersController } from './so.controller';
+import { SOAnalyticsController } from './so-analytics.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { SOService } from './application/so.service';
 import { SOQueryService } from './application/so-query.service';
+import { SOAnalyticsService } from './application/so-analytics.service';
 import {
   SO_HEADER_REPOSITORY,
   SO_NUMBER_GENERATOR,
@@ -22,6 +24,7 @@ import { ItemsModule } from '../items/items.module';
   providers: [
     SOService,
     SOQueryService,
+    SOAnalyticsService,
     AuditLoggerService,
     {
       provide: SO_HEADER_REPOSITORY,
@@ -44,7 +47,7 @@ import { ItemsModule } from '../items/items.module';
     },
     QueryBuilderService,
   ],
-  controllers: [SalesOrdersController],
+  controllers: [SalesOrdersController, SOAnalyticsController],
   exports: [SOService, SOQueryService],
 })
 export class SoModule {}

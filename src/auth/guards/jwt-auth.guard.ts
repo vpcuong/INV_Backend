@@ -22,9 +22,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers?.authorization;
-    this.logger.debug(`Path: ${request.method} ${request.url}`);
-    this.logger.debug(`Authorization header: ${authHeader ? authHeader.substring(0, 30) + '...' : 'MISSING'}`);
+    //const authHeader = request.headers?.authorization;
+    // this.logger.debug(`Path: ${request.method} ${request.url}`);
+    // this.logger.debug(`Authorization header: ${authHeader ? authHeader.substring(0, 30) + '...' : 'MISSING'}`);
 
     return super.canActivate(context);
   }

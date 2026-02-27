@@ -107,6 +107,7 @@ export class SOService {
       discountPercent: createDto?.discountType === 'PERCENT' ? createDto.discountValue: undefined,
       discountAmount: createDto?.discountType === 'AMOUNT' ? createDto.discountValue: undefined,
       
+      depositAmount: createDto.depositAmount,
       billingAddressId: createDto.addresses?.billingAddressId,
       shippingAddressId: createDto.addresses?.shippingAddressId,
       channel: createDto.metadata?.channel,
@@ -502,6 +503,10 @@ export class SOService {
       soHeader.updateMetadata(updateDto.metadata);
     }
 
+    if (updateDto.depositAmount !== undefined) {
+      soHeader.updateDepositAmount(updateDto.depositAmount);
+    }
+
     const updated = await this.soHeaderRepository.update(id, soHeader);
 
     // Audit log
@@ -834,7 +839,8 @@ export class SOService {
       totalAmount: pricing.getTotalAmount(),
       subtotalAmount: pricing.getSubtotalAmount(),
       totalLinesDiscountAmount: pricing.getTotalLinesDiscountAmount(),
-      
+      depositAmount: soHeader.getDepositAmount(),
+
       billingAddressId: addresses.getBillingAddressId(),
       shippingAddressId: addresses.getShippingAddressId(),
       channel: metadata.getChannel(),

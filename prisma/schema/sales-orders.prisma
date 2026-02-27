@@ -23,6 +23,8 @@ model SOHeader {
   //
   totalLinesDiscountAmount Decimal          @default(0) @db.Decimal(18, 2)
   subtotalAmount           Decimal          @default(0) @db.Decimal(18, 2)
+  // Deposit
+  depositAmount            Decimal          @default(0) @db.Decimal(18, 2)
   //
   billingAddressId         Int?
   shippingAddressId        Int?

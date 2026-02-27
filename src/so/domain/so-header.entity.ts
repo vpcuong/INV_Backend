@@ -33,6 +33,7 @@ export interface SOHeaderConstructorData {
   customerPoNum?: string | null;
   headerNote?: string | null;
   internalNote?: string | null;
+  depositAmount?: number;
   createdBy: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -54,6 +55,7 @@ export class SOHeader {
     private readonly createdBy: string,
     private readonly createdAt: Date,
     private updatedAt: Date,
+    private depositAmount: number,
     private readonly id?: number,
     private readonly publicId?: string
   ) {
@@ -123,6 +125,9 @@ export class SOHeader {
       createdBy: data.createdBy,
     });
 
+    const depositAmount = data.depositAmount ?? 0;
+    if (depositAmount < 0) throw new InvalidSOException('Deposit amount cannot be negative');
+
     return new SOHeader(
       data.soNum,
       data.customerId,
@@ -137,6 +142,7 @@ export class SOHeader {
       data.createdBy,
       data.createdAt || new Date(),
       data.updatedAt || new Date(),
+      depositAmount,
       data.id,
       data.publicId
     );
@@ -208,6 +214,17 @@ export class SOHeader {
 
   public getUpdatedAt(): Date {
     return this.updatedAt;
+  }
+
+  public getDepositAmount(): number {
+    return this.depositAmount;
+  }
+
+  public updateDepositAmount(amount: number): void {
+    if (amount < 0) throw new InvalidSOException('Deposit amount cannot be negative');
+    if (amount > this.pricing.getTotalAmount()) throw new InvalidSOException('Deposit amount cannot exceed total amount');
+    this.depositAmount = amount;
+    this.updatedAt = new Date();
   }
 
   // Business methods
@@ -413,6 +430,7 @@ export class SOHeader {
       requestDate: this.requestDate,
       needByDate: this.needByDate,
       orderStatus: this.status.getValue(),
+      depositAmount: this.depositAmount,
       // Spread pricing fields directly
       ...this.pricing.toPersistence(),
       ...this.addresses.toPersistence(),
@@ -445,6 +463,7 @@ export class SOHeader {
       data.createdBy,
       new Date(data.createdAt),
       new Date(data.updatedAt),
+      Number(data.depositAmount ?? 0),
       data.id,
       data.publicId
     );

@@ -99,22 +99,24 @@ export class SOQueryService {
       ];
     }
 
-    // Decode cursor
+    // Decode cursor — lấy records SAU cursor (asc: gt)
     if (filterDto.cursor) {
       const decoded = JSON.parse(Buffer.from(filterDto.cursor, 'base64url').toString());
-      where.OR = [
-        { orderDate: { lt: new Date(decoded.orderDate) } },
-        {
-          orderDate: { equals: new Date(decoded.orderDate) },
-          soNum: { lt: decoded.soNum },
-        },
-      ];
+      const cursorCondition = {
+        OR: [
+          { orderDate: { gt: new Date(decoded.orderDate) } },
+          {
+            orderDate: { equals: new Date(decoded.orderDate) },
+            soNum: { gt: decoded.soNum },
+          },
+        ],
+      };
+      where.AND = [...(where.AND ?? []), cursorCondition];
     }
-
     const data = await this.prisma.client.sOHeader.findMany({
       where,
       include: this.relationsToInclude(this.buildRelations(filterDto as SOFilterDto)),
-      orderBy: [{ orderDate: 'desc' }, { soNum: 'desc' }],
+      orderBy: [{ orderDate: 'asc' }, { soNum: 'asc' }],
       take: limit + 1,
     });
 
