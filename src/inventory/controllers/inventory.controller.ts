@@ -15,7 +15,7 @@ import { InventoryService } from '../application/inventory.service';
 import { InventoryQueryService } from '../application/inventory-query.service';
 import { CreateInvTransHeaderDto, CreateInvTransLineDto } from '../dto/create-inv-trans.dto';
 import { UpdateInvTransHeaderDto } from '../dto/update-inv-trans.dto';
-import { InvTransFilterDto } from '../dto/inv-trans-filter.dto';
+import { InvTransCursorFilterDto, InvTransFilterDto } from '../dto/inv-trans-filter.dto';
 import { CreateGoodsReceiptDto, CreateGoodsReceiptFromPoDto } from '../dto/goods-receipt.dto';
 import { CreateGoodsIssueDto, CreateGoodsIssueFromSoDto } from '../dto/goods-issue.dto';
 import { CreateAdjustmentDto } from '../dto/adjustment.dto';
@@ -116,6 +116,11 @@ export class InventoryController {
   // =================================================================================================
   // QUERIES
   // =================================================================================================
+
+  @Get('cursor')
+  findAllWithCursor(@Query() filterDto: InvTransCursorFilterDto) {
+    return this.queryService.findAllWithCursor(filterDto);
+  }
 
   @Get()
   findAll(@Query() filterDto: InvTransFilterDto) {
