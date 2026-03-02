@@ -1,5 +1,6 @@
 import { IsOptional, IsEnum, IsArray } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { SupplierQuickFiltersDto } from './supplier-filter.dto';
 
 export enum AggregationType {
@@ -34,6 +35,12 @@ export class SupplierAggregationRequestDto extends SupplierQuickFiltersDto {
     example: [AggregationField.CATEGORY, AggregationField.STATUS],
   })
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try { return JSON.parse(value); } catch { return [value]; }
+    }
+    return Array.isArray(value) ? value : [value];
+  })
   @IsArray()
   @IsEnum(AggregationField, { each: true })
   groupBy?: AggregationField[];
@@ -45,6 +52,12 @@ export class SupplierAggregationRequestDto extends SupplierQuickFiltersDto {
     example: [AggregationType.COUNT, AggregationType.AVG],
   })
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try { return JSON.parse(value); } catch { return [value]; }
+    }
+    return Array.isArray(value) ? value : [value];
+  })
   @IsArray()
   @IsEnum(AggregationType, { each: true })
   metrics?: AggregationType[];

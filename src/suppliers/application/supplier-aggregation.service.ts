@@ -362,7 +362,7 @@ export class SupplierAggregationService {
       where: whereClause,
       ...aggregations,
       orderBy: aggregations._count
-        ? { _count: { _all: 'desc' as const } }
+        ? { _count: { [groupByFields[0]]: 'desc' as const } }
         : undefined,
     });
 

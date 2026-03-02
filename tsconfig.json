@@ -2,6 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "ES2021",
+    "types": ["jest"],
     "lib": ["ES2021"],
     "outDir": "./dist",
     "baseUrl": "./",
@@ -25,5 +26,5 @@
     "emitDecoratorMetadata": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "test", "**/*.spec.ts", "**/*.test.ts"]
+  "exclude": ["node_modules", "dist", "test"]
 }

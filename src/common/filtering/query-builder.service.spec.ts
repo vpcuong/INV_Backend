@@ -60,14 +60,16 @@ describe('QueryBuilderService', () => {
       expect(query.take).toBe(100);
     });
 
-    it('should use default limit when not provided', () => {
+    it('should fetch all results (no take/skip) when limit is not provided', () => {
       const filterDto: FilterDto = {
         page: 1,
       };
 
       const query = service.buildQuery(filterDto, config);
 
-      expect(query.take).toBe(10);
+      // When limit is omitted, buildQuery removes take and skip (fetch all)
+      expect(query.take).toBeUndefined();
+      expect(query.skip).toBeUndefined();
     });
 
     it('should build search query across multiple fields', () => {

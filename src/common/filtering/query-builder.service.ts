@@ -96,10 +96,7 @@ export class QueryBuilderService {
         query.select[field] = true;
       });
     }
-
-    console.log(`=== query-bulider.service:query ===`);
-    console.log(query);
-
+    
     return query;
   }
 

@@ -4,6 +4,9 @@ import { ItemAggregateService } from '../application/item-aggregate.service';
 import { ItemQueryService } from '../application/item-query.service';
 import { NotFoundException } from '@nestjs/common';
 
+const mockUserId = 'test-user-id';
+const mockUser = { userId: mockUserId };
+
 describe('ItemSkusController', () => {
   let controller: ItemSkusController;
   let aggregateService: jest.Mocked<ItemAggregateService>;
@@ -36,7 +39,7 @@ describe('ItemSkusController', () => {
     expect(controller).toBeDefined();
   });
 
-  // 1) createForItem -> addSkuToItemByPublicId(itemPublicId, null, dto)
+  // 1) createForItem -> addSkuToItemByPublicId(itemPublicId, null, dto, userId)
   it('should delegate createForItem to ItemAggregateService.addSkuToItemByPublicId with null modelPublicId', async () => {
     const itemPublicId = '01HDY8WZCQKXG2S4J5E6M7N8P9';
     const dto: any = { skuCode: 'SKU-001', colorId: 1 };
@@ -44,12 +47,13 @@ describe('ItemSkusController', () => {
 
     aggregateService.addSkuToItemByPublicId.mockResolvedValue(expected);
 
-    const result = await controller.createForItem(itemPublicId, dto);
+    const result = await controller.createForItem(itemPublicId, dto, mockUser);
 
     expect(aggregateService.addSkuToItemByPublicId).toHaveBeenCalledWith(
       itemPublicId,
       null,
       dto,
+      mockUserId,
     );
     expect(result).toBe(expected);
   });
@@ -71,7 +75,7 @@ describe('ItemSkusController', () => {
     expect(result).toBe(expected);
   });
 
-  // 3) createForModel -> addSkuToItemByPublicId(itemPublicId, modelPublicId, dto)
+  // 3) createForModel -> addSkuToItemByPublicId(itemPublicId, modelPublicId, dto, userId)
   it('should delegate createForModel to ItemAggregateService.addSkuToItemByPublicId with modelPublicId', async () => {
     const itemPublicId = '01HDY8WZCQKXG2S4J5E6M7N8P9';
     const modelPublicId = '01M0DELWZCQKXG2S4J5E6M7N8P9';
@@ -84,12 +88,14 @@ describe('ItemSkusController', () => {
       itemPublicId,
       modelPublicId,
       dto,
+      mockUser,
     );
 
     expect(aggregateService.addSkuToItemByPublicId).toHaveBeenCalledWith(
       itemPublicId,
       modelPublicId,
       dto,
+      mockUserId,
     );
     expect(result).toBe(expected);
   });
@@ -124,9 +130,7 @@ describe('ItemSkusController', () => {
 
     queryService.findSkusByItemPublicId.mockRejectedValue(error);
 
-    await expect(controller.findAllByItem(itemPublicId, filter)).rejects.toBe(
-      error,
-    );
+    await expect(controller.findAllByItem(itemPublicId, filter)).rejects.toBe(error);
   });
 
   // 6) Should pass DTO payload unchanged to aggregate service for createForItem
@@ -142,12 +146,13 @@ describe('ItemSkusController', () => {
 
     aggregateService.addSkuToItemByPublicId.mockResolvedValue(expected);
 
-    const result = await controller.createForItem(itemPublicId, dto);
+    const result = await controller.createForItem(itemPublicId, dto, mockUser);
 
     expect(aggregateService.addSkuToItemByPublicId).toHaveBeenCalledWith(
       itemPublicId,
       null,
       dto,
+      mockUserId,
     );
     expect(result).toBe(expected);
   });
@@ -157,8 +162,8 @@ describe('ItemSkusController', () => {
     const itemPublicId = '01HDY8WZCQKXG2S4J5E6M7N8P9';
     const modelPublicId = '01M0DELWZCQKXG2S4J5E6M7N8P9';
     const filter: any = { status: 'active', page: 3, limit: 15 };
-
     const expected: any = { data: [], pagination: { page: 3, limit: 15 } };
+
     queryService.findSkusByModelPublicId.mockResolvedValue(expected);
 
     const result = await controller.findAllByModel(

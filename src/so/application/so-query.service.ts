@@ -292,7 +292,7 @@ export class SOQueryService {
     }
 
     const relations = this.buildRelations({} as SOFilterDto);
-    console.log(relations);
+  
     const data = await this.prisma.client.sOHeader.findMany({
       where,
       include: this.relationsToInclude(relations),
