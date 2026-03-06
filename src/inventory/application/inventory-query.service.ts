@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { InvTransCursorFilterDto, InvTransFilterDto } from '../dto/inv-trans-filter.dto';
+import {
+  InvTransCursorFilterDto,
+  InvTransFilterDto,
+} from '../dto/inv-trans-filter.dto';
 import { QueryBuilderService } from '../../common/filtering/query-builder.service';
 import { FilterConfig } from '../../common/filtering/interfaces/filter-config.interface';
 
@@ -123,17 +126,23 @@ export class InventoryQueryService {
 
     if (filterDto.type) where.type = filterDto.type;
     if (filterDto.status) where.status = filterDto.status;
-    if (filterDto.fromWarehouseId) where.fromWarehouseId = filterDto.fromWarehouseId;
+    if (filterDto.fromWarehouseId)
+      where.fromWarehouseId = filterDto.fromWarehouseId;
     if (filterDto.toWarehouseId) where.toWarehouseId = filterDto.toWarehouseId;
     if (filterDto.referenceType) where.referenceType = filterDto.referenceType;
     if (filterDto.referenceNum) {
-      where.referenceNum = { contains: filterDto.referenceNum, mode: 'insensitive' };
+      where.referenceNum = {
+        contains: filterDto.referenceNum,
+        mode: 'insensitive',
+      };
     }
 
     if (filterDto.transactionDateFrom || filterDto.transactionDateTo) {
       const dateFilter: any = {};
-      if (filterDto.transactionDateFrom) dateFilter.gte = new Date(filterDto.transactionDateFrom);
-      if (filterDto.transactionDateTo) dateFilter.lte = new Date(filterDto.transactionDateTo);
+      if (filterDto.transactionDateFrom)
+        dateFilter.gte = new Date(filterDto.transactionDateFrom);
+      if (filterDto.transactionDateTo)
+        dateFilter.lte = new Date(filterDto.transactionDateTo);
       where.transactionDate = dateFilter;
     }
 
@@ -146,7 +155,9 @@ export class InventoryQueryService {
     }
 
     if (filterDto.cursor) {
-      const decoded = JSON.parse(Buffer.from(filterDto.cursor, 'base64url').toString());
+      const decoded = JSON.parse(
+        Buffer.from(filterDto.cursor, 'base64url').toString()
+      );
       const cursorCondition = {
         OR: [
           { transactionDate: { gt: new Date(decoded.transactionDate) } },
@@ -181,12 +192,15 @@ export class InventoryQueryService {
     const items = hasMore ? data.slice(0, limit) : data;
     const lastItem = items[items.length - 1];
 
-    const nextCursor = hasMore && lastItem
-      ? Buffer.from(JSON.stringify({
-          transactionDate: lastItem.transactionDate,
-          transNum: lastItem.transNum,
-        })).toString('base64url')
-      : null;
+    const nextCursor =
+      hasMore && lastItem
+        ? Buffer.from(
+            JSON.stringify({
+              transactionDate: lastItem.transactionDate,
+              transNum: lastItem.transNum,
+            })
+          ).toString('base64url')
+        : null;
 
     return { data: items, nextCursor, hasMore, limit };
   }

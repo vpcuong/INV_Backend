@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -34,10 +38,7 @@ export class UomQueryService {
       include: {
         uomClass: true,
       },
-      orderBy: [
-        { classCode: 'asc' },
-        { sortOrder: 'asc' },
-      ],
+      orderBy: [{ classCode: 'asc' }, { sortOrder: 'asc' }],
     });
   }
 
@@ -69,10 +70,7 @@ export class UomQueryService {
         uom: true,
         uomClass: true,
       },
-      orderBy: [
-        { uomClassCode: 'asc' },
-        { uomCode: 'asc' },
-      ],
+      orderBy: [{ uomClassCode: 'asc' }, { uomCode: 'asc' }],
     });
   }
 
@@ -102,10 +100,7 @@ export class UomQueryService {
   async findActiveUoms() {
     return this.prisma.client.uOM.findMany({
       where: { isActive: true },
-      orderBy: [
-        { classCode: 'asc' },
-        { sortOrder: 'asc' },
-      ],
+      orderBy: [{ classCode: 'asc' }, { sortOrder: 'asc' }],
     });
   }
 
@@ -128,7 +123,7 @@ export class UomQueryService {
     classCode: string,
     fromUomCode: string,
     toUomCode: string,
-    value: number,
+    value: number
   ) {
     // Lấy cả 2 conversion factors cùng lúc
     const [fromConv, toConv] = await Promise.all([
@@ -152,12 +147,12 @@ export class UomQueryService {
 
     if (!fromConv) {
       throw new NotFoundException(
-        `Conversion for UOM ${fromUomCode} not found in class ${classCode}`,
+        `Conversion for UOM ${fromUomCode} not found in class ${classCode}`
       );
     }
     if (!toConv) {
       throw new NotFoundException(
-        `Conversion for UOM ${toUomCode} not found in class ${classCode}`,
+        `Conversion for UOM ${toUomCode} not found in class ${classCode}`
       );
     }
 
@@ -176,5 +171,4 @@ export class UomQueryService {
       toFactor: toConv.toBaseFactor,
     };
   }
-
 }

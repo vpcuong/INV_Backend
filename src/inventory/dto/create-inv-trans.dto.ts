@@ -39,22 +39,38 @@ export class CreateInvTransLineDto {
 }
 
 export class CreateInvTransHeaderDto {
-  @ApiProperty({ description: 'Transaction Type', enum: InvTransType, example: InvTransType.GOODS_RECEIPT })
+  @ApiProperty({
+    description: 'Transaction Type',
+    enum: InvTransType,
+    example: InvTransType.GOODS_RECEIPT,
+  })
   @IsString()
   @IsNotEmpty()
   type: InvTransType;
 
-  @ApiProperty({ description: 'Source Warehouse ID', required: false, example: 1 })
+  @ApiProperty({
+    description: 'Source Warehouse ID',
+    required: false,
+    example: 1,
+  })
   @IsNumber()
   @IsOptional()
   fromWarehouseId?: number;
 
-  @ApiProperty({ description: 'Destination Warehouse ID', required: false, example: 2 })
+  @ApiProperty({
+    description: 'Destination Warehouse ID',
+    required: false,
+    example: 2,
+  })
   @IsNumber()
   @IsOptional()
   toWarehouseId?: number;
 
-  @ApiProperty({ description: 'Reference Type', required: false, example: 'PO' })
+  @ApiProperty({
+    description: 'Reference Type',
+    required: false,
+    example: 'PO',
+  })
   @IsString()
   @IsOptional()
   referenceType?: string;
@@ -64,27 +80,46 @@ export class CreateInvTransHeaderDto {
   @IsOptional()
   referenceId?: number;
 
-  @ApiProperty({ description: 'Reference Number', required: false, example: 'PO-2023-001' })
+  @ApiProperty({
+    description: 'Reference Number',
+    required: false,
+    example: 'PO-2023-001',
+  })
   @IsString()
   @IsOptional()
   referenceNum?: string;
 
-  @ApiProperty({ description: 'Adjustment Reason ID', required: false, example: 1 })
+  @ApiProperty({
+    description: 'Adjustment Reason ID',
+    required: false,
+    example: 1,
+  })
   @IsNumber()
   @IsOptional()
   reasonId?: number;
 
-  @ApiProperty({ description: 'Transaction Date', required: false, example: '2023-01-01T00:00:00Z' })
+  @ApiProperty({
+    description: 'Transaction Date',
+    required: false,
+    example: '2023-01-01T00:00:00Z',
+  })
   @IsDateString()
   @IsOptional()
   transactionDate?: string;
 
-  @ApiProperty({ description: 'Note', required: false, example: 'Transaction note' })
+  @ApiProperty({
+    description: 'Note',
+    required: false,
+    example: 'Transaction note',
+  })
   @IsString()
   @IsOptional()
   note?: string;
 
-  @ApiProperty({ description: 'Transaction Lines', type: [CreateInvTransLineDto] })
+  @ApiProperty({
+    description: 'Transaction Lines',
+    type: [CreateInvTransLineDto],
+  })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateInvTransLineDto)

@@ -88,7 +88,9 @@ export class InvTransHeader {
 
   private validateBasicData(): void {
     if (!this.transNum || this.transNum.trim() === '') {
-      throw new InvalidInventoryTransactionException('Transaction number is required');
+      throw new InvalidInventoryTransactionException(
+        'Transaction number is required'
+      );
     }
     if (!this.createdBy || this.createdBy.trim() === '') {
       throw new InvalidInventoryTransactionException('Created by is required');
@@ -255,7 +257,7 @@ export class InvTransHeader {
   }
 
   public getLines(): InvTransLine[] {
-    return [...this.lines.filter(l => l.getRowMode() !== RowMode.DELETED)];
+    return [...this.lines.filter((l) => l.getRowMode() !== RowMode.DELETED)];
   }
 
   public getAllLinesForPersistence(): InvTransLine[] {
@@ -318,9 +320,11 @@ export class InvTransHeader {
         'Can only remove lines from draft transaction'
       );
     }
-    const lineIndex = this.lines.findIndex(l => l.getLineNum() === lineNum);
+    const lineIndex = this.lines.findIndex((l) => l.getLineNum() === lineNum);
     if (lineIndex === -1) {
-      throw new InvalidInventoryTransactionException(`Line ${lineNum} not found`);
+      throw new InvalidInventoryTransactionException(
+        `Line ${lineNum} not found`
+      );
     }
 
     const line = this.lines[lineIndex];
@@ -389,12 +393,13 @@ export class InvTransHeader {
       createdBy: this.createdBy,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
-      lines: this.lines.map(line => line.toPersistence()),
+      lines: this.lines.map((line) => line.toPersistence()),
     };
   }
 
   public static fromPersistence(data: any): InvTransHeader {
-    const lines = data.lines?.map((line: any) => InvTransLine.fromPersistence(line)) || [];
+    const lines =
+      data.lines?.map((line: any) => InvTransLine.fromPersistence(line)) || [];
 
     return new InvTransHeader(
       data.transNum,

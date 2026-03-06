@@ -29,7 +29,9 @@ const mockPrismaService = { client: mockPrismaClient };
 
 const mockJwtService = {
   sign: jest.fn().mockReturnValue('mock_token'),
-  decode: jest.fn().mockReturnValue({ exp: Math.floor(Date.now() / 1000) + 3600 }),
+  decode: jest
+    .fn()
+    .mockReturnValue({ exp: Math.floor(Date.now() / 1000) + 3600 }),
   verifyAsync: jest.fn(),
 };
 
@@ -91,15 +93,19 @@ describe('AuthService', () => {
     it('should throw ConflictException if userId already exists', async () => {
       mockPrismaClient.user.findUnique.mockResolvedValueOnce({ id: 1 });
 
-      await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
+      await expect(service.register(registerDto)).rejects.toThrow(
+        ConflictException
+      );
     });
 
     it('should throw ConflictException if email already exists', async () => {
       mockPrismaClient.user.findUnique
-        .mockResolvedValueOnce(null)    // userId check: not found
+        .mockResolvedValueOnce(null) // userId check: not found
         .mockResolvedValueOnce({ id: 2 }); // email check: found
 
-      await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
+      await expect(service.register(registerDto)).rejects.toThrow(
+        ConflictException
+      );
     });
   });
 
@@ -132,20 +138,29 @@ describe('AuthService', () => {
     it('should throw UnauthorizedException if user not found', async () => {
       mockPrismaClient.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(loginDto)).rejects.toThrow(
+        UnauthorizedException
+      );
     });
 
     it('should throw UnauthorizedException if account is deactivated', async () => {
-      mockPrismaClient.user.findUnique.mockResolvedValue({ ...mockUser, isActive: false });
+      mockPrismaClient.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        isActive: false,
+      });
 
-      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(loginDto)).rejects.toThrow(
+        UnauthorizedException
+      );
     });
 
     it('should throw UnauthorizedException if password is invalid', async () => {
       mockPrismaClient.user.findUnique.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(loginDto)).rejects.toThrow(
+        UnauthorizedException
+      );
     });
   });
 
@@ -153,7 +168,14 @@ describe('AuthService', () => {
 
   describe('validateUser', () => {
     it('should return user if found and active', async () => {
-      const mockUser = { id: 1, userId: 'user01', email: 'x@x.com', name: 'X', role: 'USER', isActive: true };
+      const mockUser = {
+        id: 1,
+        userId: 'user01',
+        email: 'x@x.com',
+        name: 'X',
+        role: 'USER',
+        isActive: true,
+      };
       mockPrismaClient.user.findUnique.mockResolvedValue(mockUser);
 
       const result = await service.validateUser(1);
@@ -171,7 +193,9 @@ describe('AuthService', () => {
 
     it('should return null if user is inactive', async () => {
       mockPrismaClient.user.findUnique.mockResolvedValue({
-        id: 1, userId: 'user01', isActive: false,
+        id: 1,
+        userId: 'user01',
+        isActive: false,
       });
 
       const result = await service.validateUser(1);

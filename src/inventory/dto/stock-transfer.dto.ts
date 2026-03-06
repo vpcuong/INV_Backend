@@ -23,12 +23,20 @@ export class CreateStockTransferDto {
   @IsNotEmpty()
   toWarehouseId: number; // Required (Destination)
 
-  @ApiProperty({ description: 'Transaction Date', required: false, example: '2023-01-10T00:00:00Z' })
+  @ApiProperty({
+    description: 'Transaction Date',
+    required: false,
+    example: '2023-01-10T00:00:00Z',
+  })
   @IsDateString()
   @IsOptional()
   transactionDate?: string;
 
-  @ApiProperty({ description: 'Note', required: false, example: 'Transfer to branch B' })
+  @ApiProperty({
+    description: 'Note',
+    required: false,
+    example: 'Transfer to branch B',
+  })
   @IsString()
   @IsOptional()
   note?: string;

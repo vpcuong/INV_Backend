@@ -17,11 +17,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { FilteringModule } from '@/common/filtering';
 
 @Module({
-  imports: [
-    PrismaModule,
-    FilteringModule,
-    EventEmitterModule.forRoot(),
-  ],
+  imports: [PrismaModule, FilteringModule, EventEmitterModule.forRoot()],
   controllers: [
     ItemsController,
     ItemModelsController,

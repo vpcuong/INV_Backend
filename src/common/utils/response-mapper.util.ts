@@ -6,10 +6,7 @@
 /**
  * Remove specified fields from an object
  */
-function omit<T extends Record<string, any>>(
-  obj: T,
-  keys: string[],
-): any {
+function omit<T extends Record<string, any>>(obj: T, keys: string[]): any {
   const result = { ...obj };
   keys.forEach((key) => delete result[key]);
   return result;

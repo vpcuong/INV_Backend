@@ -10,7 +10,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { SizeService } from './application/size.service';
 import { CreateSizeDto } from './dto/create-size.dto';
 import { UpdateSizeDto } from './dto/update-size.dto';
@@ -29,7 +34,7 @@ export class SizesController {
   @ApiResponse({ status: 409, description: 'Size code already exists' })
   create(
     @Body() createSizeDto: CreateSizeDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
     return this.sizesService.create(createSizeDto, user.userId);
   }

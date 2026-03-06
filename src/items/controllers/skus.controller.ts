@@ -35,7 +35,7 @@ import { ULIDValidationPipe } from '../../common/pipes/ulid-validation.pipe';
 export class SkusController {
   constructor(
     private readonly itemQueryService: ItemQueryService,
-    private readonly itemAggregateService: ItemAggregateService,
+    private readonly itemAggregateService: ItemAggregateService
   ) {}
 
   /**
@@ -93,7 +93,7 @@ export class SkusController {
   })
   update(
     @Param('publicId', ULIDValidationPipe) publicId: string,
-    @Body() updateSkuDto: UpdateSkuDto,
+    @Body() updateSkuDto: UpdateSkuDto
   ) {
     return this.itemAggregateService.updateSkuDirect(publicId, updateSkuDto);
   }
@@ -163,7 +163,10 @@ export class SkusController {
   }
 
   @Get('/fabrics/:colorId/:materialId')
-  validFabrics(@Param('colorId') colorId: number, @Param('materialId') materialId: number){
+  validFabrics(
+    @Param('colorId') colorId: number,
+    @Param('materialId') materialId: number
+  ) {
     return this.itemQueryService.findFabricSKUs(colorId, materialId);
   }
 }

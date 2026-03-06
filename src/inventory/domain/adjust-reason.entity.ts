@@ -1,6 +1,4 @@
-import {
-  InvalidAdjustReasonException,
-} from './exceptions/inventory-domain.exception';
+import { InvalidAdjustReasonException } from './exceptions/inventory-domain.exception';
 
 export type AdjustDirection = 'INCREASE' | 'DECREASE' | 'BOTH';
 
@@ -64,7 +62,9 @@ export class AdjustReason {
       throw new InvalidAdjustReasonException('Name is required');
     }
     if (!['INCREASE', 'DECREASE', 'BOTH'].includes(data.direction)) {
-      throw new InvalidAdjustReasonException('Direction must be INCREASE, DECREASE, or BOTH');
+      throw new InvalidAdjustReasonException(
+        'Direction must be INCREASE, DECREASE, or BOTH'
+      );
     }
   }
 
@@ -81,7 +81,9 @@ export class AdjustReason {
     }
     if (data.direction !== undefined) {
       if (!['INCREASE', 'DECREASE', 'BOTH'].includes(data.direction)) {
-        throw new InvalidAdjustReasonException('Direction must be INCREASE, DECREASE, or BOTH');
+        throw new InvalidAdjustReasonException(
+          'Direction must be INCREASE, DECREASE, or BOTH'
+        );
       }
       this.direction = data.direction;
     }

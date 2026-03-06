@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { IStockRepository, StockData } from '../domain/stock.repository.interface';
+import {
+  IStockRepository,
+  StockData,
+} from '../domain/stock.repository.interface';
 
 @Injectable()
 export class StockRepository implements IStockRepository {
@@ -8,7 +11,7 @@ export class StockRepository implements IStockRepository {
 
   async findStock(
     warehouseId: number,
-    itemSkuId: number,
+    itemSkuId: number
   ): Promise<StockData | null> {
     const item = await this.prisma.client.warehouseItem.findUnique({
       where: {
@@ -31,7 +34,7 @@ export class StockRepository implements IStockRepository {
     warehouseId: number,
     itemSkuId: number,
     quantity: number,
-    uomCode: string,
+    uomCode: string
   ): Promise<void> {
     await this.prisma.client.warehouseItem.upsert({
       where: {
@@ -58,7 +61,7 @@ export class StockRepository implements IStockRepository {
     itemSkuId: number,
     quantity: number,
     reservedQty: number,
-    uomCode: string,
+    uomCode: string
   ): Promise<void> {
     await this.prisma.client.warehouseItem.create({
       data: {
@@ -74,7 +77,7 @@ export class StockRepository implements IStockRepository {
   async updateStockQuantity(
     warehouseId: number,
     itemSkuId: number,
-    quantity: number,
+    quantity: number
   ): Promise<void> {
     await this.prisma.client.warehouseItem.update({
       where: {

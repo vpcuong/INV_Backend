@@ -70,7 +70,7 @@ export class WarehouseItem {
         this.warehouseId,
         this.itemSkuId,
         Math.abs(adjustment),
-        this.quantity,
+        this.quantity
       );
     }
     this.quantity = newQty;
@@ -87,7 +87,7 @@ export class WarehouseItem {
         this.warehouseId,
         this.itemSkuId,
         this.reservedQty,
-        quantity,
+        quantity
       );
     }
     this.quantity = quantity;
@@ -96,9 +96,9 @@ export class WarehouseItem {
   }
 
   public setUomCode(uomCode: string): void {
-      this.uomCode = uomCode;
-      this.updatedAt = new Date();
-      this.rowMode = this.rowMode ?? RowMode.UPDATED;
+    this.uomCode = uomCode;
+    this.updatedAt = new Date();
+    this.rowMode = this.rowMode ?? RowMode.UPDATED;
   }
 
   public reserve(qty: number): void {
@@ -110,7 +110,7 @@ export class WarehouseItem {
         this.warehouseId,
         this.itemSkuId,
         qty,
-        this.getAvailableQty(),
+        this.getAvailableQty()
       );
     }
     this.reservedQty += qty;

@@ -13,7 +13,7 @@ import { ADJUST_REASON_REPOSITORY } from '../constant/inventory.token';
 export class AdjustReasonService {
   constructor(
     @Inject(ADJUST_REASON_REPOSITORY)
-    private readonly repository: IAdjustReasonRepository,
+    private readonly repository: IAdjustReasonRepository
   ) {}
 
   async findAll(): Promise<AdjustReason[]> {

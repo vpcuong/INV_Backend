@@ -25,7 +25,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (status >= 400 && status < 500) {
       const exceptionResponse = exception.getResponse();
       this.logger.warn(
-        `[${status}] ${request.method} ${request.url} - ${JSON.stringify(exceptionResponse)}`,
+        `[${status}] ${request.method} ${request.url} - ${JSON.stringify(exceptionResponse)}`
       );
     }
 

@@ -23,7 +23,7 @@ export class ColorsController {
   @Post()
   create(
     @Body() createColorDto: CreateColorDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
     return this.colorsService.create(createColorDto, user.userId);
   }
@@ -41,7 +41,7 @@ export class ColorsController {
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateColorDto: UpdateColorDto,
+    @Body() updateColorDto: UpdateColorDto
   ) {
     return this.colorsService.update(id, updateColorDto);
   }

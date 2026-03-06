@@ -32,7 +32,11 @@ export class CreateGoodsIssueLineDto {
   @IsNotEmpty()
   uomCode: string;
 
-  @ApiProperty({ description: 'Line note', required: false, example: 'Fragile' })
+  @ApiProperty({
+    description: 'Line note',
+    required: false,
+    example: 'Fragile',
+  })
   @IsString()
   @IsOptional()
   note?: string;
@@ -45,12 +49,20 @@ export class CreateGoodsIssueDto {
   @Type(() => Number)
   fromWarehouseId: number; // Required for Goods Issue
 
-  @ApiProperty({ description: 'Transaction Date', required: false, example: '2023-01-01T00:00:00Z' })
+  @ApiProperty({
+    description: 'Transaction Date',
+    required: false,
+    example: '2023-01-01T00:00:00Z',
+  })
   @IsDateString()
   @IsOptional()
   transactionDate?: string;
 
-  @ApiProperty({ description: 'Note', required: false, example: 'Manual issue' })
+  @ApiProperty({
+    description: 'Note',
+    required: false,
+    example: 'Manual issue',
+  })
   @IsString()
   @IsOptional()
   note?: string;
@@ -73,12 +85,20 @@ export class CreateGoodsIssueFromSoDto {
   @IsNotEmpty()
   fromWarehouseId: number;
 
-  @ApiProperty({ description: 'Transaction Date', required: false, example: '2023-01-01T00:00:00Z' })
+  @ApiProperty({
+    description: 'Transaction Date',
+    required: false,
+    example: '2023-01-01T00:00:00Z',
+  })
   @IsDateString()
   @IsOptional()
   transactionDate?: string;
 
-  @ApiProperty({ description: 'Note', required: false, example: 'Issue for SO #1001' })
+  @ApiProperty({
+    description: 'Note',
+    required: false,
+    example: 'Issue for SO #1001',
+  })
   @IsString()
   @IsOptional()
   note?: string;

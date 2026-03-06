@@ -1,5 +1,10 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { SOAnalyticsService } from './application/so-analytics.service';
 import {
   SOAnalyticsBaseDto,
@@ -17,7 +22,8 @@ export class SOAnalyticsController {
   @Get('overview')
   @ApiOperation({
     summary: 'Sales order overview statistics',
-    description: 'Returns total revenue, order count, avg order value, and breakdown by status. Excludes CANCELLED and DRAFT orders.',
+    description:
+      'Returns total revenue, order count, avg order value, and breakdown by status. Excludes CANCELLED and DRAFT orders.',
   })
   @ApiResponse({ status: 200, description: 'Overview statistics' })
   getOverview(@Query() dto: SOAnalyticsBaseDto) {
@@ -27,7 +33,8 @@ export class SOAnalyticsController {
   @Get('revenue')
   @ApiOperation({
     summary: 'Revenue series grouped by time period',
-    description: 'Returns revenue and order count grouped by day, week, or month.',
+    description:
+      'Returns revenue and order count grouped by day, week, or month.',
   })
   @ApiResponse({ status: 200, description: 'Revenue time series' })
   getRevenueSeries(@Query() dto: SORevenueAnalyticsDto) {

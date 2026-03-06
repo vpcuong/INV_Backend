@@ -33,10 +33,10 @@ export class InsufficientInventoryException extends WarehouseDomainException {
     warehouseId: number,
     itemSkuId: number,
     requested: number,
-    available: number,
+    available: number
   ) {
     super(
-      `Insufficient inventory in warehouse ${warehouseId} for SKU ${itemSkuId}: requested ${requested}, available ${available}`,
+      `Insufficient inventory in warehouse ${warehouseId} for SKU ${itemSkuId}: requested ${requested}, available ${available}`
     );
     this.name = 'InsufficientInventoryException';
   }

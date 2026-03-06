@@ -10,8 +10,8 @@ export interface ISOHeaderRepository {
   findAll(transaction?: PrismaTransaction): Promise<SOHeader[]>;
   /**
    * Find a sales order by ID
-   * @param id 
-   * @param transaction 
+   * @param id
+   * @param transaction
    */
   findOne(
     id: number,

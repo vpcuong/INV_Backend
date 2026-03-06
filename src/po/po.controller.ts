@@ -9,7 +9,13 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { PoService } from './po.service';
 import { CreatePOHeaderDto } from './dto/create-po-header.dto';
 import { UpdatePOHeaderDto } from './dto/update-po-header.dto';
@@ -30,7 +36,7 @@ export class PoController {
   })
   create(
     @Body() createDto: CreatePOHeaderDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
     return this.poService.create(createDto, user.userId);
   }
@@ -83,7 +89,7 @@ export class PoController {
   updateWithLines(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdatePOWithLinesDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
     return this.poService.updateWithLines(id, dto, user.userId);
   }

@@ -109,7 +109,7 @@ export interface IItemRepository {
 
   /**
    * Check if item is a fabric item
-   * @param itemId 
+   * @param itemId
    */
   isFabricItem(itemId: number): Promise<boolean>;
 
@@ -123,7 +123,9 @@ export interface IItemRepository {
   /**
    * Find model by public ID with itemId included
    */
-  findModelByPublicId(publicId: string): Promise<{ model: ItemModel; itemId: number } | null>;
+  findModelByPublicId(
+    publicId: string
+  ): Promise<{ model: ItemModel; itemId: number } | null>;
 
   /**
    * Find models by item ID
@@ -145,7 +147,9 @@ export interface IItemRepository {
   /**
    * Find SKU by public ID with itemId included
    */
-  findSkuByPublicId(publicId: string): Promise<{ sku: ItemSku; itemId: number } | null>;
+  findSkuByPublicId(
+    publicId: string
+  ): Promise<{ sku: ItemSku; itemId: number } | null>;
 
   /**
    * Find SKUs by item ID
@@ -173,7 +177,7 @@ export interface IItemRepository {
   isMappedSku(skuId: number): Promise<boolean>;
 
   /**
-   * 
+   *
    */
   getFabricsSku(colorId: number, materialId: number): Promise<any>;
 }

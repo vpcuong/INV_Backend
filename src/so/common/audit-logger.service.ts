@@ -127,10 +127,7 @@ export class AuditLoggerService {
    * Format audit log message for output
    */
   private formatLogMessage(entry: AuditLogEntry): string {
-    const parts = [
-      `[${entry.action}]`,
-      `${entry.entity}:${entry.entityId}`,
-    ];
+    const parts = [`[${entry.action}]`, `${entry.entity}:${entry.entityId}`];
 
     if (entry.userId) {
       parts.push(`by User:${entry.userId}`);

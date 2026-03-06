@@ -37,7 +37,11 @@ export class SupplierAggregationRequestDto extends SupplierQuickFiltersDto {
   @IsOptional()
   @Transform(({ value }) => {
     if (typeof value === 'string') {
-      try { return JSON.parse(value); } catch { return [value]; }
+      try {
+        return JSON.parse(value);
+      } catch {
+        return [value];
+      }
     }
     return Array.isArray(value) ? value : [value];
   })
@@ -54,7 +58,11 @@ export class SupplierAggregationRequestDto extends SupplierQuickFiltersDto {
   @IsOptional()
   @Transform(({ value }) => {
     if (typeof value === 'string') {
-      try { return JSON.parse(value); } catch { return [value]; }
+      try {
+        return JSON.parse(value);
+      } catch {
+        return [value];
+      }
     }
     return Array.isArray(value) ? value : [value];
   })

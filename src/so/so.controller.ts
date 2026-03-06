@@ -9,7 +9,13 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { SOService } from './application/so.service';
 import { SOQueryService } from './application/so-query.service';
 import { CreateSOHeaderDto } from './dto/create-so-header.dto';
@@ -42,7 +48,7 @@ export class SalesOrdersController {
   })
   async create(
     @Body() createDto: CreateSOHeaderDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
     return this.soService.create(createDto, user.userId);
   }
@@ -57,9 +63,13 @@ export class SalesOrdersController {
   @Get('cursor')
   @ApiOperation({
     summary: 'Get sales orders with cursor-based pagination',
-    description: 'Use nextCursor from response as cursor param for next page. Suitable for infinite scroll.',
+    description:
+      'Use nextCursor from response as cursor param for next page. Suitable for infinite scroll.',
   })
-  @ApiResponse({ status: 200, description: 'Returns sales orders with cursor info' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns sales orders with cursor info',
+  })
   findAllWithCursor(@Query() filterDto: SOCursorFilterDto) {
     return this.soQueryService.findAllWithCursor(filterDto);
   }
@@ -129,7 +139,9 @@ export class SalesOrdersController {
   @ApiResponse({ status: 200, description: 'Returns sales order' })
   @ApiResponse({ status: 404, description: 'Sales order not found' })
   @ApiResponse({ status: 400, description: 'Invalid ULID format' })
-  async findByPublicId(@Param('publicId', ULIDValidationPipe) publicId: string) {
+  async findByPublicId(
+    @Param('publicId', ULIDValidationPipe) publicId: string
+  ) {
     return this.soService.findByPublicId(publicId);
   }
 
@@ -175,7 +187,8 @@ export class SalesOrdersController {
   @Post(':publicId/lines')
   @ApiOperation({
     summary: 'Add a new line to existing sales order',
-    description: 'Add a single line to an existing SO. Line number will be auto-generated if not provided.'
+    description:
+      'Add a single line to an existing SO. Line number will be auto-generated if not provided.',
   })
   @ApiResponse({
     status: 201,
@@ -196,7 +209,8 @@ export class SalesOrdersController {
   @Patch(':publicId/lines/:linePublicId')
   @ApiOperation({
     summary: 'Update a single sales order line',
-    description: 'Update a specific line in an existing SO by public IDs. Pricing is auto-recalculated.',
+    description:
+      'Update a specific line in an existing SO by public IDs. Pricing is auto-recalculated.',
   })
   @ApiResponse({
     status: 200,
@@ -212,7 +226,11 @@ export class SalesOrdersController {
     @Param('linePublicId', ULIDValidationPipe) linePublicId: string,
     @Body() updateDto: UpdateSOLineDto
   ) {
-    return this.soService.updateLineByPublicId(publicId, linePublicId, updateDto);
+    return this.soService.updateLineByPublicId(
+      publicId,
+      linePublicId,
+      updateDto
+    );
   }
 
   @Patch(':publicId/cancel')
@@ -226,7 +244,9 @@ export class SalesOrdersController {
     status: 400,
     description: 'Cannot cancel order in current status',
   })
-  async cancelByPublicId(@Param('publicId', ULIDValidationPipe) publicId: string) {
+  async cancelByPublicId(
+    @Param('publicId', ULIDValidationPipe) publicId: string
+  ) {
     return this.soService.cancelByPublicId(publicId);
   }
 
@@ -241,7 +261,9 @@ export class SalesOrdersController {
     status: 400,
     description: 'Cannot complete order with open lines',
   })
-  async completeByPublicId(@Param('publicId', ULIDValidationPipe) publicId: string) {
+  async completeByPublicId(
+    @Param('publicId', ULIDValidationPipe) publicId: string
+  ) {
     return this.soService.completeByPublicId(publicId);
   }
 
@@ -256,7 +278,9 @@ export class SalesOrdersController {
     status: 400,
     description: 'Cannot hold order in current status',
   })
-  async holdByPublicId(@Param('publicId', ULIDValidationPipe) publicId: string) {
+  async holdByPublicId(
+    @Param('publicId', ULIDValidationPipe) publicId: string
+  ) {
     return this.soService.holdByPublicId(publicId);
   }
 
@@ -267,7 +291,9 @@ export class SalesOrdersController {
     description: 'Sales order released successfully',
   })
   @ApiResponse({ status: 404, description: 'Order is not on hold' })
-  async releaseByPublicId(@Param('publicId', ULIDValidationPipe) publicId: string) {
+  async releaseByPublicId(
+    @Param('publicId', ULIDValidationPipe) publicId: string
+  ) {
     return this.soService.releaseByPublicId(publicId);
   }
 
@@ -294,7 +320,9 @@ export class SalesOrdersController {
     status: 400,
     description: 'Cannot delete order in current status',
   })
-  async removeByPublicId(@Param('publicId', ULIDValidationPipe) publicId: string) {
+  async removeByPublicId(
+    @Param('publicId', ULIDValidationPipe) publicId: string
+  ) {
     return this.soService.removeByPublicId(publicId);
   }
 

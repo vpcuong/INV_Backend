@@ -9,7 +9,12 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { SupplierService } from './application/supplier.service';
 import { SupplierQueryService } from './application/supplier-query.service';
 import { SupplierAggregationService } from './application/supplier-aggregation.service';

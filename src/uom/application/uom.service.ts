@@ -13,7 +13,7 @@ import {
 @Injectable()
 export class UomService {
   constructor(
-      @Inject('IUomRepository') private readonly repository: IUomRepository
+    @Inject('IUomRepository') private readonly repository: IUomRepository
   ) {}
 
   async createClass(dto: CreateUomClassDto): Promise<UomClass> {
@@ -32,8 +32,12 @@ export class UomService {
     if (dto.uoms) {
       for (const uDto of dto.uoms) {
         uomClass.addUom(
-          new Uom({ code: uDto.code, name: uDto.name, description: uDto.description }),
-          uDto.toBaseFactor,
+          new Uom({
+            code: uDto.code,
+            name: uDto.name,
+            description: uDto.description,
+          }),
+          uDto.toBaseFactor
         );
       }
     }
@@ -49,7 +53,7 @@ export class UomService {
 
     uomClass.addUom(
       new Uom({ code: dto.code, name: dto.name, description: dto.description }),
-      dto.toBaseFactor,
+      dto.toBaseFactor
     );
 
     return this.repository.save(uomClass);
@@ -58,7 +62,7 @@ export class UomService {
   async updateConversion(
     classCode: string,
     uomCode: string,
-    toBaseFactor: number,
+    toBaseFactor: number
   ): Promise<UomClass> {
     const uomClass = await this.repository.findByCode(classCode);
     if (!uomClass) {
@@ -69,7 +73,10 @@ export class UomService {
     return this.repository.save(uomClass);
   }
 
-  async removeUomFromClass(classCode: string, uomCode: string): Promise<UomClass> {
+  async removeUomFromClass(
+    classCode: string,
+    uomCode: string
+  ): Promise<UomClass> {
     const uomClass = await this.repository.findByCode(classCode);
     if (!uomClass) {
       throw new UomClassNotFoundException(classCode);
@@ -82,7 +89,7 @@ export class UomService {
   async updateUomInClass(
     classCode: string,
     uomCode: string,
-    data: { name?: string; description?: string | null; isActive?: boolean },
+    data: { name?: string; description?: string | null; isActive?: boolean }
   ): Promise<UomClass> {
     const uomClass = await this.repository.findByCode(classCode);
     if (!uomClass) {

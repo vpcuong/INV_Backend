@@ -62,7 +62,7 @@ export class ItemQueryService {
       this.prisma.client.item.findMany(query),
       this.prisma.client.item.count({ where: query.where }),
     ]);
-   
+
     return this.queryBuilder.buildPaginatedResponse(
       mapItemsResponse(data),
       total,
@@ -526,7 +526,7 @@ export class ItemQueryService {
 
   async findModelsByItemPublicId(
     itemPublicId: string,
-    filterDto?: ModelFilterDto,
+    filterDto?: ModelFilterDto
   ) {
     const item = await this.prisma.client.item.findUnique({
       where: { publicId: itemPublicId },
@@ -575,9 +575,10 @@ export class ItemQueryService {
           },
         },
         orderBy: { id: 'desc' },
-        skip: filterDto?.page && filterDto?.limit
-          ? (filterDto.page - 1) * filterDto.limit
-          : undefined,
+        skip:
+          filterDto?.page && filterDto?.limit
+            ? (filterDto.page - 1) * filterDto.limit
+            : undefined,
         take: filterDto?.limit,
       }),
       this.prisma.client.itemModel.count({ where }),
@@ -677,9 +678,10 @@ export class ItemQueryService {
           },
         },
         orderBy: { id: 'desc' },
-        skip: filterDto?.page && filterDto?.limit
-          ? (filterDto.page - 1) * filterDto.limit
-          : undefined,
+        skip:
+          filterDto?.page && filterDto?.limit
+            ? (filterDto.page - 1) * filterDto.limit
+            : undefined,
         take: filterDto?.limit,
       }),
       this.prisma.client.itemModel.count({ where }),
@@ -741,9 +743,10 @@ export class ItemQueryService {
           },
         },
         orderBy,
-        skip: filterDto.page && filterDto.limit
-          ? (filterDto.page - 1) * filterDto.limit
-          : undefined,
+        skip:
+          filterDto.page && filterDto.limit
+            ? (filterDto.page - 1) * filterDto.limit
+            : undefined,
         take: filterDto.limit,
       }),
       this.prisma.client.itemModel.count({ where }),
@@ -776,9 +779,10 @@ export class ItemQueryService {
         where,
         include: this.getSkuIncludes(),
         orderBy: { id: 'desc' },
-        skip: filterDto?.page && filterDto?.limit
-          ? (filterDto.page - 1) * filterDto.limit
-          : undefined,
+        skip:
+          filterDto?.page && filterDto?.limit
+            ? (filterDto.page - 1) * filterDto.limit
+            : undefined,
         take: filterDto?.limit,
       }),
       this.prisma.client.itemSKU.count({ where }),
@@ -806,9 +810,10 @@ export class ItemQueryService {
         where,
         include: this.getSkuIncludes(),
         orderBy: { id: 'desc' },
-        skip: filterDto?.page && filterDto?.limit
-          ? (filterDto.page - 1) * filterDto.limit
-          : undefined,
+        skip:
+          filterDto?.page && filterDto?.limit
+            ? (filterDto.page - 1) * filterDto.limit
+            : undefined,
         take: filterDto?.limit,
       }),
       this.prisma.client.itemSKU.count({ where }),
@@ -884,7 +889,7 @@ export class ItemQueryService {
 
   async findSkusByModelPublicId(
     modelPublicId: string,
-    filterDto?: SkuFilterDto,
+    filterDto?: SkuFilterDto
   ) {
     const model = await this.prisma.client.itemModel.findUnique({
       where: { publicId: modelPublicId },
@@ -915,9 +920,10 @@ export class ItemQueryService {
         where,
         include: this.getSkuIncludes(),
         orderBy: { id: 'desc' },
-        skip: filterDto?.page && filterDto?.limit
-          ? (filterDto.page - 1) * filterDto.limit
-          : undefined,
+        skip:
+          filterDto?.page && filterDto?.limit
+            ? (filterDto.page - 1) * filterDto.limit
+            : undefined,
         take: filterDto?.limit,
       }),
       this.prisma.client.itemSKU.count({ where }),
@@ -958,9 +964,10 @@ export class ItemQueryService {
         where,
         include: this.getSkuIncludes(),
         orderBy,
-        skip: filterDto.page && filterDto.limit
-          ? (filterDto.page - 1) * filterDto.limit
-          : undefined,
+        skip:
+          filterDto.page && filterDto.limit
+            ? (filterDto.page - 1) * filterDto.limit
+            : undefined,
         take: filterDto.limit,
       }),
       this.prisma.client.itemSKU.count({ where }),
@@ -1029,27 +1036,27 @@ export class ItemQueryService {
       gender: true,
       size: true,
       uom: true,
-      fabric: true
+      fabric: true,
     };
   }
 
-  async findFabricSKUs(colorId: number, materialId: number){
-     const data = this.prisma.client.itemSKU.findMany({
+  async findFabricSKUs(colorId: number, materialId: number) {
+    const data = this.prisma.client.itemSKU.findMany({
       where: {
         colorId: colorId,
         item: {
-          materialId: materialId
-        }
+          materialId: materialId,
+        },
       },
       include: {
         color: true,
         item: {
           include: {
-            material: true
-          }
-        }
-      }
-    })
+            material: true,
+          },
+        },
+      },
+    });
 
     return data;
   }

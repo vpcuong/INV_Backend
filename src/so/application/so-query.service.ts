@@ -74,20 +74,32 @@ export class SOQueryService {
 
     if (filterDto.orderStatus) where.orderStatus = filterDto.orderStatus;
     if (filterDto.customerId) where.customerId = filterDto.customerId;
-    if (filterDto.soNum) where.soNum = { contains: filterDto.soNum, mode: 'insensitive' };
-    if (filterDto.customerPoNum) where.customerPoNum = { contains: filterDto.customerPoNum, mode: 'insensitive' };
+    if (filterDto.soNum)
+      where.soNum = { contains: filterDto.soNum, mode: 'insensitive' };
+    if (filterDto.customerPoNum)
+      where.customerPoNum = {
+        contains: filterDto.customerPoNum,
+        mode: 'insensitive',
+      };
     if (filterDto.channel) where.channel = filterDto.channel;
 
     if (filterDto.orderDateFrom || filterDto.orderDateTo) {
       where.orderDate = {};
-      if (filterDto.orderDateFrom) where.orderDate.gte = new Date(filterDto.orderDateFrom);
-      if (filterDto.orderDateTo) where.orderDate.lte = new Date(filterDto.orderDateTo);
+      if (filterDto.orderDateFrom)
+        where.orderDate.gte = new Date(filterDto.orderDateFrom);
+      if (filterDto.orderDateTo)
+        where.orderDate.lte = new Date(filterDto.orderDateTo);
     }
 
-    if (filterDto.minOrderTotal !== undefined || filterDto.maxOrderTotal !== undefined) {
+    if (
+      filterDto.minOrderTotal !== undefined ||
+      filterDto.maxOrderTotal !== undefined
+    ) {
       where.totalAmount = {};
-      if (filterDto.minOrderTotal !== undefined) where.totalAmount.gte = filterDto.minOrderTotal;
-      if (filterDto.maxOrderTotal !== undefined) where.totalAmount.lte = filterDto.maxOrderTotal;
+      if (filterDto.minOrderTotal !== undefined)
+        where.totalAmount.gte = filterDto.minOrderTotal;
+      if (filterDto.maxOrderTotal !== undefined)
+        where.totalAmount.lte = filterDto.maxOrderTotal;
     }
 
     if (filterDto.search) {
@@ -101,7 +113,9 @@ export class SOQueryService {
 
     // Decode cursor — lấy records SAU cursor (asc: gt)
     if (filterDto.cursor) {
-      const decoded = JSON.parse(Buffer.from(filterDto.cursor, 'base64url').toString());
+      const decoded = JSON.parse(
+        Buffer.from(filterDto.cursor, 'base64url').toString()
+      );
       const cursorCondition = {
         OR: [
           { orderDate: { gt: new Date(decoded.orderDate) } },
@@ -115,7 +129,9 @@ export class SOQueryService {
     }
     const data = await this.prisma.client.sOHeader.findMany({
       where,
-      include: this.relationsToInclude(this.buildRelations(filterDto as SOFilterDto)),
+      include: this.relationsToInclude(
+        this.buildRelations(filterDto as SOFilterDto)
+      ),
       orderBy: [{ orderDate: 'asc' }, { soNum: 'asc' }],
       take: limit + 1,
     });
@@ -124,12 +140,15 @@ export class SOQueryService {
     const items = hasMore ? data.slice(0, limit) : data;
     const lastItem = items[items.length - 1];
 
-    const nextCursor = hasMore && lastItem
-      ? Buffer.from(JSON.stringify({
-          orderDate: lastItem.orderDate,
-          soNum: lastItem.soNum,
-        })).toString('base64url')
-      : null;
+    const nextCursor =
+      hasMore && lastItem
+        ? Buffer.from(
+            JSON.stringify({
+              orderDate: lastItem.orderDate,
+              soNum: lastItem.soNum,
+            })
+          ).toString('base64url')
+        : null;
 
     return { data: items, nextCursor, hasMore, limit };
   }
@@ -183,7 +202,7 @@ export class SOQueryService {
                 color: true,
                 gender: true,
                 size: true,
-                item: true
+                item: true,
               },
             },
             uom: true,
@@ -292,14 +311,11 @@ export class SOQueryService {
     }
 
     const relations = this.buildRelations({} as SOFilterDto);
-  
+
     const data = await this.prisma.client.sOHeader.findMany({
       where,
       include: this.relationsToInclude(relations),
-      orderBy: [
-        { orderDate: 'desc' },
-        { soNum: 'desc' },
-      ],
+      orderBy: [{ orderDate: 'desc' }, { soNum: 'desc' }],
       take: 50, // Limit search results
     });
 

@@ -12,10 +12,9 @@ import { Type } from 'class-transformer';
 import { LinePricingDto } from './composed/create-so-line.dto';
 
 export class UpdateSOLineDto {
-
   @ApiPropertyOptional({
     description: 'Item SKU ID',
-    example: "",
+    example: '',
   })
   @IsOptional()
   @IsString()

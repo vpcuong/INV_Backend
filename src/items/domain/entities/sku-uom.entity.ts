@@ -77,7 +77,7 @@ export class SkuUom {
   private validateToBaseFactor(factor: number): void {
     if (factor <= 0) {
       throw new InvalidSkuUomException(
-        `toBaseFactor must be greater than 0, got ${factor}`,
+        `toBaseFactor must be greater than 0, got ${factor}`
       );
     }
   }

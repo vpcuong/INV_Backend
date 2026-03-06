@@ -20,7 +20,7 @@ export class WarehouseRepository implements IWarehouseRepository {
   // Warehouse operations
   async findById(
     id: number,
-    transaction?: PrismaTransaction,
+    transaction?: PrismaTransaction
   ): Promise<Warehouse | null> {
     const db = this.getDb(transaction);
     const data = await db.warehouse.findUnique({
@@ -31,7 +31,7 @@ export class WarehouseRepository implements IWarehouseRepository {
 
   async findByPublicId(
     publicId: string,
-    transaction?: PrismaTransaction,
+    transaction?: PrismaTransaction
   ): Promise<Warehouse | null> {
     const db = this.getDb(transaction);
     const data = await db.warehouse.findUnique({
@@ -42,7 +42,7 @@ export class WarehouseRepository implements IWarehouseRepository {
 
   async findByCode(
     code: string,
-    transaction?: PrismaTransaction,
+    transaction?: PrismaTransaction
   ): Promise<Warehouse | null> {
     const db = this.getDb(transaction);
     const data = await db.warehouse.findUnique({
@@ -53,7 +53,7 @@ export class WarehouseRepository implements IWarehouseRepository {
 
   async findAll(
     filters?: WarehouseFilters,
-    transaction?: PrismaTransaction,
+    transaction?: PrismaTransaction
   ): Promise<Warehouse[]> {
     const db = this.getDb(transaction);
 
@@ -78,7 +78,7 @@ export class WarehouseRepository implements IWarehouseRepository {
 
   async save(
     warehouse: Warehouse,
-    transaction?: PrismaTransaction,
+    transaction?: PrismaTransaction
   ): Promise<Warehouse> {
     const db = this.getDb(transaction);
     const { id, publicId, createdAt, updatedAt, ...data } =
@@ -96,7 +96,7 @@ export class WarehouseRepository implements IWarehouseRepository {
 
   async update(
     warehouse: Warehouse,
-    transaction?: PrismaTransaction,
+    transaction?: PrismaTransaction
   ): Promise<Warehouse> {
     const db = this.getDb(transaction);
     const { id, publicId, createdAt, updatedAt, ...data } =
@@ -120,7 +120,7 @@ export class WarehouseRepository implements IWarehouseRepository {
   async existsByCode(
     code: string,
     excludeId?: number,
-    transaction?: PrismaTransaction,
+    transaction?: PrismaTransaction
   ): Promise<boolean> {
     const db = this.getDb(transaction);
 
@@ -137,7 +137,7 @@ export class WarehouseRepository implements IWarehouseRepository {
   async findInventory(
     warehouseId: number,
     itemSkuId: number,
-    transaction?: PrismaTransaction,
+    transaction?: PrismaTransaction
   ): Promise<WarehouseItem | null> {
     const db = this.getDb(transaction);
     const data = await db.warehouseItem.findUnique({
@@ -153,7 +153,7 @@ export class WarehouseRepository implements IWarehouseRepository {
 
   async findInventoryByWarehouse(
     warehouseId: number,
-    transaction?: PrismaTransaction,
+    transaction?: PrismaTransaction
   ): Promise<WarehouseItem[]> {
     const db = this.getDb(transaction);
     const data = await db.warehouseItem.findMany({
@@ -166,7 +166,7 @@ export class WarehouseRepository implements IWarehouseRepository {
 
   async findInventoryBySku(
     itemSkuId: number,
-    transaction?: PrismaTransaction,
+    transaction?: PrismaTransaction
   ): Promise<WarehouseItem[]> {
     const db = this.getDb(transaction);
     const data = await db.warehouseItem.findMany({
@@ -179,7 +179,7 @@ export class WarehouseRepository implements IWarehouseRepository {
 
   async saveInventory(
     item: WarehouseItem,
-    transaction?: PrismaTransaction,
+    transaction?: PrismaTransaction
   ): Promise<WarehouseItem> {
     const db = this.getDb(transaction);
     const { id, createdAt, updatedAt, ...data } = item.toPersistence();
@@ -193,7 +193,7 @@ export class WarehouseRepository implements IWarehouseRepository {
 
   async updateInventory(
     item: WarehouseItem,
-    transaction?: PrismaTransaction,
+    transaction?: PrismaTransaction
   ): Promise<WarehouseItem> {
     const db = this.getDb(transaction);
     const { id, warehouseId, itemSkuId, createdAt, updatedAt, ...data } =
@@ -209,7 +209,7 @@ export class WarehouseRepository implements IWarehouseRepository {
 
   async upsertInventory(
     item: WarehouseItem,
-    transaction?: PrismaTransaction,
+    transaction?: PrismaTransaction
   ): Promise<WarehouseItem> {
     const db = this.getDb(transaction);
     const persistence = item.toPersistence();
@@ -238,7 +238,7 @@ export class WarehouseRepository implements IWarehouseRepository {
 
   // Transaction support
   async transaction<T>(
-    callback: (repo: IWarehouseRepository) => Promise<T>,
+    callback: (repo: IWarehouseRepository) => Promise<T>
   ): Promise<T> {
     return await this.prisma.client.$transaction(async (tx) => {
       const transactionalRepo = new WarehouseRepository({

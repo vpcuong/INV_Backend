@@ -7,6 +7,6 @@ import { UserRole } from '../enums/user-role.enum';
 export function Auth(...roles: UserRole[]) {
   return applyDecorators(
     UseGuards(JwtAuthGuard, RolesGuard),
-    ...(roles.length ? [Roles(...roles)] : []),
+    ...(roles.length ? [Roles(...roles)] : [])
   );
 }

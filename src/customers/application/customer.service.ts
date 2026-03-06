@@ -25,7 +25,10 @@ export class CustomerService {
   /**
    * Use Case: Create new customer
    */
-  async create(createCustomerDto: CreateCustomerDto, createdBy: string): Promise<any> {
+  async create(
+    createCustomerDto: CreateCustomerDto,
+    createdBy: string
+  ): Promise<any> {
     // Check for duplicate customer code
     const existing = await this.customerRepository.findByCode(
       createCustomerDto.customerCode

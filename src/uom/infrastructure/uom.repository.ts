@@ -118,10 +118,21 @@ export class UomRepository implements IUomRepository {
       baseUomCode: data.baseUOMCode,
       isActive: data.isActive,
       uoms: data.uoms.map(
-        (u) => new Uom({ code: u.code, name: u.name, description: u.description, isActive: u.isActive }),
+        (u) =>
+          new Uom({
+            code: u.code,
+            name: u.name,
+            description: u.description,
+            isActive: u.isActive,
+          })
       ),
       conversions: data.uomConvs.map(
-        (c) => new UomConversion({ uomCode: c.uomCode, toBaseFactor: c.toBaseFactor, isActive: c.isActive }),
+        (c) =>
+          new UomConversion({
+            uomCode: c.uomCode,
+            toBaseFactor: c.toBaseFactor,
+            isActive: c.isActive,
+          })
       ),
     });
   }
@@ -142,12 +153,23 @@ export class UomRepository implements IUomRepository {
         baseUomCode: data.baseUOMCode,
         isActive: data.isActive,
         uoms: data.uoms.map(
-          (u) => new Uom({ code: u.code, name: u.name, description: u.description, isActive: u.isActive }),
+          (u) =>
+            new Uom({
+              code: u.code,
+              name: u.name,
+              description: u.description,
+              isActive: u.isActive,
+            })
         ),
         conversions: data.uomConvs.map(
-          (c) => new UomConversion({ uomCode: c.uomCode, toBaseFactor: c.toBaseFactor, isActive: c.isActive }),
+          (c) =>
+            new UomConversion({
+              uomCode: c.uomCode,
+              toBaseFactor: c.toBaseFactor,
+              isActive: c.isActive,
+            })
         ),
-      }),
+      })
     );
   }
 

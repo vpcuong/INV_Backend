@@ -54,7 +54,10 @@ export class CreateSOLineDto {
   @IsPositive()
   lineNum?: number;
 
-  @ApiProperty({ description: 'Item SKU ID', example: 'CFYEN9GPV25XWQNKXC8G554PSC' })
+  @ApiProperty({
+    description: 'Item SKU ID',
+    example: 'CFYEN9GPV25XWQNKXC8G554PSC',
+  })
   @IsString()
   itemSkuId!: string;
 

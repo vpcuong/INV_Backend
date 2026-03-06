@@ -131,7 +131,7 @@ export interface IPORepository {
     headerData: UpdatePOHeaderData | undefined,
     linesToUpdate: { id: number; data: UpdatePOLineData }[],
     linesToCreate: CreateNewLineData[],
-    linesToDelete: number[],
+    linesToDelete: number[]
   ): Promise<POHeaderData>;
 
   remove(id: number): Promise<void>;
@@ -140,7 +140,11 @@ export interface IPORepository {
 
   getMaxLineNum(poId: number): Promise<number>;
 
-  updateLineReceivedQty(lineId: number, receivedQty: number, status: POLineStatus): Promise<void>;
+  updateLineReceivedQty(
+    lineId: number,
+    receivedQty: number,
+    status: POLineStatus
+  ): Promise<void>;
 
   updatePOStatus(poId: number, status: POStatus): Promise<void>;
 

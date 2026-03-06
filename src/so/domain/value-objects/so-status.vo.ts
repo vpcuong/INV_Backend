@@ -44,9 +44,10 @@ export class SOStatus {
   }
 
   public canTransitionTo(newStatus: string): boolean {
-    const transitions = SOStatus.VALID_TRANSITIONS[
-      this.value as keyof typeof SOStatus.VALID_TRANSITIONS
-    ];
+    const transitions =
+      SOStatus.VALID_TRANSITIONS[
+        this.value as keyof typeof SOStatus.VALID_TRANSITIONS
+      ];
     // @ts-expect-error - type issue with includes
     return transitions?.includes(newStatus as any) ?? false;
   }

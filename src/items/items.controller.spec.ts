@@ -82,7 +82,10 @@ describe('ItemsController', () => {
 
     const result = await controller.update(publicId, dto);
 
-    expect(aggregateService.updateItemByPublicId).toHaveBeenCalledWith(publicId, dto);
+    expect(aggregateService.updateItemByPublicId).toHaveBeenCalledWith(
+      publicId,
+      dto
+    );
     expect(result).toBe(expected);
   });
 
@@ -93,7 +96,9 @@ describe('ItemsController', () => {
 
     const result = await controller.remove(publicId);
 
-    expect(aggregateService.deleteItemByPublicId).toHaveBeenCalledWith(publicId);
+    expect(aggregateService.deleteItemByPublicId).toHaveBeenCalledWith(
+      publicId
+    );
     expect(result).toBe(expected);
   });
 
@@ -104,7 +109,9 @@ describe('ItemsController', () => {
 
     const result = await controller.activate(publicId);
 
-    expect(aggregateService.activateItemByPublicId).toHaveBeenCalledWith(publicId);
+    expect(aggregateService.activateItemByPublicId).toHaveBeenCalledWith(
+      publicId
+    );
     expect(result).toBe(expected);
   });
 
@@ -115,7 +122,9 @@ describe('ItemsController', () => {
 
     const result = await controller.deactivate(publicId);
 
-    expect(aggregateService.deactivateItemByPublicId).toHaveBeenCalledWith(publicId);
+    expect(aggregateService.deactivateItemByPublicId).toHaveBeenCalledWith(
+      publicId
+    );
     expect(result).toBe(expected);
   });
 
@@ -126,7 +135,9 @@ describe('ItemsController', () => {
 
     const result = await controller.setDraft(publicId);
 
-    expect(aggregateService.setItemDraftByPublicId).toHaveBeenCalledWith(publicId);
+    expect(aggregateService.setItemDraftByPublicId).toHaveBeenCalledWith(
+      publicId
+    );
     expect(result).toBe(expected);
   });
 });

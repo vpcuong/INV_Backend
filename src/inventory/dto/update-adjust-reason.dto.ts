@@ -3,17 +3,29 @@ import { ApiProperty } from '@nestjs/swagger';
 import { AdjustDirection } from '../domain/adjust-reason.entity';
 
 export class UpdateAdjustReasonDto {
-  @ApiProperty({ description: 'Name', required: false, example: 'Damaged Goods' })
+  @ApiProperty({
+    description: 'Name',
+    required: false,
+    example: 'Damaged Goods',
+  })
   @IsString()
   @IsOptional()
   name?: string;
 
-  @ApiProperty({ description: 'Description', required: false, example: 'Adjustment for damaged goods' })
+  @ApiProperty({
+    description: 'Description',
+    required: false,
+    example: 'Adjustment for damaged goods',
+  })
   @IsString()
   @IsOptional()
   description?: string;
 
-  @ApiProperty({ description: 'Direction', required: false, enum: ['INCREASE', 'DECREASE', 'BOTH'] })
+  @ApiProperty({
+    description: 'Direction',
+    required: false,
+    enum: ['INCREASE', 'DECREASE', 'BOTH'],
+  })
   @IsString()
   @IsIn(['INCREASE', 'DECREASE', 'BOTH'])
   @IsOptional()

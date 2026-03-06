@@ -260,14 +260,20 @@ export class ItemRepository implements IItemRepository {
   private async syncModelsByRowMode(
     tx: any,
     itemId: number,
-    models: ItemModel[],
+    models: ItemModel[]
   ): Promise<void> {
     const newModels = models.filter((m) => m.getRowMode() === RowMode.NEW);
-    const updatedModels = models.filter((m) => m.getRowMode() === RowMode.UPDATED);
-    const deletedModels = models.filter((m) => m.getRowMode() === RowMode.DELETED);
+    const updatedModels = models.filter(
+      (m) => m.getRowMode() === RowMode.UPDATED
+    );
+    const deletedModels = models.filter(
+      (m) => m.getRowMode() === RowMode.DELETED
+    );
 
     // Delete
-    const deletedIds = deletedModels.map((m) => m.getId()).filter(Boolean) as number[];
+    const deletedIds = deletedModels
+      .map((m) => m.getId())
+      .filter(Boolean) as number[];
     if (deletedIds.length > 0) {
       await tx.itemModel.deleteMany({
         where: { id: { in: deletedIds } },
@@ -299,14 +305,16 @@ export class ItemRepository implements IItemRepository {
   private async syncSkusByRowMode(
     tx: any,
     itemId: number,
-    skus: ItemSku[],
+    skus: ItemSku[]
   ): Promise<void> {
     const newSkus = skus.filter((s) => s.getRowMode() === RowMode.NEW);
     const updatedSkus = skus.filter((s) => s.getRowMode() === RowMode.UPDATED);
     const deletedSkus = skus.filter((s) => s.getRowMode() === RowMode.DELETED);
 
     // Delete
-    const deletedIds = deletedSkus.map((s) => s.getId()).filter(Boolean) as number[];
+    const deletedIds = deletedSkus
+      .map((s) => s.getId())
+      .filter(Boolean) as number[];
     if (deletedIds.length > 0) {
       await tx.itemSKU.deleteMany({
         where: { id: { in: deletedIds } },
@@ -340,7 +348,7 @@ export class ItemRepository implements IItemRepository {
   private async syncUomsByRowMode(
     tx: any,
     itemId: number,
-    uoms: ItemUom[],
+    uoms: ItemUom[]
   ): Promise<void> {
     const newUoms = uoms.filter((u) => u.getRowMode() === RowMode.NEW);
     const updatedUoms = uoms.filter((u) => u.getRowMode() === RowMode.UPDATED);
@@ -407,16 +415,14 @@ export class ItemRepository implements IItemRepository {
       where: { id: itemId },
       include: {
         category: true,
-      }
+      },
     });
 
-    if(!data) return false;
+    if (!data) return false;
 
-    if(data.category.type !== ItemCategoryType.FABRIC) return false;
+    if (data.category.type !== ItemCategoryType.FABRIC) return false;
     return true;
   }
-
-
 
   // ==================== MODEL OPERATIONS ====================
 
@@ -428,7 +434,9 @@ export class ItemRepository implements IItemRepository {
     return data ? ItemModel.fromPersistence(data) : null;
   }
 
-  async findModelByPublicId(publicId: string): Promise<{ model: ItemModel; itemId: number } | null> {
+  async findModelByPublicId(
+    publicId: string
+  ): Promise<{ model: ItemModel; itemId: number } | null> {
     const data = await this.prisma.client.itemModel.findUnique({
       where: { publicId },
     });
@@ -470,7 +478,9 @@ export class ItemRepository implements IItemRepository {
     return data ? ItemSku.fromPersistence(data) : null;
   }
 
-  async findSkuByPublicId(publicId: string): Promise<{ sku: ItemSku; itemId: number } | null> {
+  async findSkuByPublicId(
+    publicId: string
+  ): Promise<{ sku: ItemSku; itemId: number } | null> {
     const data = await this.prisma.client.itemSKU.findUnique({
       where: { publicId },
     });
@@ -501,12 +511,28 @@ export class ItemRepository implements IItemRepository {
     return data.map((d) => ItemSku.fromPersistence(d));
   }
 
-  async updateSkuById(skuId: number, data: Record<string, any>): Promise<ItemSku> {
+  async updateSkuById(
+    skuId: number,
+    data: Record<string, any>
+  ): Promise<ItemSku> {
     // Only allow safe, updatable fields - exclude identity, relation, and auto-managed fields
     const allowedFields = [
-      'colorId', 'genderId', 'sizeId', 'supplierId', 'customerId',
-      'fabricSKUId', 'pattern', 'lengthCm', 'widthCm', 'heightCm', 'weightG',
-      'desc', 'status', 'costPrice', 'sellingPrice', 'uomCode',
+      'colorId',
+      'genderId',
+      'sizeId',
+      'supplierId',
+      'customerId',
+      'fabricSKUId',
+      'pattern',
+      'lengthCm',
+      'widthCm',
+      'heightCm',
+      'weightG',
+      'desc',
+      'status',
+      'costPrice',
+      'sellingPrice',
+      'uomCode',
     ];
 
     const updateData: Record<string, any> = {};
@@ -536,25 +562,25 @@ export class ItemRepository implements IItemRepository {
   async isMappedSku(skuId: number): Promise<boolean> {
     const count = await this.prisma.client.itemSKU.count({
       where: {
-        fabricSKUId: skuId
+        fabricSKUId: skuId,
       },
     });
     return count > 0;
   }
 
-  async getFabricsSku(colorId: number, materialId: number){
+  async getFabricsSku(colorId: number, materialId: number) {
     const data = this.prisma.client.itemSKU.findMany({
       where: {
         colorId: colorId,
         item: {
-          materialId
-        }
+          materialId,
+        },
       },
       include: {
         color: true,
-        item: true
-      }
-    })
+        item: true,
+      },
+    });
 
     return data;
   }

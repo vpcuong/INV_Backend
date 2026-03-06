@@ -6,7 +6,7 @@ export class ItemSkuRemovedEvent extends BaseDomainEvent {
   constructor(
     aggregateId: number,
     public readonly skuId: number,
-    public readonly skuCode: string,
+    public readonly skuCode: string
   ) {
     super(aggregateId);
   }

@@ -7,7 +7,7 @@ export class ItemSkuAddedEvent extends BaseDomainEvent {
     aggregateId: number,
     public readonly modelId: number | null,
     public readonly skuId: number,
-    public readonly skuCode: string,
+    public readonly skuCode: string
   ) {
     super(aggregateId);
   }

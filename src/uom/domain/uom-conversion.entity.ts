@@ -39,7 +39,8 @@ export class UomConversion {
     }
     if (data.isActive !== undefined) {
       this.isActive = data.isActive;
-      this.rowMode = this.rowMode === RowMode.NEW ? RowMode.NEW : RowMode.UPDATED;
+      this.rowMode =
+        this.rowMode === RowMode.NEW ? RowMode.NEW : RowMode.UPDATED;
     }
   }
 

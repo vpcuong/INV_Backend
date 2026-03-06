@@ -10,7 +10,7 @@ export class WarehouseQueryService {
   constructor(
     @Inject(WAREHOUSE_REPOSITORY)
     private readonly warehouseRepository: IWarehouseRepository,
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaService
   ) {}
 
   async findAll(filterDto?: WarehouseFilterDto): Promise<any[]> {
@@ -62,7 +62,7 @@ export class WarehouseQueryService {
     //   reservedQty: Number(item.reservedQty),
     //   availableQty: Number(item.quantity) - Number(item.reservedQty),
     // }));
-      return inventoryItems;
+    return inventoryItems;
   }
 
   async getInventoryBySku(skuPublicId: string): Promise<any[]> {
@@ -70,9 +70,7 @@ export class WarehouseQueryService {
       where: { publicId: skuPublicId },
     });
     if (!sku) {
-      throw new NotFoundException(
-        `SKU with publicId ${skuPublicId} not found`,
-      );
+      throw new NotFoundException(`SKU with publicId ${skuPublicId} not found`);
     }
 
     const inventoryItems = await this.prisma.client.warehouseItem.findMany({
@@ -95,14 +93,20 @@ export class WarehouseQueryService {
     }));
   }
 
-  async getInventoryBySku_Warehouse(warehousePublicId: string, skuPublicId: string): Promise<any> {
+  async getInventoryBySku_Warehouse(
+    warehousePublicId: string,
+    skuPublicId: string
+  ): Promise<any> {
     const [warehouse, sku] = await Promise.all([
       this.warehouseRepository.findByPublicId(warehousePublicId),
-      this.prisma.client.itemSKU.findUnique({ where: { publicId: skuPublicId } }),
+      this.prisma.client.itemSKU.findUnique({
+        where: { publicId: skuPublicId },
+      }),
     ]);
 
     if (!warehouse) throw new WarehouseNotFoundException(warehousePublicId);
-    if (!sku) throw new NotFoundException(`SKU with publicId ${skuPublicId} not found`);
+    if (!sku)
+      throw new NotFoundException(`SKU with publicId ${skuPublicId} not found`);
 
     const item = await this.prisma.client.warehouseItem.findUnique({
       where: {
@@ -165,9 +169,7 @@ export class WarehouseQueryService {
       where: { publicId: skuPublicId },
     });
     if (!sku) {
-      throw new NotFoundException(
-        `SKU with publicId ${skuPublicId} not found`,
-      );
+      throw new NotFoundException(`SKU with publicId ${skuPublicId} not found`);
     }
 
     const summary = await this.prisma.client.warehouseItem.aggregate({

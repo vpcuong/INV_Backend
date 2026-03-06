@@ -37,5 +37,4 @@ export class CreateSizeDto {
   @IsNumber()
   @Min(0)
   sortOrder?: number;
-
 }

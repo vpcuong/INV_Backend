@@ -53,7 +53,7 @@ describe('ItemSkusController', () => {
       itemPublicId,
       null,
       dto,
-      mockUserId,
+      mockUserId
     );
     expect(result).toBe(expected);
   });
@@ -70,7 +70,7 @@ describe('ItemSkusController', () => {
 
     expect(queryService.findSkusByItemPublicId).toHaveBeenCalledWith(
       itemPublicId,
-      filter,
+      filter
     );
     expect(result).toBe(expected);
   });
@@ -88,14 +88,14 @@ describe('ItemSkusController', () => {
       itemPublicId,
       modelPublicId,
       dto,
-      mockUser,
+      mockUser
     );
 
     expect(aggregateService.addSkuToItemByPublicId).toHaveBeenCalledWith(
       itemPublicId,
       modelPublicId,
       dto,
-      mockUserId,
+      mockUserId
     );
     expect(result).toBe(expected);
   });
@@ -105,19 +105,22 @@ describe('ItemSkusController', () => {
     const itemPublicId = '01HDY8WZCQKXG2S4J5E6M7N8P9';
     const modelPublicId = '01M0DELWZCQKXG2S4J5E6M7N8P9';
     const filter: any = { page: 1, limit: 50, search: 'blue' };
-    const expected: any = { data: [{ id: 1 }], pagination: { page: 1, limit: 50 } };
+    const expected: any = {
+      data: [{ id: 1 }],
+      pagination: { page: 1, limit: 50 },
+    };
 
     queryService.findSkusByModelPublicId.mockResolvedValue(expected);
 
     const result = await controller.findAllByModel(
       itemPublicId,
       modelPublicId,
-      filter,
+      filter
     );
 
     expect(queryService.findSkusByModelPublicId).toHaveBeenCalledWith(
       modelPublicId,
-      filter,
+      filter
     );
     expect(result).toBe(expected);
   });
@@ -130,7 +133,9 @@ describe('ItemSkusController', () => {
 
     queryService.findSkusByItemPublicId.mockRejectedValue(error);
 
-    await expect(controller.findAllByItem(itemPublicId, filter)).rejects.toBe(error);
+    await expect(controller.findAllByItem(itemPublicId, filter)).rejects.toBe(
+      error
+    );
   });
 
   // 6) Should pass DTO payload unchanged to aggregate service for createForItem
@@ -152,7 +157,7 @@ describe('ItemSkusController', () => {
       itemPublicId,
       null,
       dto,
-      mockUserId,
+      mockUserId
     );
     expect(result).toBe(expected);
   });
@@ -169,12 +174,12 @@ describe('ItemSkusController', () => {
     const result = await controller.findAllByModel(
       itemPublicId,
       modelPublicId,
-      filter,
+      filter
     );
 
     expect(queryService.findSkusByModelPublicId).toHaveBeenCalledWith(
       modelPublicId,
-      filter,
+      filter
     );
     expect(result).toBe(expected);
   });

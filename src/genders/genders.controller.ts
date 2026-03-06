@@ -10,7 +10,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { GenderService } from './application/gender.service';
 import { CreateGenderDto } from './dto/create-gender.dto';
 import { UpdateGenderDto } from './dto/update-gender.dto';
@@ -29,7 +34,7 @@ export class GendersController {
   @ApiResponse({ status: 409, description: 'Gender code already exists' })
   create(
     @Body() createGenderDto: CreateGenderDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
     return this.gendersService.create(createGenderDto, user.userId);
   }
@@ -55,7 +60,7 @@ export class GendersController {
   @ApiResponse({ status: 404, description: 'Gender not found' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateGenderDto: UpdateGenderDto,
+    @Body() updateGenderDto: UpdateGenderDto
   ) {
     return this.gendersService.update(id, updateGenderDto);
   }

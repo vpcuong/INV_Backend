@@ -8,10 +8,18 @@ import {
   Param,
   NotFoundException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { UomService } from '../../application/uom.service';
 import { UomQueryService } from '../../application/uom-query.service';
-import { UpdateUomConversionDto, ConvertUomDto } from '../dto/update-uom-conversion.dto';
+import {
+  UpdateUomConversionDto,
+  ConvertUomDto,
+} from '../dto/update-uom-conversion.dto';
 
 @ApiTags('UOM Conversions')
 @ApiBearerAuth()
@@ -32,7 +40,7 @@ export class UomConversionListController {
 export class UomConversionController {
   constructor(
     private readonly service: UomService,
-    private readonly queryService: UomQueryService,
+    private readonly queryService: UomQueryService
   ) {}
 
   @Get()
@@ -48,12 +56,12 @@ export class UomConversionController {
   @ApiParam({ name: 'uomCode', description: 'UOM code' })
   async findOne(
     @Param('classCode') classCode: string,
-    @Param('uomCode') uomCode: string,
+    @Param('uomCode') uomCode: string
   ) {
     const result = await this.queryService.findConversion(classCode, uomCode);
     if (!result) {
       throw new NotFoundException(
-        `Conversion for UOM ${uomCode} not found in class ${classCode}`,
+        `Conversion for UOM ${uomCode} not found in class ${classCode}`
       );
     }
     return result;
@@ -66,7 +74,7 @@ export class UomConversionController {
   updateFactor(
     @Param('classCode') classCode: string,
     @Param('uomCode') uomCode: string,
-    @Body() dto: UpdateUomConversionDto,
+    @Body() dto: UpdateUomConversionDto
   ) {
     return this.service.updateConversion(classCode, uomCode, dto.toBaseFactor);
   }
@@ -74,15 +82,12 @@ export class UomConversionController {
   @Post('convert')
   @ApiOperation({ summary: 'Convert value between UOMs in the same class' })
   @ApiParam({ name: 'classCode', description: 'UOM Class code' })
-  convert(
-    @Param('classCode') classCode: string,
-    @Body() dto: ConvertUomDto,
-  ) {
+  convert(@Param('classCode') classCode: string, @Body() dto: ConvertUomDto) {
     return this.queryService.convertValue(
       classCode,
       dto.fromUomCode,
       dto.toUomCode,
-      dto.value,
+      dto.value
     );
   }
 }

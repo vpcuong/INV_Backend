@@ -96,7 +96,7 @@ export class QueryBuilderService {
         query.select[field] = true;
       });
     }
-    
+
     return query;
   }
 

@@ -17,7 +17,7 @@ export class InvTransNumberGeneratorService {
     const fullPrefix = `${prefix}-${yearMonth}-`;
 
     const lastTrans = await this.repository.findLastTransByPrefix(fullPrefix);
-    
+
     let nextNumber = 1;
     if (lastTrans?.transNum) {
       const lastNumberStr = lastTrans.transNum.replace(fullPrefix, '');

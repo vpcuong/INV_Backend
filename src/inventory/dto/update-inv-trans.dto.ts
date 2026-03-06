@@ -11,7 +11,11 @@ import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateInvTransLineDto {
-  @ApiProperty({ description: 'Line ID (for updates)', required: false, example: 123 })
+  @ApiProperty({
+    description: 'Line ID (for updates)',
+    required: false,
+    example: 123,
+  })
   @IsNumber()
   @IsOptional()
   id?: number;
@@ -37,19 +41,31 @@ export class UpdateInvTransLineDto {
   @IsOptional()
   uomCode?: string;
 
-  @ApiProperty({ description: 'Note', required: false, example: 'Updated note' })
+  @ApiProperty({
+    description: 'Note',
+    required: false,
+    example: 'Updated note',
+  })
   @IsString()
   @IsOptional()
   note?: string;
 }
 
 export class UpdateInvTransHeaderDto {
-  @ApiProperty({ description: 'Transaction Date', required: false, example: '2023-01-05T00:00:00Z' })
+  @ApiProperty({
+    description: 'Transaction Date',
+    required: false,
+    example: '2023-01-05T00:00:00Z',
+  })
   @IsDateString()
   @IsOptional()
   transactionDate?: string;
 
-  @ApiProperty({ description: 'Reference Type', required: false, example: 'PO' })
+  @ApiProperty({
+    description: 'Reference Type',
+    required: false,
+    example: 'PO',
+  })
   @IsString()
   @IsOptional()
   referenceType?: string;
@@ -59,22 +75,38 @@ export class UpdateInvTransHeaderDto {
   @IsOptional()
   referenceId?: number;
 
-  @ApiProperty({ description: 'Reference Number', required: false, example: 'PO-2023-002' })
+  @ApiProperty({
+    description: 'Reference Number',
+    required: false,
+    example: 'PO-2023-002',
+  })
   @IsString()
   @IsOptional()
   referenceNum?: string;
 
-  @ApiProperty({ description: 'Adjustment Reason ID', required: false, example: 1 })
+  @ApiProperty({
+    description: 'Adjustment Reason ID',
+    required: false,
+    example: 1,
+  })
   @IsNumber()
   @IsOptional()
   reasonId?: number;
 
-  @ApiProperty({ description: 'Note', required: false, example: 'Correction for previous error' })
+  @ApiProperty({
+    description: 'Note',
+    required: false,
+    example: 'Correction for previous error',
+  })
   @IsString()
   @IsOptional()
   note?: string;
 
-  @ApiProperty({ description: 'Lines to update/create', type: [UpdateInvTransLineDto], required: false })
+  @ApiProperty({
+    description: 'Lines to update/create',
+    type: [UpdateInvTransLineDto],
+    required: false,
+  })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => UpdateInvTransLineDto)

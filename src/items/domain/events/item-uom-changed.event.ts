@@ -5,7 +5,7 @@ export class ItemUomAddedEvent extends BaseDomainEvent {
 
   constructor(
     aggregateId: number,
-    public readonly uomCode: string,
+    public readonly uomCode: string
   ) {
     super(aggregateId);
   }
@@ -16,7 +16,7 @@ export class ItemUomRemovedEvent extends BaseDomainEvent {
 
   constructor(
     aggregateId: number,
-    public readonly uomCode: string,
+    public readonly uomCode: string
   ) {
     super(aggregateId);
   }

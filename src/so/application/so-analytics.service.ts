@@ -21,7 +21,7 @@ export class SOAnalyticsService {
     if (from || to) {
       where.orderDate = {};
       if (from) where.orderDate.gte = new Date(from);
-      if (to)   where.orderDate.lte = new Date(to);
+      if (to) where.orderDate.lte = new Date(to);
     }
     if (customerId) where.customerId = customerId;
     return where;
@@ -34,7 +34,11 @@ export class SOAnalyticsService {
   // ─── 1. Overview ───────────────────────────────────────────────────────────
 
   async getOverview(dto: SOAnalyticsBaseDto) {
-    const where = this.buildDateWhere(dto.orderDateFrom, dto.orderDateTo, dto.customerId);
+    const where = this.buildDateWhere(
+      dto.orderDateFrom,
+      dto.orderDateTo,
+      dto.customerId
+    );
 
     const [totalAgg, byStatus] = await Promise.all([
       this.prisma.client.sOHeader.aggregate({
@@ -74,18 +78,25 @@ export class SOAnalyticsService {
   // ─── 2. Revenue series ─────────────────────────────────────────────────────
 
   async getRevenueSeries(dto: SORevenueAnalyticsDto) {
-    const where = this.buildDateWhere(dto.orderDateFrom, dto.orderDateTo, dto.customerId);
+    const where = this.buildDateWhere(
+      dto.orderDateFrom,
+      dto.orderDateTo,
+      dto.customerId
+    );
     const groupBy = dto.groupBy ?? RevenueGroupBy.DAY;
 
     // Prisma không hỗ trợ DATE_TRUNC trực tiếp → dùng $queryRaw
-    const truncFn = groupBy === RevenueGroupBy.DAY
-      ? 'day'
-      : groupBy === RevenueGroupBy.WEEK
-        ? 'week'
-        : 'month';
+    const truncFn =
+      groupBy === RevenueGroupBy.DAY
+        ? 'day'
+        : groupBy === RevenueGroupBy.WEEK
+          ? 'week'
+          : 'month';
 
     // Build dynamic WHERE args
-    const conditions: string[] = [`"orderStatus" NOT IN ('CANCELLED', 'DRAFT')`];
+    const conditions: string[] = [
+      `"orderStatus" NOT IN ('CANCELLED', 'DRAFT')`,
+    ];
     const args: any[] = [];
 
     if (dto.orderDateFrom) {
@@ -112,10 +123,13 @@ export class SOAnalyticsService {
        WHERE ${whereClause}
        GROUP BY DATE_TRUNC('${truncFn}', "orderDate")
        ORDER BY period ASC`,
-      ...args,
+      ...args
     );
 
-    const totalRevenue = rows.reduce((sum, r) => sum + this.toNum(r.revenue), 0);
+    const totalRevenue = rows.reduce(
+      (sum, r) => sum + this.toNum(r.revenue),
+      0
+    );
     const totalOrders = rows.reduce((sum, r) => sum + Number(r.orderCount), 0);
 
     return {
@@ -147,7 +161,13 @@ export class SOAnalyticsService {
     });
 
     if (rows.length === 0) {
-      return { period: { from: dto.orderDateFrom ?? null, to: dto.orderDateTo ?? null }, customers: [] };
+      return {
+        period: {
+          from: dto.orderDateFrom ?? null,
+          to: dto.orderDateTo ?? null,
+        },
+        customers: [],
+      };
     }
 
     const customerIds = rows.map((r) => r.customerId);
@@ -176,7 +196,9 @@ export class SOAnalyticsService {
 
   async getTopSkus(dto: SOTopSkusDto) {
     const limit = dto.limit ?? 10;
-    const conditions: string[] = [`h."orderStatus" NOT IN ('CANCELLED', 'DRAFT')`];
+    const conditions: string[] = [
+      `h."orderStatus" NOT IN ('CANCELLED', 'DRAFT')`,
+    ];
     const args: any[] = [];
 
     if (dto.orderDateFrom) {
@@ -210,7 +232,7 @@ export class SOAnalyticsService {
        GROUP BY d."itemSkuId", s."skuCode"
        ORDER BY revenue DESC
        LIMIT ${limitPlaceholder}`,
-      ...args,
+      ...args
     );
 
     return {

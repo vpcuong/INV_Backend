@@ -12,7 +12,11 @@ export class CreateColorDto {
   @IsNotEmpty()
   desc!: string;
 
-  @ApiProperty({ description: 'Hex color value', required: false, example: '#FF0000' })
+  @ApiProperty({
+    description: 'Hex color value',
+    required: false,
+    example: '#FF0000',
+  })
   @IsOptional()
   @IsString()
   hexValue?: string;

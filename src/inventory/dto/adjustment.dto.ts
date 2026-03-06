@@ -23,17 +23,28 @@ export class CreateAdjustmentDto {
   @IsNotEmpty()
   reasonId: number; // Required for Adjustment
 
-  @ApiProperty({ description: 'Transaction Date', required: false, example: '2023-01-05T00:00:00Z' })
+  @ApiProperty({
+    description: 'Transaction Date',
+    required: false,
+    example: '2023-01-05T00:00:00Z',
+  })
   @IsDateString()
   @IsOptional()
   transactionDate?: string;
 
-  @ApiProperty({ description: 'Note', required: false, example: 'Inventory adjustment' })
+  @ApiProperty({
+    description: 'Note',
+    required: false,
+    example: 'Inventory adjustment',
+  })
   @IsString()
   @IsOptional()
   note?: string;
 
-  @ApiProperty({ description: 'Adjustment Lines', type: [CreateInvTransLineDto] })
+  @ApiProperty({
+    description: 'Adjustment Lines',
+    type: [CreateInvTransLineDto],
+  })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateInvTransLineDto)

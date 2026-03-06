@@ -17,7 +17,10 @@ export class GenderService {
     private readonly genderRepository: IGenderRepository
   ) {}
 
-  async create(createGenderDto: CreateGenderDto, createdBy: string): Promise<Gender> {
+  async create(
+    createGenderDto: CreateGenderDto,
+    createdBy: string
+  ): Promise<Gender> {
     // Check if code already exists
     const existing = await this.genderRepository.findByCode(
       createGenderDto.code

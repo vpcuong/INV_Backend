@@ -71,7 +71,7 @@ export class ItemModel {
     }
     if (data.code.length > 20) {
       throw new InvalidItemModelException(
-        'Model code must not exceed 20 characters',
+        'Model code must not exceed 20 characters'
       );
     }
     if (!data.itemId) {
@@ -113,7 +113,7 @@ export class ItemModel {
       }
       if (data.code.length > 20) {
         throw new InvalidItemModelException(
-          'Model code must not exceed 20 characters',
+          'Model code must not exceed 20 characters'
         );
       }
       this.code = data.code;
@@ -124,7 +124,7 @@ export class ItemModel {
     if (data.customerId !== undefined) {
       this.customerId = data.customerId;
     }
-   
+
     this.rowMode = this.rowMode ?? RowMode.UPDATED;
     this.updatedAt = new Date();
   }

@@ -1,9 +1,15 @@
-import { IsOptional, IsString, IsInt, Min, IsEnum, IsNumber } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsInt,
+  Min,
+  IsEnum,
+  IsNumber,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SkuFilterDto {
-
   @ApiPropertyOptional({
     description: 'Filter by Color ID',
     example: 1,
@@ -91,7 +97,8 @@ export class SkuFilterDto {
   limit?: number;
 
   @ApiPropertyOptional({
-    description: 'Sort conditions - JSON string (e.g., [{"field":"createdAt","order":"desc"}])',
+    description:
+      'Sort conditions - JSON string (e.g., [{"field":"createdAt","order":"desc"}])',
     example: '[{"field":"skuCode","order":"asc"}]',
   })
   @IsOptional()

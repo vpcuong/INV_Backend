@@ -11,7 +11,7 @@ export class AdjustReasonRepository implements IAdjustReasonRepository {
     const data = await this.prisma.client.inventoryAdjustReason.findMany({
       orderBy: { code: 'asc' },
     });
-    return data.map(d => AdjustReason.fromPersistence(d));
+    return data.map((d) => AdjustReason.fromPersistence(d));
   }
 
   async findActive(): Promise<AdjustReason[]> {
@@ -19,7 +19,7 @@ export class AdjustReasonRepository implements IAdjustReasonRepository {
       where: { isActive: true },
       orderBy: { code: 'asc' },
     });
-    return data.map(d => AdjustReason.fromPersistence(d));
+    return data.map((d) => AdjustReason.fromPersistence(d));
   }
 
   async findById(id: number): Promise<AdjustReason | null> {

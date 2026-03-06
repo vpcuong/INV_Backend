@@ -104,13 +104,20 @@ export class SOPricing {
 
   public setDiscountAmount(amount: number): SOPricing {
     if (amount < 0) {
-      throw new InvalidAmountException('Discount amount cannot be negative', amount);
+      throw new InvalidAmountException(
+        'Discount amount cannot be negative',
+        amount
+      );
     }
     if (amount > this.baseAmount) {
-      throw new InvalidAmountException('Discount amount cannot exceed total order value', amount);
+      throw new InvalidAmountException(
+        'Discount amount cannot exceed total order value',
+        amount
+      );
     }
 
-    const newPercent = this.baseAmount > 0 ? (amount / this.baseAmount) * 100 : 0;
+    const newPercent =
+      this.baseAmount > 0 ? (amount / this.baseAmount) * 100 : 0;
     // taxAmount stays the same (comes from lines, not affected by header discount)
     const newTotalAmount = this.baseAmount - amount + this.taxAmount;
 

@@ -8,7 +8,13 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { WarehouseService } from '../application/warehouse.service';
 import { WarehouseQueryService } from '../application/warehouse-query.service';
 import { CreateWarehouseDto } from '../dto/create-warehouse.dto';
@@ -21,7 +27,7 @@ import { WarehouseFilterDto } from '../dto/warehouse-filter.dto';
 export class WarehouseController {
   constructor(
     private readonly warehouseService: WarehouseService,
-    private readonly warehouseQueryService: WarehouseQueryService,
+    private readonly warehouseQueryService: WarehouseQueryService
   ) {}
 
   @Post()
@@ -60,10 +66,7 @@ export class WarehouseController {
   @Patch(':publicId')
   @ApiOperation({ summary: 'Update warehouse' })
   @ApiParam({ name: 'publicId', description: 'Warehouse Public ID (ULID)' })
-  update(
-    @Param('publicId') publicId: string,
-    @Body() dto: UpdateWarehouseDto,
-  ) {
+  update(@Param('publicId') publicId: string, @Body() dto: UpdateWarehouseDto) {
     return this.warehouseService.updateWarehouse(publicId, dto);
   }
 

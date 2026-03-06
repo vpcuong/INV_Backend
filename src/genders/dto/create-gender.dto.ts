@@ -37,5 +37,4 @@ export class CreateGenderDto {
   @IsNumber()
   @Min(0)
   sortOrder?: number;
-
 }

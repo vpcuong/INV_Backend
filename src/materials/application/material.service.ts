@@ -22,7 +22,10 @@ export class MaterialService {
     private readonly materialRepository: IMaterialRepository
   ) {}
 
-  async create(createMaterialDto: CreateMaterialDto, createdBy: string): Promise<Material> {
+  async create(
+    createMaterialDto: CreateMaterialDto,
+    createdBy: string
+  ): Promise<Material> {
     // Check if code already exists
     const existing = await this.materialRepository.findByCode(
       createMaterialDto.code

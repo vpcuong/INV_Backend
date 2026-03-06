@@ -21,20 +21,36 @@ export class InvTransHeaderRepository implements IInvTransHeaderRepository {
     transaction?: PrismaTransaction
   ): Promise<InvTransHeader> {
     const db = this.getDb(transaction);
-    const { id, publicId, createdAt, updatedAt, lines, ...headerData } = header.toPersistence();
+    const { id, publicId, createdAt, updatedAt, lines, ...headerData } =
+      header.toPersistence();
     // Remove undefined values to avoid Prisma validation errors
-    Object.keys(headerData).forEach(key => headerData[key] === undefined && delete headerData[key]);
-    const lineData = header.getLines().map(line => line.toPersistence());
+    Object.keys(headerData).forEach(
+      (key) => headerData[key] === undefined && delete headerData[key]
+    );
+    const lineData = header.getLines().map((line) => line.toPersistence());
     const created = await db.invTransHeader.create({
       data: {
         ...headerData,
         lines: {
-          create: lineData.map(({ id, publicId, headerId, createdAt: lCreatedAt, updatedAt: lUpdatedAt, rowMode, itemSkuId, uomCode, baseUomCode, ...ld }) => ({
-            ...ld,
-            itemSku: { connect: { id: itemSkuId } },
-            uom: { connect: { code: uomCode } },
-            baseUom: { connect: { code: baseUomCode } },
-          })),
+          create: lineData.map(
+            ({
+              id,
+              publicId,
+              headerId,
+              createdAt: lCreatedAt,
+              updatedAt: lUpdatedAt,
+              rowMode,
+              itemSkuId,
+              uomCode,
+              baseUomCode,
+              ...ld
+            }) => ({
+              ...ld,
+              itemSku: { connect: { id: itemSkuId } },
+              uom: { connect: { code: uomCode } },
+              baseUom: { connect: { code: baseUomCode } },
+            })
+          ),
         },
       },
       include: {
@@ -61,7 +77,10 @@ export class InvTransHeaderRepository implements IInvTransHeaderRepository {
     return headers.map((h: any) => InvTransHeader.fromPersistence(h));
   }
 
-  async findOne(id: number, transaction?: PrismaTransaction): Promise<InvTransHeader | null> {
+  async findOne(
+    id: number,
+    transaction?: PrismaTransaction
+  ): Promise<InvTransHeader | null> {
     const db = this.getDb(transaction);
     const header = await db.invTransHeader.findUnique({
       where: { id },
@@ -142,12 +161,25 @@ export class InvTransHeaderRepository implements IInvTransHeaderRepository {
     const allLines = header.getAllLinesForPersistence();
 
     // Filter lines by RowMode (same pattern as SO module)
-    const newLines = allLines.filter(l => l.getRowMode() === RowMode.NEW);
-    const deletedLines = allLines.filter(l => l.getRowMode() === RowMode.DELETED && l.getId());
-    const updatedLines = allLines.filter(l => l.getRowMode() === RowMode.UPDATED && l.getId());
+    const newLines = allLines.filter((l) => l.getRowMode() === RowMode.NEW);
+    const deletedLines = allLines.filter(
+      (l) => l.getRowMode() === RowMode.DELETED && l.getId()
+    );
+    const updatedLines = allLines.filter(
+      (l) => l.getRowMode() === RowMode.UPDATED && l.getId()
+    );
 
-    const { id: rootId, publicId, createdAt, updatedAt, lines, ...headerData } = header.toPersistence();
-    const deletedIds = deletedLines.map(l => l.getId()).filter((id): id is number => id !== undefined);
+    const {
+      id: rootId,
+      publicId,
+      createdAt,
+      updatedAt,
+      lines,
+      ...headerData
+    } = header.toPersistence();
+    const deletedIds = deletedLines
+      .map((l) => l.getId())
+      .filter((id): id is number => id !== undefined);
 
     const executeUpdate = async (txDb: any) => {
       const updated = await txDb.invTransHeader.update({
@@ -155,16 +187,36 @@ export class InvTransHeaderRepository implements IInvTransHeaderRepository {
         data: {
           ...headerData,
           lines: {
-            deleteMany: deletedIds.length > 0 ? { id: { in: deletedIds } } : undefined,
-            updateMany: updatedLines.map(line => {
-              const { id: lineId, publicId: linePublicId, headerId, createdAt: lCreatedAt, updatedAt: lUpdatedAt, rowMode, ...lineData } = line.toPersistence();
+            deleteMany:
+              deletedIds.length > 0 ? { id: { in: deletedIds } } : undefined,
+            updateMany: updatedLines.map((line) => {
+              const {
+                id: lineId,
+                publicId: linePublicId,
+                headerId,
+                createdAt: lCreatedAt,
+                updatedAt: lUpdatedAt,
+                rowMode,
+                ...lineData
+              } = line.toPersistence();
               return {
                 where: { id: lineId! },
                 data: lineData,
               };
             }),
-            create: newLines.map(line => {
-              const { id: lineId, publicId: linePublicId, headerId, createdAt: lCreatedAt, updatedAt: lUpdatedAt, rowMode, itemSkuId, uomCode, baseUomCode, ...lineData } = line.toPersistence();
+            create: newLines.map((line) => {
+              const {
+                id: lineId,
+                publicId: linePublicId,
+                headerId,
+                createdAt: lCreatedAt,
+                updatedAt: lUpdatedAt,
+                rowMode,
+                itemSkuId,
+                uomCode,
+                baseUomCode,
+                ...lineData
+              } = line.toPersistence();
               return {
                 ...lineData,
                 itemSku: { connect: { id: itemSkuId } },
@@ -187,10 +239,15 @@ export class InvTransHeaderRepository implements IInvTransHeaderRepository {
     if (transaction || typeof this.prisma.client.$transaction !== 'function') {
       return executeUpdate(db);
     }
-    return this.prisma.client.$transaction(async (tx: any) => executeUpdate(tx));
+    return this.prisma.client.$transaction(async (tx: any) =>
+      executeUpdate(tx)
+    );
   }
 
-  async delete(id: number, transaction?: PrismaTransaction): Promise<InvTransHeader> {
+  async delete(
+    id: number,
+    transaction?: PrismaTransaction
+  ): Promise<InvTransHeader> {
     const db = this.getDb(transaction);
     const deleted = await db.invTransHeader.delete({
       where: { id },

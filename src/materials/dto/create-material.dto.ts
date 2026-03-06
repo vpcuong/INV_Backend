@@ -49,5 +49,4 @@ export class CreateMaterialDto {
   @IsNumber()
   @Min(0)
   sortOrder?: number;
-
 }

@@ -1,4 +1,13 @@
-import { IsOptional, IsNumber, IsString, IsDateString, IsEnum, IsInt, Min, Max } from 'class-validator';
+import {
+  IsOptional,
+  IsNumber,
+  IsString,
+  IsDateString,
+  IsEnum,
+  IsInt,
+  Min,
+  Max,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { FilterDto } from '../../common/filtering/dto/filter.dto';
@@ -10,7 +19,10 @@ export class InvTransFilterDto extends FilterDto {
   @IsEnum(InvTransType)
   type?: InvTransType;
 
-  @ApiPropertyOptional({ description: 'Transaction Status', enum: InvTransStatus })
+  @ApiPropertyOptional({
+    description: 'Transaction Status',
+    enum: InvTransStatus,
+  })
   @IsOptional()
   @IsEnum(InvTransStatus)
   status?: InvTransStatus;
@@ -54,7 +66,10 @@ export class InvTransCursorFilterDto {
   @IsEnum(InvTransType)
   type?: InvTransType;
 
-  @ApiPropertyOptional({ description: 'Transaction Status', enum: InvTransStatus })
+  @ApiPropertyOptional({
+    description: 'Transaction Status',
+    enum: InvTransStatus,
+  })
   @IsOptional()
   @IsEnum(InvTransStatus)
   status?: InvTransStatus;
@@ -91,7 +106,9 @@ export class InvTransCursorFilterDto {
   @IsDateString()
   transactionDateTo?: string;
 
-  @ApiPropertyOptional({ description: 'Search text (transNum, referenceNum, note)' })
+  @ApiPropertyOptional({
+    description: 'Search text (transNum, referenceNum, note)',
+  })
   @IsOptional()
   @IsString()
   search?: string;
@@ -101,7 +118,12 @@ export class InvTransCursorFilterDto {
   @IsString()
   cursor?: string;
 
-  @ApiPropertyOptional({ description: 'Page size', default: 20, minimum: 1, maximum: 100 })
+  @ApiPropertyOptional({
+    description: 'Page size',
+    default: 20,
+    minimum: 1,
+    maximum: 100,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()

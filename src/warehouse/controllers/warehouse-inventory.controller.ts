@@ -1,12 +1,11 @@
+import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { WarehouseService } from '../application/warehouse.service';
 import { WarehouseQueryService } from '../application/warehouse-query.service';
 import {
@@ -23,7 +22,7 @@ import {
 export class WarehouseInventoryController {
   constructor(
     private readonly warehouseService: WarehouseService,
-    private readonly warehouseQueryService: WarehouseQueryService,
+    private readonly warehouseQueryService: WarehouseQueryService
   ) {}
 
   @Get()
@@ -39,14 +38,23 @@ export class WarehouseInventoryController {
 
   @Get(':skuPublicId')
   @ApiOperation({ summary: 'Get stock of a specific SKU in a warehouse' })
-  @ApiResponse({ status: 200, description: 'Return stock for the SKU in this warehouse' })
-  @ApiParam({ name: 'warehousePublicId', description: 'Warehouse Public ID (ULID)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return stock for the SKU in this warehouse',
+  })
+  @ApiParam({
+    name: 'warehousePublicId',
+    description: 'Warehouse Public ID (ULID)',
+  })
   @ApiParam({ name: 'skuPublicId', description: 'SKU Public ID (ULID)' })
   getInventoryBySku(
     @Param('warehousePublicId') warehousePublicId: string,
-    @Param('skuPublicId') skuPublicId: string,
+    @Param('skuPublicId') skuPublicId: string
   ) {
-    return this.warehouseQueryService.getInventoryBySku_Warehouse(warehousePublicId, skuPublicId);
+    return this.warehouseQueryService.getInventoryBySku_Warehouse(
+      warehousePublicId,
+      skuPublicId
+    );
   }
 
   @Post()
@@ -58,7 +66,7 @@ export class WarehouseInventoryController {
   })
   addInventory(
     @Param('warehousePublicId') warehousePublicId: string,
-    @Body() dto: CreateInventoryDto,
+    @Body() dto: CreateInventoryDto
   ) {
     return this.warehouseService.addInventory(warehousePublicId, dto);
   }
@@ -73,12 +81,12 @@ export class WarehouseInventoryController {
   setInventory(
     @Param('warehousePublicId') warehousePublicId: string,
     @Param('skuPublicId') skuPublicId: string,
-    @Body() dto: UpdateInventoryDto,
+    @Body() dto: UpdateInventoryDto
   ) {
     return this.warehouseService.setInventory(
       warehousePublicId,
       skuPublicId,
-      dto,
+      dto
     );
   }
 
@@ -92,12 +100,12 @@ export class WarehouseInventoryController {
   adjustInventory(
     @Param('warehousePublicId') warehousePublicId: string,
     @Param('skuPublicId') skuPublicId: string,
-    @Body() dto: AdjustInventoryDto,
+    @Body() dto: AdjustInventoryDto
   ) {
     return this.warehouseService.adjustInventory(
       warehousePublicId,
       skuPublicId,
-      dto,
+      dto
     );
   }
 
@@ -111,12 +119,12 @@ export class WarehouseInventoryController {
   reserveInventory(
     @Param('warehousePublicId') warehousePublicId: string,
     @Param('skuPublicId') skuPublicId: string,
-    @Body() dto: ReserveInventoryDto,
+    @Body() dto: ReserveInventoryDto
   ) {
     return this.warehouseService.reserveInventory(
       warehousePublicId,
       skuPublicId,
-      dto,
+      dto
     );
   }
 
@@ -130,12 +138,12 @@ export class WarehouseInventoryController {
   releaseReservation(
     @Param('warehousePublicId') warehousePublicId: string,
     @Param('skuPublicId') skuPublicId: string,
-    @Body() dto: ReleaseReservationDto,
+    @Body() dto: ReleaseReservationDto
   ) {
     return this.warehouseService.releaseReservation(
       warehousePublicId,
       skuPublicId,
-      dto,
+      dto
     );
   }
 }
@@ -144,9 +152,7 @@ export class WarehouseInventoryController {
 @ApiBearerAuth()
 @Controller('inventory')
 export class InventoryController {
-  constructor(
-    private readonly warehouseQueryService: WarehouseQueryService,
-  ) {}
+  constructor(private readonly warehouseQueryService: WarehouseQueryService) {}
 
   @Get('sku/:skuPublicId')
   @ApiOperation({ summary: 'Get stock for a SKU across all warehouses' })

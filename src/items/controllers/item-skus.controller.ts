@@ -1,12 +1,10 @@
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Query,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { ItemAggregateService } from '../application/item-aggregate.service';
 import { ItemQueryService } from '../application/item-query.service';
@@ -31,7 +29,7 @@ import { CreateSkuDto } from '../dto/create-sku.dto';
 export class ItemSkusController {
   constructor(
     private readonly itemAggregateService: ItemAggregateService,
-    private readonly itemQueryService: ItemQueryService,
+    private readonly itemQueryService: ItemQueryService
   ) {}
 
   // ==================== SKU trực tiếp của Item ====================
@@ -42,9 +40,14 @@ export class ItemSkusController {
   createForItem(
     @Param('itemPublicId') itemPublicId: string,
     @Body() dto: CreateSkuDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
-    return this.itemAggregateService.addSkuToItemByPublicId(itemPublicId, null, dto, user.userId);
+    return this.itemAggregateService.addSkuToItemByPublicId(
+      itemPublicId,
+      null,
+      dto,
+      user.userId
+    );
   }
 
   @Get('skus')
@@ -52,9 +55,12 @@ export class ItemSkusController {
   @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
   findAllByItem(
     @Param('itemPublicId') itemPublicId: string,
-    @Query() filterDto: SkuFilterDto,
+    @Query() filterDto: SkuFilterDto
   ) {
-    return this.itemQueryService.findSkusByItemPublicId(itemPublicId, filterDto);
+    return this.itemQueryService.findSkusByItemPublicId(
+      itemPublicId,
+      filterDto
+    );
   }
 
   // ==================== SKU thuộc Model ====================
@@ -67,9 +73,14 @@ export class ItemSkusController {
     @Param('itemPublicId') itemPublicId: string,
     @Param('modelPublicId') modelPublicId: string,
     @Body() dto: CreateSkuDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
-    return this.itemAggregateService.addSkuToItemByPublicId(itemPublicId, modelPublicId, dto, user.userId);
+    return this.itemAggregateService.addSkuToItemByPublicId(
+      itemPublicId,
+      modelPublicId,
+      dto,
+      user.userId
+    );
   }
 
   @Get('models/:modelPublicId/skus')
@@ -79,8 +90,11 @@ export class ItemSkusController {
   findAllByModel(
     @Param('itemPublicId') itemPublicId: string,
     @Param('modelPublicId') modelPublicId: string,
-    @Query() filterDto: SkuFilterDto,
+    @Query() filterDto: SkuFilterDto
   ) {
-    return this.itemQueryService.findSkusByModelPublicId(modelPublicId, filterDto);
+    return this.itemQueryService.findSkusByModelPublicId(
+      modelPublicId,
+      filterDto
+    );
   }
 }

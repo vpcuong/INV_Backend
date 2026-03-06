@@ -4,16 +4,13 @@ export interface StockData {
 }
 
 export interface IStockRepository {
-  findStock(
-    warehouseId: number,
-    itemSkuId: number,
-  ): Promise<StockData | null>;
+  findStock(warehouseId: number, itemSkuId: number): Promise<StockData | null>;
 
   upsertStock(
     warehouseId: number,
     itemSkuId: number,
     quantity: number,
-    uomCode: string,
+    uomCode: string
   ): Promise<void>;
 
   createStock(
@@ -21,12 +18,12 @@ export interface IStockRepository {
     itemSkuId: number,
     quantity: number,
     reservedQty: number,
-    uomCode: string,
+    uomCode: string
   ): Promise<void>;
 
   updateStockQuantity(
     warehouseId: number,
     itemSkuId: number,
-    quantity: number,
+    quantity: number
   ): Promise<void>;
 }

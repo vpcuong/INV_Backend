@@ -73,14 +73,14 @@ export class SOHeader {
 
   public static create(data: SOHeaderConstructorData): SOHeader {
     const status = SOStatus.create(data.orderStatus || 'OPEN');
-    
+
     // Initial lines
     const lines = data.lines || [];
 
     // Calculate line-level aggregates
     const totalLinesAmount = lines.reduce(
-        (sum, line) => sum + line.getTotalAmount(),
-        0
+      (sum, line) => sum + line.getTotalAmount(),
+      0
     );
     const totalLinesTaxAmount = lines.reduce(
       (sum, line) => sum + line.getTaxAmount(),
@@ -105,7 +105,12 @@ export class SOHeader {
     });
 
     // Enforce consistency: Recalculate from lines
-    pricing = pricing.recalculate(totalLinesAmount, totalLinesTaxAmount, subtotalAmount, totalLinesDiscountAmount);
+    pricing = pricing.recalculate(
+      totalLinesAmount,
+      totalLinesTaxAmount,
+      subtotalAmount,
+      totalLinesDiscountAmount
+    );
 
     const addresses = SOAddresses.create({
       billingAddressId: data.billingAddressId,
@@ -126,7 +131,8 @@ export class SOHeader {
     });
 
     const depositAmount = data.depositAmount ?? 0;
-    if (depositAmount < 0) throw new InvalidSOException('Deposit amount cannot be negative');
+    if (depositAmount < 0)
+      throw new InvalidSOException('Deposit amount cannot be negative');
 
     return new SOHeader(
       data.soNum,
@@ -194,7 +200,7 @@ export class SOHeader {
   }
 
   public getLines(): SOLine[] {
-    return [...this.lines.filter(l => l.getRowMode() !== RowMode.DELETED)];
+    return [...this.lines.filter((l) => l.getRowMode() !== RowMode.DELETED)];
   }
 
   /**
@@ -221,8 +227,10 @@ export class SOHeader {
   }
 
   public updateDepositAmount(amount: number): void {
-    if (amount < 0) throw new InvalidSOException('Deposit amount cannot be negative');
-    if (amount > this.pricing.getTotalAmount()) throw new InvalidSOException('Deposit amount cannot exceed total amount');
+    if (amount < 0)
+      throw new InvalidSOException('Deposit amount cannot be negative');
+    if (amount > this.pricing.getTotalAmount())
+      throw new InvalidSOException('Deposit amount cannot exceed total amount');
     this.depositAmount = amount;
     this.updatedAt = new Date();
   }
@@ -255,8 +263,8 @@ export class SOHeader {
   public close(): void {
     // Auto-close all active OPEN/PARTIAL lines
     this.lines
-      .filter(l => l.getRowMode() !== RowMode.DELETED)
-      .forEach(line => line.close());
+      .filter((l) => l.getRowMode() !== RowMode.DELETED)
+      .forEach((line) => line.close());
 
     this.status = this.status.toClosed();
     this.updatedAt = new Date();
@@ -274,7 +282,7 @@ export class SOHeader {
   }
 
   public removeLine(lineNum: number): void {
-    const lineIndex = this.lines.findIndex(l => l.getLineNum() === lineNum);
+    const lineIndex = this.lines.findIndex((l) => l.getLineNum() === lineNum);
     if (lineIndex === -1) {
       throw new InvalidSOException(`Line ${lineNum} not found`);
     }
@@ -309,7 +317,7 @@ export class SOHeader {
     this.pricing = this.pricing.setDiscountPercent(discountPercent);
     this.updatedAt = new Date();
   }
-  
+
   /**
    * @deprecated Use updateDiscountAmount instead
    */
@@ -332,10 +340,7 @@ export class SOHeader {
     shipViaCode: string | null,
     fobCode: string | null
   ): void {
-    this.metadata = this.metadata.updateShippingDetails(
-      shipViaCode,
-      fobCode
-    );
+    this.metadata = this.metadata.updateShippingDetails(shipViaCode, fobCode);
     this.updatedAt = new Date();
   }
 
@@ -392,12 +397,19 @@ export class SOHeader {
       0
     );
 
-    return this.pricing.recalculate(sumLineTotal, totalLinesTaxAmount, subtotalAmount, totalLinesDiscountAmount);
+    return this.pricing.recalculate(
+      sumLineTotal,
+      totalLinesTaxAmount,
+      subtotalAmount,
+      totalLinesDiscountAmount
+    );
   }
 
   private recalculatePricingInPlace(): void {
     // Filter out deleted lines when calculating
-    const activeLines = this.lines.filter(l => l.getRowMode() !== RowMode.DELETED);
+    const activeLines = this.lines.filter(
+      (l) => l.getRowMode() !== RowMode.DELETED
+    );
 
     const sumLineTotal = activeLines.reduce(
       (sum, line) => sum + line.getTotalAmount(),
@@ -416,7 +428,12 @@ export class SOHeader {
       0
     );
 
-    this.pricing = this.pricing.recalculate(sumLineTotal, totalLinesTaxAmount, subtotalAmount, totalLinesDiscountAmount);
+    this.pricing = this.pricing.recalculate(
+      sumLineTotal,
+      totalLinesTaxAmount,
+      subtotalAmount,
+      totalLinesDiscountAmount
+    );
   }
 
   // Persistence methods

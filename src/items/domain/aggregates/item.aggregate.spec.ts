@@ -1,4 +1,9 @@
-import { Item, CreateModelData, CreateSkuData, CreateUomData } from './item.aggregate';
+import {
+  Item,
+  CreateModelData,
+  CreateSkuData,
+  CreateUomData,
+} from './item.aggregate';
 import {
   InvalidItemException,
   DuplicateItemModelCodeException,
@@ -41,13 +46,13 @@ describe('Item Aggregate', () => {
 
     it('should throw if categoryId is missing', () => {
       expect(() => createValidItem({ categoryId: undefined })).toThrow(
-        InvalidItemException,
+        InvalidItemException
       );
     });
 
     it('should throw if itemTypeId is missing', () => {
       expect(() => createValidItem({ itemTypeId: undefined })).toThrow(
-        InvalidItemException,
+        InvalidItemException
       );
     });
 
@@ -146,7 +151,7 @@ describe('Item Aggregate', () => {
       item.addModel({ code: 'MODEL001' });
 
       expect(() => item.addModel({ code: 'MODEL001' })).toThrow(
-        DuplicateItemModelCodeException,
+        DuplicateItemModelCodeException
       );
     });
   });
@@ -176,7 +181,7 @@ describe('Item Aggregate', () => {
       });
 
       expect(() =>
-        itemWithModel.updateModel(1, { code: 'A'.repeat(21) }),
+        itemWithModel.updateModel(1, { code: 'A'.repeat(21) })
       ).toThrow();
     });
 
@@ -184,7 +189,7 @@ describe('Item Aggregate', () => {
       const item = createValidItem();
 
       expect(() => item.updateModel(999, { desc: 'Test' })).toThrow(
-        ItemModelNotFoundException,
+        ItemModelNotFoundException
       );
     });
   });
@@ -235,7 +240,7 @@ describe('Item Aggregate', () => {
       });
 
       expect(() => itemWithModelAndSku.removeModel(1)).toThrow(
-        InvalidItemException,
+        InvalidItemException
       );
     });
 
@@ -289,16 +294,16 @@ describe('Item Aggregate', () => {
       const item = createValidItem();
       item.addSku(null, { skuCode: 'SKU001', colorId: 1 });
 
-      expect(() => item.addSku(null, { skuCode: 'SKU001', colorId: 1 })).toThrow(
-        DuplicateSkuCodeException,
-      );
+      expect(() =>
+        item.addSku(null, { skuCode: 'SKU001', colorId: 1 })
+      ).toThrow(DuplicateSkuCodeException);
     });
 
     it('should throw if model not found', () => {
       const item = createValidItem();
 
       expect(() => item.addSku(999, { skuCode: 'SKU001', colorId: 1 })).toThrow(
-        ItemModelNotFoundException,
+        ItemModelNotFoundException
       );
     });
   });
@@ -331,7 +336,7 @@ describe('Item Aggregate', () => {
       const item = createValidItem();
 
       expect(() => item.updateSku(999, { desc: 'Test' })).toThrow(
-        ItemSkuNotFoundException,
+        ItemSkuNotFoundException
       );
     });
   });
@@ -405,7 +410,7 @@ describe('Item Aggregate', () => {
       const item = createValidItem({ uomCode: 'PCS' });
 
       expect(() => item.addUOM({ uomCode: 'PCS', toBaseFactor: 1 })).toThrow(
-        InvalidItemException,
+        InvalidItemException
       );
     });
 
@@ -414,7 +419,7 @@ describe('Item Aggregate', () => {
       item.addUOM({ uomCode: 'BOX', toBaseFactor: 12 });
 
       expect(() => item.addUOM({ uomCode: 'BOX', toBaseFactor: 12 })).toThrow(
-        DuplicateItemUOMException,
+        DuplicateItemUOMException
       );
     });
   });
@@ -432,7 +437,9 @@ describe('Item Aggregate', () => {
     it('should throw if UOM not found', () => {
       const item = createValidItem();
 
-      expect(() => item.removeUOM('NOTEXIST')).toThrow(ItemUOMNotFoundException);
+      expect(() => item.removeUOM('NOTEXIST')).toThrow(
+        ItemUOMNotFoundException
+      );
     });
   });
 
@@ -450,7 +457,7 @@ describe('Item Aggregate', () => {
       const item = createValidItem();
 
       expect(() => item.updateUOM('NOTEXIST', { toBaseFactor: 5 })).toThrow(
-        ItemUOMNotFoundException,
+        ItemUOMNotFoundException
       );
     });
   });
@@ -468,7 +475,7 @@ describe('Item Aggregate', () => {
       item.addUOM({ uomCode: 'BOX', toBaseFactor: 12 });
 
       expect(() => item.convertQuantity('NOTEXIST', 'BOX', 1)).toThrow(
-        ItemUOMNotFoundException,
+        ItemUOMNotFoundException
       );
     });
 
@@ -477,7 +484,7 @@ describe('Item Aggregate', () => {
       item.addUOM({ uomCode: 'BOX', toBaseFactor: 12 });
 
       expect(() => item.convertQuantity('BOX', 'NOTEXIST', 1)).toThrow(
-        ItemUOMNotFoundException,
+        ItemUOMNotFoundException
       );
     });
   });

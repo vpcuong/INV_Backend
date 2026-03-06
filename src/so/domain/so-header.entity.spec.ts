@@ -21,7 +21,6 @@ const makeLine = (overrides: Partial<typeof baseLine> = {}) =>
   new SOLine({ ...baseLine, ...overrides });
 
 describe('SOHeader', () => {
-
   // ==================== create() ====================
 
   describe('create()', () => {
@@ -37,24 +36,30 @@ describe('SOHeader', () => {
     });
 
     it('should throw if soNum is empty', () => {
-      expect(() => SOHeader.create({ ...baseHeader, soNum: '' }))
-        .toThrow(InvalidSOException);
+      expect(() => SOHeader.create({ ...baseHeader, soNum: '' })).toThrow(
+        InvalidSOException
+      );
     });
 
     it('should throw if customerId is 0', () => {
-      expect(() => SOHeader.create({ ...baseHeader, customerId: 0 }))
-        .toThrow(InvalidSOException);
+      expect(() => SOHeader.create({ ...baseHeader, customerId: 0 })).toThrow(
+        InvalidSOException
+      );
     });
 
     it('should throw if depositAmount is negative', () => {
-      expect(() => SOHeader.create({ ...baseHeader, depositAmount: -1 }))
-        .toThrow(InvalidSOException);
+      expect(() =>
+        SOHeader.create({ ...baseHeader, depositAmount: -1 })
+      ).toThrow(InvalidSOException);
     });
 
     it('should create with lines and calculate total', () => {
       const header = SOHeader.create({
         ...baseHeader,
-        lines: [makeLine({ lineNum: 1, unitPrice: 100 }), makeLine({ lineNum: 2, unitPrice: 200 })],
+        lines: [
+          makeLine({ lineNum: 1, unitPrice: 100 }),
+          makeLine({ lineNum: 2, unitPrice: 200 }),
+        ],
       });
 
       expect(header.getPricing().getTotalAmount()).toBe(300);
@@ -64,7 +69,10 @@ describe('SOHeader', () => {
     it('should apply header discount percent on creation', () => {
       const header = SOHeader.create({
         ...baseHeader,
-        lines: [makeLine({ lineNum: 1, unitPrice: 500 }), makeLine({ lineNum: 2, unitPrice: 500 })],
+        lines: [
+          makeLine({ lineNum: 1, unitPrice: 500 }),
+          makeLine({ lineNum: 2, unitPrice: 500 }),
+        ],
         discountPercent: 10,
       });
 
@@ -100,7 +108,10 @@ describe('SOHeader', () => {
     it('should recalculate totals when removing a line', () => {
       const header = SOHeader.create({
         ...baseHeader,
-        lines: [makeLine({ lineNum: 1, unitPrice: 100 }), makeLine({ lineNum: 2, unitPrice: 50 })],
+        lines: [
+          makeLine({ lineNum: 1, unitPrice: 100 }),
+          makeLine({ lineNum: 2, unitPrice: 50 }),
+        ],
       });
 
       header.removeLine(1);
@@ -235,7 +246,7 @@ describe('SOHeader', () => {
       header.cancel();
 
       expect(header.getStatus()).toBe('CANCELLED');
-      header.getLines().forEach(line => {
+      header.getLines().forEach((line) => {
         expect(line.getStatus()).toBe('CANCELLED');
       });
     });
@@ -253,13 +264,16 @@ describe('SOHeader', () => {
     it('should close an order and auto-close all active lines', () => {
       const header = SOHeader.create({
         ...baseHeader,
-        lines: [makeLine({ lineNum: 1, unitPrice: 100 }), makeLine({ lineNum: 2, unitPrice: 200 })],
+        lines: [
+          makeLine({ lineNum: 1, unitPrice: 100 }),
+          makeLine({ lineNum: 2, unitPrice: 200 }),
+        ],
       });
 
       header.close();
 
       expect(header.getStatus()).toBe('CLOSED');
-      header.getLines().forEach(line => {
+      header.getLines().forEach((line) => {
         expect(line.getStatus()).toBe('CLOSED');
       });
     });
@@ -301,7 +315,10 @@ describe('SOHeader', () => {
     });
 
     it('should clear requestDate when set to null', () => {
-      const header = SOHeader.create({ ...baseHeader, requestDate: new Date() });
+      const header = SOHeader.create({
+        ...baseHeader,
+        requestDate: new Date(),
+      });
 
       header.updateDates({ requestDate: null });
 

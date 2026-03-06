@@ -34,7 +34,7 @@ import { UpdateModelDto } from '../dto/update-model.dto';
 export class ModelsController {
   constructor(
     private readonly itemQueryService: ItemQueryService,
-    private readonly itemAggregateService: ItemAggregateService,
+    private readonly itemAggregateService: ItemAggregateService
   ) {}
 
   @Get()
@@ -85,9 +85,12 @@ export class ModelsController {
   })
   update(
     @Param('publicId') publicId: string,
-    @Body() updateModelDto: UpdateModelDto,
+    @Body() updateModelDto: UpdateModelDto
   ) {
-    return this.itemAggregateService.updateModelDirect(publicId, updateModelDto);
+    return this.itemAggregateService.updateModelDirect(
+      publicId,
+      updateModelDto
+    );
   }
 
   @Delete(':publicId')

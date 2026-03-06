@@ -40,7 +40,7 @@ export class AdjustReasonController {
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateAdjustReasonDto,
+    @Body() dto: UpdateAdjustReasonDto
   ) {
     return this.service.update(id, dto);
   }

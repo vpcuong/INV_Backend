@@ -48,7 +48,9 @@ export class SOService {
   async create(createDto: CreateSOHeaderDto, createdBy: string): Promise<any> {
     const itemSkus = await Promise.all(
       createDto.lines.map(async (line) => {
-        const item = await this.itemAggregateService.getItemBySkuPublicId(line.itemSkuId);
+        const item = await this.itemAggregateService.getItemBySkuPublicId(
+          line.itemSkuId
+        );
         const itemSku = item.findSkuByPublicId(line.itemSkuId);
         if (!itemSku) {
           throw new NotFoundException(
@@ -70,7 +72,6 @@ export class SOService {
     // Create lines with calculated fields
     const lines = createDto.lines
       ? createDto.lines.map((lineDto, index) => {
-         
           return new SOLine({
             lineNum: lineDto.lineNum || index + 1, // Auto-generate line number
             itemSkuId: itemSkus[index].getId(),
@@ -78,8 +79,14 @@ export class SOService {
             orderQty: lineDto.orderQty,
             uomCode: lineDto.uomCode || '', // Should ideally be required or fetched
             unitPrice: lineDto.unitPrice,
-            discountPercent: lineDto.pricing?.discountType === 'PERCENT' ? lineDto.pricing?.discountValue : 0,
-            discountAmount: lineDto.pricing?.discountType === 'AMOUNT' ? lineDto.pricing?.discountValue : 0,
+            discountPercent:
+              lineDto.pricing?.discountType === 'PERCENT'
+                ? lineDto.pricing?.discountValue
+                : 0,
+            discountAmount:
+              lineDto.pricing?.discountType === 'AMOUNT'
+                ? lineDto.pricing?.discountValue
+                : 0,
             taxPercent: lineDto.pricing?.taxPercent,
             //taxAmount: taxAmount,
             //totalAmount: totalAmount,
@@ -104,9 +111,15 @@ export class SOService {
       // Calculated fields - not from DTO
       orderStatus: 'OPEN', // Default status for new SO
       // Pricing - Only need to pass user inputs (percents/fixed amounts)
-      discountPercent: createDto?.discountType === 'PERCENT' ? createDto.discountValue: undefined,
-      discountAmount: createDto?.discountType === 'AMOUNT' ? createDto.discountValue: undefined,
-      
+      discountPercent:
+        createDto?.discountType === 'PERCENT'
+          ? createDto.discountValue
+          : undefined,
+      discountAmount:
+        createDto?.discountType === 'AMOUNT'
+          ? createDto.discountValue
+          : undefined,
+
       depositAmount: createDto.depositAmount,
       billingAddressId: createDto.addresses?.billingAddressId,
       shippingAddressId: createDto.addresses?.shippingAddressId,
@@ -121,7 +134,6 @@ export class SOService {
       createdBy,
       lines,
     });
-
 
     const saved = await this.soHeaderRepository.create(soHeader);
 
@@ -181,7 +193,9 @@ export class SOService {
   async findByPublicId(publicId: string): Promise<any> {
     const soHeader = await this.soHeaderRepository.findByPublicId(publicId);
     if (!soHeader) {
-      throw new NotFoundException(`Sales Order with public ID ${publicId} not found`);
+      throw new NotFoundException(
+        `Sales Order with public ID ${publicId} not found`
+      );
     }
     return this.findOneWithRelations(soHeader.getId()!);
   }
@@ -189,7 +203,9 @@ export class SOService {
   async findSOByPublicId(publicId: string): Promise<SOHeader> {
     const soHeader = await this.soHeaderRepository.findByPublicId(publicId);
     if (!soHeader) {
-      throw new NotFoundException(`Sales Order with public ID ${publicId} not found`);
+      throw new NotFoundException(
+        `Sales Order with public ID ${publicId} not found`
+      );
     }
     return soHeader;
   }
@@ -203,7 +219,9 @@ export class SOService {
   ): Promise<any> {
     const soHeader = await this.soHeaderRepository.findByPublicId(publicId);
     if (!soHeader) {
-      throw new NotFoundException(`Sales Order with public ID ${publicId} not found`);
+      throw new NotFoundException(
+        `Sales Order with public ID ${publicId} not found`
+      );
     }
 
     // Delegate to existing update logic using internal ID
@@ -213,38 +231,54 @@ export class SOService {
   /**
    * Use Case: Add line to Sales Order by Public ID
    */
-  async addLineByPublicId(publicId: string, lineDto: CreateSOLineDto): Promise<any> {
+  async addLineByPublicId(
+    publicId: string,
+    lineDto: CreateSOLineDto
+  ): Promise<any> {
     // Resolve item SKU before transaction (read-only, no need to be in tx)
-    const item = await this.itemAggregateService.getItemBySkuPublicId(lineDto.itemSkuId);
+    const item = await this.itemAggregateService.getItemBySkuPublicId(
+      lineDto.itemSkuId
+    );
     const sku = item.findSkuByPublicId(lineDto.itemSkuId);
     if (!sku) {
-      throw new NotFoundException(`Item SKU with public ID ${lineDto.itemSkuId} not found`);
+      throw new NotFoundException(
+        `Item SKU with public ID ${lineDto.itemSkuId} not found`
+      );
     }
 
     return await this.soHeaderRepository.transaction(async (txRepo) => {
       let soHeader = await txRepo.findByPublicId(publicId);
       if (!soHeader) {
-        throw new NotFoundException(`Sales Order with public ID ${publicId} not found`);
+        throw new NotFoundException(
+          `Sales Order with public ID ${publicId} not found`
+        );
       }
 
       // Check SO status - cannot add line to cancelled/closed orders
       const status = soHeader.getStatus();
       if (status === 'CANCELLED' || status === 'CLOSED') {
-        throw new BadRequestException(`Cannot add line to ${status} sales order`);
+        throw new BadRequestException(
+          `Cannot add line to ${status} sales order`
+        );
       }
 
       // Calculate next line number
       const currentLines = soHeader.getLines();
-      const nextLineNum = currentLines.length > 0
-        ? Math.max(...currentLines.map(l => l.getLineNum())) + 1
-        : 1;
+      const nextLineNum =
+        currentLines.length > 0
+          ? Math.max(...currentLines.map((l) => l.getLineNum())) + 1
+          : 1;
 
       const lineNum = lineDto.lineNum || nextLineNum;
 
       // Check duplicate lineNum
-      const duplicateLine = currentLines.find(l => l.getLineNum() === lineNum);
+      const duplicateLine = currentLines.find(
+        (l) => l.getLineNum() === lineNum
+      );
       if (duplicateLine) {
-        throw new BadRequestException(`Line number ${lineNum} already exists in SO ${soHeader.getSONum()}`);
+        throw new BadRequestException(
+          `Line number ${lineNum} already exists in SO ${soHeader.getSONum()}`
+        );
       }
 
       // Create new line
@@ -255,8 +289,14 @@ export class SOService {
         orderQty: lineDto.orderQty,
         uomCode: lineDto.uomCode,
         unitPrice: lineDto.unitPrice,
-        discountPercent: lineDto.pricing?.discountType === 'PERCENT' ? lineDto.pricing?.discountValue : undefined,
-        discountAmount: lineDto.pricing?.discountType === 'AMOUNT' ? lineDto.pricing?.discountValue : undefined,
+        discountPercent:
+          lineDto.pricing?.discountType === 'PERCENT'
+            ? lineDto.pricing?.discountValue
+            : undefined,
+        discountAmount:
+          lineDto.pricing?.discountType === 'AMOUNT'
+            ? lineDto.pricing?.discountValue
+            : undefined,
         taxPercent: lineDto.pricing?.taxPercent,
         needByDate: lineDto.needByDate,
         status: 'OPEN',
@@ -276,7 +316,7 @@ export class SOService {
         updated.getSONum(),
         1, // linesAdded
         0, // linesUpdated
-        0  // linesDeleted
+        0 // linesDeleted
       );
 
       return this.findOneWithRelations(updated.getId()!);
@@ -302,11 +342,15 @@ export class SOService {
       // Check SO status - cannot update line on cancelled/closed orders
       const status = soHeader.getStatus();
       if (status === 'CANCELLED' || status === 'CLOSED') {
-        throw new BadRequestException(`Cannot update line on ${status} sales order`);
+        throw new BadRequestException(
+          `Cannot update line on ${status} sales order`
+        );
       }
 
       const lines = soHeader.getLines();
-      const existingLine = lines.find((line) => line.getPublicId() === linePublicId);
+      const existingLine = lines.find(
+        (line) => line.getPublicId() === linePublicId
+      );
       if (!existingLine) {
         throw new NotFoundException(
           `Line with public ID ${linePublicId} not found in SO ${soHeader.getSONum()}`
@@ -324,8 +368,14 @@ export class SOService {
 
       if (updateDto.pricing) {
         if (updateDto.pricing.discountValue !== undefined) {
-          const discountPercent = updateDto.pricing.discountType === 'PERCENT' ? updateDto.pricing.discountValue : undefined;
-          const discountAmount = updateDto.pricing.discountType === 'AMOUNT' ? updateDto.pricing.discountValue : undefined;
+          const discountPercent =
+            updateDto.pricing.discountType === 'PERCENT'
+              ? updateDto.pricing.discountValue
+              : undefined;
+          const discountAmount =
+            updateDto.pricing.discountType === 'AMOUNT'
+              ? updateDto.pricing.discountValue
+              : undefined;
           existingLine.updateDiscount(discountPercent, discountAmount);
         }
         if (updateDto.pricing.taxPercent !== undefined) {
@@ -346,7 +396,7 @@ export class SOService {
         updated.getSONum(),
         0, // linesAdded
         1, // linesUpdated
-        0  // linesDeleted
+        0 // linesDeleted
       );
 
       return this.findOneWithRelations(updated.getId()!);
@@ -360,7 +410,8 @@ export class SOService {
     headerPublicId: string,
     linePublicId: string
   ): Promise<any> {
-    const soHeader = await this.soHeaderRepository.findByPublicId(headerPublicId);
+    const soHeader =
+      await this.soHeaderRepository.findByPublicId(headerPublicId);
     if (!soHeader) {
       throw new NotFoundException(
         `Sales Order with public ID ${headerPublicId} not found`
@@ -368,7 +419,9 @@ export class SOService {
     }
 
     const lines = soHeader.getLines();
-    const lineToDelete = lines.find((line) => line.getPublicId() === linePublicId);
+    const lineToDelete = lines.find(
+      (line) => line.getPublicId() === linePublicId
+    );
     if (!lineToDelete) {
       throw new NotFoundException(
         `Line with public ID ${linePublicId} not found in SO ${soHeader.getSONum()}`
@@ -388,7 +441,9 @@ export class SOService {
   ): Promise<any> {
     const soHeader = await this.soHeaderRepository.findByPublicId(publicId);
     if (!soHeader) {
-      throw new NotFoundException(`Sales Order with public ID ${publicId} not found`);
+      throw new NotFoundException(
+        `Sales Order with public ID ${publicId} not found`
+      );
     }
 
     // Delegate to existing updateWithLines logic using internal ID
@@ -401,7 +456,9 @@ export class SOService {
   async holdByPublicId(publicId: string): Promise<any> {
     const soHeader = await this.soHeaderRepository.findByPublicId(publicId);
     if (!soHeader) {
-      throw new NotFoundException(`Sales Order with public ID ${publicId} not found`);
+      throw new NotFoundException(
+        `Sales Order with public ID ${publicId} not found`
+      );
     }
 
     return this.hold(soHeader.getId()!);
@@ -413,7 +470,9 @@ export class SOService {
   async releaseByPublicId(publicId: string): Promise<any> {
     const soHeader = await this.soHeaderRepository.findByPublicId(publicId);
     if (!soHeader) {
-      throw new NotFoundException(`Sales Order with public ID ${publicId} not found`);
+      throw new NotFoundException(
+        `Sales Order with public ID ${publicId} not found`
+      );
     }
 
     return this.release(soHeader.getId()!);
@@ -425,7 +484,9 @@ export class SOService {
   async cancelByPublicId(publicId: string): Promise<any> {
     const soHeader = await this.soHeaderRepository.findByPublicId(publicId);
     if (!soHeader) {
-      throw new NotFoundException(`Sales Order with public ID ${publicId} not found`);
+      throw new NotFoundException(
+        `Sales Order with public ID ${publicId} not found`
+      );
     }
 
     return this.cancel(soHeader.getId()!);
@@ -437,7 +498,9 @@ export class SOService {
   async completeByPublicId(publicId: string): Promise<any> {
     const soHeader = await this.soHeaderRepository.findByPublicId(publicId);
     if (!soHeader) {
-      throw new NotFoundException(`Sales Order with public ID ${publicId} not found`);
+      throw new NotFoundException(
+        `Sales Order with public ID ${publicId} not found`
+      );
     }
 
     return this.complete(soHeader.getId()!);
@@ -449,7 +512,9 @@ export class SOService {
   async removeByPublicId(publicId: string): Promise<any> {
     const soHeader = await this.soHeaderRepository.findByPublicId(publicId);
     if (!soHeader) {
-      throw new NotFoundException(`Sales Order with public ID ${publicId} not found`);
+      throw new NotFoundException(
+        `Sales Order with public ID ${publicId} not found`
+      );
     }
 
     return this.remove(soHeader.getId()!);
@@ -512,7 +577,10 @@ export class SOService {
     // Audit log
     const changes: Record<string, any> = {};
     if (updateDto.discountValue !== undefined && updateDto.discountType)
-      changes.discount = { type: updateDto.discountType, value: updateDto.discountValue };
+      changes.discount = {
+        type: updateDto.discountType,
+        value: updateDto.discountValue,
+      };
     if (updateDto.orderStatus) changes.orderStatus = updateDto.orderStatus;
     if (updateDto.addresses) changes.addresses = updateDto.addresses;
     if (updateDto.metadata) changes.metadata = updateDto.metadata;
@@ -522,7 +590,6 @@ export class SOService {
       updated.getSONum(),
       changes
     );
-
 
     return this.findOneWithRelations(updated.getId()!);
   }
@@ -606,7 +673,9 @@ export class SOService {
           // Calculate line total: (qty * price) - discount + tax
           const subtotal = lineDto.orderQty * lineDto.unitPrice;
           //
-          const item = await this.itemAggregateService.getItemBySkuPublicId(lineDto.itemSkuId);
+          const item = await this.itemAggregateService.getItemBySkuPublicId(
+            lineDto.itemSkuId
+          );
           const sku = item.findSkuByPublicId(lineDto.itemSkuId);
           //
           const newLine = new SOLine({
@@ -617,8 +686,14 @@ export class SOService {
             orderQty: lineDto.orderQty,
             uomCode: lineDto.uomCode,
             unitPrice: lineDto.unitPrice,
-            discountPercent: lineDto.pricing?.discountType === 'PERCENT' ? lineDto.pricing?.discountValue : 0,
-            discountAmount: lineDto.pricing?.discountType === 'AMOUNT' ? lineDto.pricing?.discountValue : 0,
+            discountPercent:
+              lineDto.pricing?.discountType === 'PERCENT'
+                ? lineDto.pricing?.discountValue
+                : 0,
+            discountAmount:
+              lineDto.pricing?.discountType === 'AMOUNT'
+                ? lineDto.pricing?.discountValue
+                : 0,
             taxPercent: lineDto.pricing?.taxPercent,
             needByDate: lineDto.needByDate,
             // For updates, preserve existing status/quantities if it's an update
@@ -877,13 +952,17 @@ export class SOService {
     };
   }
 
-  async addShippedQty(soId: number, lineNum: number, quantity: number): Promise<void> {
+  async addShippedQty(
+    soId: number,
+    lineNum: number,
+    quantity: number
+  ): Promise<void> {
     const soHeader = await this.soHeaderRepository.findOne(soId);
     if (!soHeader) {
       throw new NotFoundException(`Sales Order ${soId} not found`);
     }
 
-    const line = soHeader.getLines().find(l => l.getLineNum() === lineNum);
+    const line = soHeader.getLines().find((l) => l.getLineNum() === lineNum);
     if (!line) {
       throw new NotFoundException(`SO Line ${lineNum} not found in SO ${soId}`);
     }

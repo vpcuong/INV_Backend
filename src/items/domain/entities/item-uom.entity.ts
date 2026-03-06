@@ -30,7 +30,7 @@ export interface UpdateItemUomData {
 /**
  * ItemUom Entity
  * Represents the unit of measure configuration for a specific Item
- * 
+ *
  * Note: ItemUOM uses composite primary key (itemId, uomCode)
  */
 export class ItemUom {
@@ -83,7 +83,7 @@ export class ItemUom {
   private validateToBaseFactor(factor: number): void {
     if (factor <= 0) {
       throw new InvalidItemUOMException(
-        `toBaseFactor must be greater than 0, got ${factor}`,
+        `toBaseFactor must be greater than 0, got ${factor}`
       );
     }
   }

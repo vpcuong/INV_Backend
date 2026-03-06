@@ -132,7 +132,7 @@ export class PORepository implements IPORepository {
     headerData: UpdatePOHeaderData | undefined,
     linesToUpdate: { id: number; data: UpdatePOLineData }[],
     linesToCreate: CreateNewLineData[],
-    linesToDelete: number[],
+    linesToDelete: number[]
   ): Promise<POHeaderData> {
     return this.prisma.client.$transaction(async (tx) => {
       // 1. Update header if provided
@@ -216,7 +216,7 @@ export class PORepository implements IPORepository {
   async updateLineReceivedQty(
     lineId: number,
     receivedQty: number,
-    status: POLineStatus,
+    status: POLineStatus
   ): Promise<void> {
     await this.prisma.client.pODetail.update({
       where: { id: lineId },

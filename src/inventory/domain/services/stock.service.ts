@@ -19,7 +19,7 @@ export class StockService {
     @Inject(STOCK_REPOSITORY)
     private readonly stockRepository: IStockRepository,
     private readonly itemQueryService: ItemQueryService,
-    private readonly warehouseService: WarehouseService,
+    private readonly warehouseService: WarehouseService
   ) {}
 
   /**
@@ -37,14 +37,19 @@ export class StockService {
     for (const line of lines) {
       const itemSkuId = line.getItemSkuId();
       // USE BASE QUANTITY FOR STOCK UPDATE
-      const quantity = line.getBaseQty(); 
+      const quantity = line.getBaseQty();
       const uomCode = line.getUomCode();
 
       switch (type) {
         case InvTransType.GOODS_RECEIPT:
           // Add stock to toWarehouse
           if (toWarehouseId) {
-            const result = await this.addStock(toWarehouseId, itemSkuId, quantity, uomCode);
+            const result = await this.addStock(
+              toWarehouseId,
+              itemSkuId,
+              quantity,
+              uomCode
+            );
             results.push(result);
           }
           break;
@@ -52,7 +57,11 @@ export class StockService {
         case InvTransType.GOODS_ISSUE:
           // Remove stock from fromWarehouse
           if (fromWarehouseId) {
-            const result = await this.removeStock(fromWarehouseId, itemSkuId, quantity);
+            const result = await this.removeStock(
+              fromWarehouseId,
+              itemSkuId,
+              quantity
+            );
             results.push(result);
           }
           break;
@@ -60,9 +69,18 @@ export class StockService {
         case InvTransType.STOCK_TRANSFER:
           // Remove from source, add to destination
           if (fromWarehouseId && toWarehouseId) {
-            const removeResult = await this.removeStock(fromWarehouseId, itemSkuId, quantity);
+            const removeResult = await this.removeStock(
+              fromWarehouseId,
+              itemSkuId,
+              quantity
+            );
             results.push(removeResult);
-            const addResult = await this.addStock(toWarehouseId, itemSkuId, quantity, uomCode);
+            const addResult = await this.addStock(
+              toWarehouseId,
+              itemSkuId,
+              quantity,
+              uomCode
+            );
             results.push(addResult);
           }
           break;
@@ -74,7 +92,12 @@ export class StockService {
           if (fromWarehouseId) {
             // For now, treat adjustment as setting the quantity delta
             // Positive = add, Negative = remove (if you support negative in UI)
-            const result = await this.addStock(fromWarehouseId, itemSkuId, quantity, uomCode);
+            const result = await this.addStock(
+              fromWarehouseId,
+              itemSkuId,
+              quantity,
+              uomCode
+            );
             results.push(result);
           }
           break;
@@ -93,13 +116,20 @@ export class StockService {
     quantity: number,
     uomCode: string
   ): Promise<StockUpdateResult> {
-  
-    const warehouse = await this.stockRepository.findStock(warehouseId, itemSkuId);
+    const warehouse = await this.stockRepository.findStock(
+      warehouseId,
+      itemSkuId
+    );
 
     const previousQty = warehouse?.quantity ?? 0;
     const newQty = previousQty + quantity;
 
-    await this.stockRepository.upsertStock(warehouseId, itemSkuId, newQty, uomCode);
+    await this.stockRepository.upsertStock(
+      warehouseId,
+      itemSkuId,
+      newQty,
+      uomCode
+    );
 
     return { warehouseId, itemSkuId, previousQty, newQty };
   }
@@ -110,9 +140,12 @@ export class StockService {
   private async removeStock(
     warehouseId: number,
     itemSkuId: number,
-    quantity: number,
+    quantity: number
   ): Promise<StockUpdateResult> {
-    const warehouseItem = await this.stockRepository.findStock(warehouseId, itemSkuId);
+    const warehouseItem = await this.stockRepository.findStock(
+      warehouseId,
+      itemSkuId
+    );
 
     const [sku, warehouse] = await Promise.all([
       this.itemQueryService.findSkuById(itemSkuId),
@@ -122,18 +155,26 @@ export class StockService {
     const warehouseCode = warehouse?.getCode() ?? `WH#${warehouseId}`;
 
     if (!warehouseItem) {
-      throw new BadRequestException(`No stock found for SKU ${skuCode} in warehouse ${warehouseCode}`);
+      throw new BadRequestException(
+        `No stock found for SKU ${skuCode} in warehouse ${warehouseCode}`
+      );
     }
 
     const previousQty = warehouseItem.quantity;
 
     if (previousQty < quantity) {
-      throw new BadRequestException(`Insufficient stock for SKU ${skuCode} in warehouse ${warehouseCode}`);
+      throw new BadRequestException(
+        `Insufficient stock for SKU ${skuCode} in warehouse ${warehouseCode}`
+      );
     }
 
     const newQty = previousQty - quantity;
 
-    await this.stockRepository.updateStockQuantity(warehouseId, itemSkuId, newQty);
+    await this.stockRepository.updateStockQuantity(
+      warehouseId,
+      itemSkuId,
+      newQty
+    );
 
     return { warehouseId, itemSkuId, previousQty, newQty };
   }
@@ -146,8 +187,10 @@ export class StockService {
     itemSkuId: number,
     requiredQty: number
   ): Promise<boolean> {
-    
-    const warehouseItem = await this.stockRepository.findStock(warehouseId, itemSkuId);
+    const warehouseItem = await this.stockRepository.findStock(
+      warehouseId,
+      itemSkuId
+    );
 
     if (!warehouseItem) {
       return false;
@@ -161,8 +204,10 @@ export class StockService {
    * Get current stock level
    */
   async getStock(warehouseId: number, itemSkuId: number): Promise<number> {
-    
-    const warehouseItem = await this.stockRepository.findStock(warehouseId, itemSkuId);
+    const warehouseItem = await this.stockRepository.findStock(
+      warehouseId,
+      itemSkuId
+    );
     if (warehouseItem) {
       return warehouseItem.quantity;
     }

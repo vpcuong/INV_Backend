@@ -98,7 +98,9 @@ export class ItemSku {
     this.id = data.id;
     this.publicId = data.publicId;
     // remove whitespace
-    this.skuCode = data.skuCode ? data.skuCode.replace(/\s+/g, '').toUpperCase() : '';
+    this.skuCode = data.skuCode
+      ? data.skuCode.replace(/\s+/g, '').toUpperCase()
+      : '';
     this.itemId = data.itemId;
     this.modelId = data.modelId;
     this.colorId = data.colorId;
@@ -140,12 +142,12 @@ export class ItemSku {
 
   /**
    * validate prices
-   * @param costPrice 
-   * @param sellingPrice 
+   * @param costPrice
+   * @param sellingPrice
    */
   private validatePrices(
     costPrice?: number | null,
-    sellingPrice?: number | null,
+    sellingPrice?: number | null
   ): void {
     if (costPrice !== undefined && costPrice !== null && costPrice < 0) {
       throw new InvalidPriceException('Cost price', costPrice);
@@ -158,20 +160,23 @@ export class ItemSku {
       throw new InvalidPriceException('Selling price', sellingPrice);
     }
 
-    if(
+    if (
       sellingPrice !== undefined &&
       sellingPrice !== null &&
       costPrice !== undefined &&
       costPrice !== null &&
       sellingPrice < costPrice
     ) {
-      throw new InvalidPriceException('Selling price can not be less than cost price', sellingPrice);
+      throw new InvalidPriceException(
+        'Selling price can not be less than cost price',
+        sellingPrice
+      );
     }
   }
 
   /**
    * validate dimensions
-   * @param data 
+   * @param data
    */
   private validateDimensions(data: {
     lengthCm?: number | null;
@@ -211,26 +216,37 @@ export class ItemSku {
 
   /**
    * update
-   * @param data 
+   * @param data
    */
   public update(data: UpdateItemSkuData): void {
     // Re-validate required fields if being updated
-    if (data.skuCode !== undefined && (!data.skuCode || data.skuCode.trim() === '')) {
-      throw new InvalidItemSkuException('SKU code is required and cannot be empty');
+    if (
+      data.skuCode !== undefined &&
+      (!data.skuCode || data.skuCode.trim() === '')
+    ) {
+      throw new InvalidItemSkuException(
+        'SKU code is required and cannot be empty'
+      );
     }
     if (data.colorId !== undefined && !data.colorId) {
-      throw new InvalidItemSkuException('Color is required and cannot be empty');
+      throw new InvalidItemSkuException(
+        'Color is required and cannot be empty'
+      );
     }
 
     if (data.costPrice !== undefined || data.sellingPrice !== undefined) {
       this.validatePrices(
         data.costPrice ?? this.costPrice,
-        data.sellingPrice ?? this.sellingPrice,
+        data.sellingPrice ?? this.sellingPrice
       );
     }
 
-    if (data.lengthCm !== undefined || data.widthCm !== undefined ||
-        data.heightCm !== undefined || data.weightG !== undefined) {
+    if (
+      data.lengthCm !== undefined ||
+      data.widthCm !== undefined ||
+      data.heightCm !== undefined ||
+      data.weightG !== undefined
+    ) {
       this.validateDimensions({
         lengthCm: data.lengthCm,
         widthCm: data.widthCm,
@@ -239,7 +255,8 @@ export class ItemSku {
       });
     }
 
-    if (data.skuCode !== undefined) this.skuCode = data.skuCode.replace(/\s+/g, '').toUpperCase();
+    if (data.skuCode !== undefined)
+      this.skuCode = data.skuCode.replace(/\s+/g, '').toUpperCase();
     if (data.colorId !== undefined) this.colorId = data.colorId;
     if (data.genderId !== undefined) this.genderId = data.genderId;
     if (data.sizeId !== undefined) this.sizeId = data.sizeId;
@@ -291,7 +308,7 @@ export class ItemSku {
    */
   public addSkuUom(data: Omit<SkuUomConstructorData, 'skuId'>): SkuUom {
     const existingUom = this.skuUoms.find(
-      (uom) => uom.getUomCode() === data.uomCode,
+      (uom) => uom.getUomCode() === data.uomCode
     );
 
     if (existingUom) {
@@ -301,7 +318,7 @@ export class ItemSku {
     // Prevent adding UOM with same code as base UOM
     if (this.uomCode === data.uomCode) {
       throw new InvalidItemSkuException(
-        `Cannot add UOM ${data.uomCode} because it is already the base UOM of this SKU`,
+        `Cannot add UOM ${data.uomCode} because it is already the base UOM of this SKU`
       );
     }
 
@@ -321,9 +338,7 @@ export class ItemSku {
    * @returns true if removed, false if not found
    */
   public removeSkuUom(uomCode: string): boolean {
-    const index = this.skuUoms.findIndex(
-      (uom) => uom.getUomCode() === uomCode,
-    );
+    const index = this.skuUoms.findIndex((uom) => uom.getUomCode() === uomCode);
 
     if (index === -1) {
       return false;

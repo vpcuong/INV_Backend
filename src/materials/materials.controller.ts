@@ -10,7 +10,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { MaterialService } from './application/material.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
@@ -29,7 +34,7 @@ export class MaterialsController {
   @ApiResponse({ status: 409, description: 'Material code already exists' })
   create(
     @Body() createMaterialDto: CreateMaterialDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
     return this.materialsService.create(createMaterialDto, user.userId);
   }
@@ -55,7 +60,7 @@ export class MaterialsController {
   @ApiResponse({ status: 404, description: 'Material not found' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateMaterialDto: UpdateMaterialDto,
+    @Body() updateMaterialDto: UpdateMaterialDto
   ) {
     return this.materialsService.update(id, updateMaterialDto);
   }

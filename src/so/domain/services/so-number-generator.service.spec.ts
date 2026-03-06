@@ -17,7 +17,7 @@ describe('SONumberGeneratorService', () => {
       const now = new Date();
       const year = now.getFullYear().toString().slice(-2);
       const month = (now.getMonth() + 1).toString().padStart(2, '0');
-      
+
       mockRepository.findLastSOByPrefix.mockResolvedValue(null);
 
       const soNum = await service.generate();
@@ -31,8 +31,10 @@ describe('SONumberGeneratorService', () => {
       const year = now.getFullYear().toString().slice(-2);
       const month = (now.getMonth() + 1).toString().padStart(2, '0');
       const prefix = `SO${year}${month}`;
-      
-      mockRepository.findLastSOByPrefix.mockResolvedValue({ soNum: `${prefix}00005` });
+
+      mockRepository.findLastSOByPrefix.mockResolvedValue({
+        soNum: `${prefix}00005`,
+      });
 
       const soNum = await service.generate();
 
@@ -40,12 +42,14 @@ describe('SONumberGeneratorService', () => {
     });
 
     it('should handle overflow (though unlikely with 5 digits)', async () => {
-       const now = new Date();
+      const now = new Date();
       const year = now.getFullYear().toString().slice(-2);
       const month = (now.getMonth() + 1).toString().padStart(2, '0');
       const prefix = `SO${year}${month}`;
-      
-      mockRepository.findLastSOByPrefix.mockResolvedValue({ soNum: `${prefix}99999` });
+
+      mockRepository.findLastSOByPrefix.mockResolvedValue({
+        soNum: `${prefix}99999`,
+      });
 
       const soNum = await service.generate();
 

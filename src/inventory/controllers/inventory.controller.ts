@@ -13,11 +13,23 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { InventoryService } from '../application/inventory.service';
 import { InventoryQueryService } from '../application/inventory-query.service';
-import { CreateInvTransHeaderDto, CreateInvTransLineDto } from '../dto/create-inv-trans.dto';
+import {
+  CreateInvTransHeaderDto,
+  CreateInvTransLineDto,
+} from '../dto/create-inv-trans.dto';
 import { UpdateInvTransHeaderDto } from '../dto/update-inv-trans.dto';
-import { InvTransCursorFilterDto, InvTransFilterDto } from '../dto/inv-trans-filter.dto';
-import { CreateGoodsReceiptDto, CreateGoodsReceiptFromPoDto } from '../dto/goods-receipt.dto';
-import { CreateGoodsIssueDto, CreateGoodsIssueFromSoDto } from '../dto/goods-issue.dto';
+import {
+  InvTransCursorFilterDto,
+  InvTransFilterDto,
+} from '../dto/inv-trans-filter.dto';
+import {
+  CreateGoodsReceiptDto,
+  CreateGoodsReceiptFromPoDto,
+} from '../dto/goods-receipt.dto';
+import {
+  CreateGoodsIssueDto,
+  CreateGoodsIssueFromSoDto,
+} from '../dto/goods-issue.dto';
 import { CreateAdjustmentDto } from '../dto/adjustment.dto';
 import { CreateStockTransferDto } from '../dto/stock-transfer.dto';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
@@ -38,7 +50,7 @@ export class InventoryController {
   @HttpCode(HttpStatus.CREATED)
   create(
     @Body() dto: CreateInvTransHeaderDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
     return this.inventoryService.create(dto, user.userId);
   }
@@ -51,7 +63,7 @@ export class InventoryController {
   @HttpCode(HttpStatus.CREATED)
   createGoodsReceipt(
     @Body() dto: CreateGoodsReceiptDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
     return this.inventoryService.createGoodsReceipt(dto, user.userId);
   }
@@ -60,7 +72,7 @@ export class InventoryController {
   @HttpCode(HttpStatus.CREATED)
   createGoodsReceiptFromPo(
     @Body() dto: CreateGoodsReceiptFromPoDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
     return this.inventoryService.createGoodsReceiptFromPo(dto, user.userId);
   }
@@ -73,7 +85,7 @@ export class InventoryController {
   @HttpCode(HttpStatus.CREATED)
   createGoodsIssue(
     @Body() dto: CreateGoodsIssueDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
     return this.inventoryService.createGoodsIssue(dto, user.userId);
   }
@@ -82,7 +94,7 @@ export class InventoryController {
   @HttpCode(HttpStatus.CREATED)
   createGoodsIssueFromSo(
     @Body() dto: CreateGoodsIssueFromSoDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
     return this.inventoryService.createGoodsIssueFromSo(dto, user.userId);
   }
@@ -95,7 +107,7 @@ export class InventoryController {
   @HttpCode(HttpStatus.CREATED)
   createAdjustment(
     @Body() dto: CreateAdjustmentDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
     return this.inventoryService.createAdjustment(dto, user.userId);
   }
@@ -108,7 +120,7 @@ export class InventoryController {
   @HttpCode(HttpStatus.CREATED)
   createStockTransfer(
     @Body() dto: CreateStockTransferDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
     return this.inventoryService.createStockTransfer(dto, user.userId);
   }
@@ -130,7 +142,7 @@ export class InventoryController {
   @Get('export')
   export(@Query() filterDto: InvTransFilterDto) {
     // This could check permissions, etc.
-    // For now, it just reuses the finding logic 
+    // For now, it just reuses the finding logic
     // but in a real app would stream CSV/Excel
     return this.queryService.findAll(filterDto);
   }

@@ -1,4 +1,8 @@
-import { ItemUom, ItemUomConstructorData, UpdateItemUomData } from '../entities/item-uom.entity';
+import {
+  ItemUom,
+  ItemUomConstructorData,
+  UpdateItemUomData,
+} from '../entities/item-uom.entity';
 import {
   ItemModel,
   ItemModelConstructorData,
@@ -219,7 +223,7 @@ export class Item {
 
   /**
    * Validate fields
-   * @param data 
+   * @param data
    */
   private validateRequiredFields(data: ItemConstructorData): void {
     if (!data.code || data.code.trim() === '') {
@@ -237,7 +241,7 @@ export class Item {
 
   /**
    * Update Item
-   * @param data 
+   * @param data
    */
   public update(data: UpdateItemData): void {
     if (data.code !== undefined) {
@@ -330,7 +334,11 @@ export class Item {
    */
   public addModel(data: CreateModelData): ItemModel {
     // Check for duplicate code (excluding deleted models)
-    if (this.models.some((m) => m.getCode() === data.code && m.getRowMode() !== RowMode.DELETED)) {
+    if (
+      this.models.some(
+        (m) => m.getCode() === data.code && m.getRowMode() !== RowMode.DELETED
+      )
+    ) {
       throw new DuplicateItemModelCodeException(data.code);
     }
 
@@ -348,7 +356,7 @@ export class Item {
 
     // Add domain event
     this.domainEvents.push(
-      new ItemModelAddedEvent(this.id!, model.getId() ?? 0, model.getCode()),
+      new ItemModelAddedEvent(this.id!, model.getId() ?? 0, model.getCode())
     );
 
     return model;
@@ -383,7 +391,11 @@ export class Item {
 
     // Check for duplicate code if code is being updated (excluding deleted models)
     if (data.code && data.code !== model.getCode()) {
-      if (this.models.some((m) => m.getCode() === data.code && m.getRowMode() !== RowMode.DELETED)) {
+      if (
+        this.models.some(
+          (m) => m.getCode() === data.code && m.getRowMode() !== RowMode.DELETED
+        )
+      ) {
         throw new DuplicateItemModelCodeException(data.code);
       }
     }
@@ -426,11 +438,11 @@ export class Item {
 
     // Check if model has SKUs (excluding already-deleted SKUs)
     const modelSkus = this.skus.filter(
-      (s) => s.getModelId() === modelId && s.getRowMode() !== RowMode.DELETED,
+      (s) => s.getModelId() === modelId && s.getRowMode() !== RowMode.DELETED
     );
     if (modelSkus.length > 0) {
       throw new InvalidItemException(
-        `Cannot remove model ${model.getCode()} because it has ${modelSkus.length} SKU(s)`,
+        `Cannot remove model ${model.getCode()} because it has ${modelSkus.length} SKU(s)`
       );
     }
 
@@ -444,13 +456,13 @@ export class Item {
 
     // Add domain event
     this.domainEvents.push(
-      new ItemModelRemovedEvent(this.id!, modelId, model.getCode()),
+      new ItemModelRemovedEvent(this.id!, modelId, model.getCode())
     );
   }
 
   /**
    * findModel by modelId
-   * @param modelId 
+   * @param modelId
    * @returns ItemModel | undefined
    */
   public findModel(modelId: number): ItemModel | undefined {
@@ -528,7 +540,12 @@ export class Item {
     }
 
     // Check for duplicate SKU code (excluding deleted SKUs)
-    if (this.skus.some((s) => s.getSkuCode() === data.skuCode && s.getRowMode() !== RowMode.DELETED)) {
+    if (
+      this.skus.some(
+        (s) =>
+          s.getSkuCode() === data.skuCode && s.getRowMode() !== RowMode.DELETED
+      )
+    ) {
       throw new DuplicateSkuCodeException(data.skuCode);
     }
 
@@ -564,8 +581,8 @@ export class Item {
         this.id!,
         modelId,
         sku.getId() ?? 0,
-        sku.getSkuCode(),
-      ),
+        sku.getSkuCode()
+      )
     );
 
     return sku;
@@ -630,7 +647,7 @@ export class Item {
 
     // Add domain event
     this.domainEvents.push(
-      new ItemSkuRemovedEvent(this.id!, skuId, sku.getSkuCode()),
+      new ItemSkuRemovedEvent(this.id!, skuId, sku.getSkuCode())
     );
   }
 
@@ -771,7 +788,9 @@ export class Item {
    * @returns boolean - true nếu tồn tại, false nếu không
    */
   public hasUOM(uomCode: string): boolean {
-    return this.itemUoms.some((u) => u.getUomCode() === uomCode && u.getRowMode() !== RowMode.DELETED);
+    return this.itemUoms.some(
+      (u) => u.getUomCode() === uomCode && u.getRowMode() !== RowMode.DELETED
+    );
   }
 
   /**
@@ -868,7 +887,7 @@ export class Item {
   public convertQuantity(
     fromUomCode: string,
     toUomCode: string,
-    quantity: number,
+    quantity: number
   ): number {
     if (fromUomCode === toUomCode) {
       return quantity;
@@ -1127,8 +1146,7 @@ export class Item {
       createdBy: data.createdBy,
       itemUoms:
         data.itemUoms?.map((u: any) => ItemUom.fromPersistence(u)) ?? [],
-      models:
-        data.models?.map((m: any) => ItemModel.fromPersistence(m)) ?? [],
+      models: data.models?.map((m: any) => ItemModel.fromPersistence(m)) ?? [],
       skus: data.skus?.map((s: any) => ItemSku.fromPersistence(s)) ?? [],
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,

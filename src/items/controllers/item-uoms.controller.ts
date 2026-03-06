@@ -1,12 +1,11 @@
+import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Delete,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { ItemAggregateService } from '../application/item-aggregate.service';
 import { ItemQueryService } from '../application/item-query.service';
 import { CreateUomDto } from '../dto/create-uom.dto';
@@ -26,7 +25,7 @@ import { CreateUomDto } from '../dto/create-uom.dto';
 export class ItemUomsController {
   constructor(
     private readonly itemAggregateService: ItemAggregateService,
-    private readonly itemQueryService: ItemQueryService,
+    private readonly itemQueryService: ItemQueryService
   ) {}
 
   @Post()
@@ -34,7 +33,7 @@ export class ItemUomsController {
   @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
   create(
     @Param('itemPublicId') itemPublicId: string,
-    @Body() dto: CreateUomDto,
+    @Body() dto: CreateUomDto
   ) {
     return this.itemAggregateService.addUomToItemByPublicId(itemPublicId, dto);
   }
@@ -52,9 +51,12 @@ export class ItemUomsController {
   @ApiParam({ name: 'uomCode', description: 'UOM Code' })
   findOne(
     @Param('itemPublicId') itemPublicId: string,
-    @Param('uomCode') uomCode: string,
+    @Param('uomCode') uomCode: string
   ) {
-    return this.itemQueryService.findUomByItemPublicIdAndCode(itemPublicId, uomCode);
+    return this.itemQueryService.findUomByItemPublicIdAndCode(
+      itemPublicId,
+      uomCode
+    );
   }
 
   @Delete(':uomCode')
@@ -63,7 +65,7 @@ export class ItemUomsController {
   @ApiParam({ name: 'uomCode', description: 'UOM Code' })
   remove(
     @Param('itemPublicId') itemPublicId: string,
-    @Param('uomCode') uomCode: string,
+    @Param('uomCode') uomCode: string
   ) {
     return this.itemAggregateService.removeUomByPublicId(itemPublicId, uomCode);
   }

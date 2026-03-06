@@ -14,7 +14,6 @@ import { SOAddressesDto, SOMetadataDto } from './composed/so-composed.dto';
 import { CreateSOLineDto } from './composed/create-so-line.dto';
 
 export class CreateSOHeaderDto {
-
   @ApiProperty({
     description: 'Customer ID',
     example: 1,
@@ -122,4 +121,3 @@ export class CreateSOHeaderDto {
   @Type(() => CreateSOLineDto)
   lines?: CreateSOLineDto[];
 }
-

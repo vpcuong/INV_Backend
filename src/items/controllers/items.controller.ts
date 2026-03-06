@@ -8,7 +8,13 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { ItemAggregateService } from '../application/item-aggregate.service';
 import { ItemQueryService } from '../application/item-query.service';
@@ -31,16 +37,13 @@ import { ItemFilterDto } from '../dto/item-filter.dto';
 export class ItemsController {
   constructor(
     private readonly itemAggregateService: ItemAggregateService,
-    private readonly itemQueryService: ItemQueryService,
+    private readonly itemQueryService: ItemQueryService
   ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new item' })
   @ApiResponse({ status: 201, description: 'Item created successfully' })
-  create(
-    @Body() dto: CreateItemDto,
-    @CurrentUser() user: { userId: string },
-  ) {
+  create(@Body() dto: CreateItemDto, @CurrentUser() user: { userId: string }) {
     return this.itemAggregateService.createItem(dto, user.userId);
   }
 

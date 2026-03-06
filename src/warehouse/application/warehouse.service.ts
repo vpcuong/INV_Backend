@@ -23,7 +23,7 @@ export class WarehouseService {
   constructor(
     @Inject(WAREHOUSE_REPOSITORY)
     private readonly warehouseRepository: IWarehouseRepository,
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaService
   ) {}
 
   async findOne(id: number): Promise<Warehouse | null> {
@@ -48,7 +48,10 @@ export class WarehouseService {
     return saved.toPersistence();
   }
 
-  async updateWarehouse(publicId: string, dto: UpdateWarehouseDto): Promise<any> {
+  async updateWarehouse(
+    publicId: string,
+    dto: UpdateWarehouseDto
+  ): Promise<any> {
     const warehouse = await this.warehouseRepository.findByPublicId(publicId);
     if (!warehouse) {
       throw new WarehouseNotFoundException(publicId);
@@ -98,7 +101,7 @@ export class WarehouseService {
   // Inventory operations
   async addInventory(
     warehousePublicId: string,
-    dto: CreateInventoryDto,
+    dto: CreateInventoryDto
   ): Promise<any> {
     const warehouse =
       await this.warehouseRepository.findByPublicId(warehousePublicId);
@@ -112,14 +115,14 @@ export class WarehouseService {
     });
     if (!sku) {
       throw new NotFoundException(
-        `SKU with publicId ${dto.skuPublicId} not found`,
+        `SKU with publicId ${dto.skuPublicId} not found`
       );
     }
 
     // Check if inventory already exists
     const existingInventory = await this.warehouseRepository.findInventory(
       warehouse.getId()!,
-      sku.id,
+      sku.id
     );
 
     if (existingInventory) {
@@ -144,7 +147,7 @@ export class WarehouseService {
   async adjustInventory(
     warehousePublicId: string,
     skuPublicId: string,
-    dto: AdjustInventoryDto,
+    dto: AdjustInventoryDto
   ): Promise<any> {
     const warehouse =
       await this.warehouseRepository.findByPublicId(warehousePublicId);
@@ -161,14 +164,14 @@ export class WarehouseService {
 
     let inventory = await this.warehouseRepository.findInventory(
       warehouse.getId()!,
-      sku.id,
+      sku.id
     );
 
     if (!inventory) {
       // Create new inventory if adjustment is positive
       if (dto.adjustment < 0) {
         throw new NotFoundException(
-          `No inventory found for SKU ${skuPublicId} in warehouse ${warehousePublicId}`,
+          `No inventory found for SKU ${skuPublicId} in warehouse ${warehousePublicId}`
         );
       }
       inventory = new WarehouseItem({
@@ -188,7 +191,7 @@ export class WarehouseService {
   async setInventory(
     warehousePublicId: string,
     skuPublicId: string,
-    dto: UpdateInventoryDto,
+    dto: UpdateInventoryDto
   ): Promise<any> {
     const warehouse =
       await this.warehouseRepository.findByPublicId(warehousePublicId);
@@ -205,7 +208,7 @@ export class WarehouseService {
 
     let inventory = await this.warehouseRepository.findInventory(
       warehouse.getId()!,
-      sku.id,
+      sku.id
     );
 
     if (!inventory) {
@@ -229,7 +232,7 @@ export class WarehouseService {
   async reserveInventory(
     warehousePublicId: string,
     skuPublicId: string,
-    dto: ReserveInventoryDto,
+    dto: ReserveInventoryDto
   ): Promise<any> {
     const warehouse =
       await this.warehouseRepository.findByPublicId(warehousePublicId);
@@ -246,12 +249,12 @@ export class WarehouseService {
 
     const inventory = await this.warehouseRepository.findInventory(
       warehouse.getId()!,
-      sku.id,
+      sku.id
     );
 
     if (!inventory) {
       throw new NotFoundException(
-        `No inventory found for SKU ${skuPublicId} in warehouse ${warehousePublicId}`,
+        `No inventory found for SKU ${skuPublicId} in warehouse ${warehousePublicId}`
       );
     }
 
@@ -263,7 +266,7 @@ export class WarehouseService {
   async releaseReservation(
     warehousePublicId: string,
     skuPublicId: string,
-    dto: ReleaseReservationDto,
+    dto: ReleaseReservationDto
   ): Promise<any> {
     const warehouse =
       await this.warehouseRepository.findByPublicId(warehousePublicId);
@@ -280,12 +283,12 @@ export class WarehouseService {
 
     const inventory = await this.warehouseRepository.findInventory(
       warehouse.getId()!,
-      sku.id,
+      sku.id
     );
 
     if (!inventory) {
       throw new NotFoundException(
-        `No inventory found for SKU ${skuPublicId} in warehouse ${warehousePublicId}`,
+        `No inventory found for SKU ${skuPublicId} in warehouse ${warehousePublicId}`
       );
     }
 
@@ -297,7 +300,7 @@ export class WarehouseService {
   private buildInventoryResponse(
     warehouse: Warehouse,
     sku: any,
-    item: WarehouseItem,
+    item: WarehouseItem
   ): any {
     return {
       warehousePublicId: warehouse.getPublicId(),

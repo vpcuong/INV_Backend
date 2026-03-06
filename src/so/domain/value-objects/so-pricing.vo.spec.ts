@@ -14,9 +14,9 @@ describe('SOPricing', () => {
 
     it('should maintain discount percent and recalculate discount amount', () => {
       const pricing = SOPricing.create({
-          totalAmount: 900,
-          discountPercent: 10,
-          discountAmount: 100
+        totalAmount: 900,
+        discountPercent: 10,
+        discountAmount: 100,
       });
 
       // New Base = 2000, line taxes = 0
@@ -42,7 +42,7 @@ describe('SOPricing', () => {
 
     it('should handle both discount and line taxes', () => {
       const pricing = SOPricing.create({
-          discountPercent: 10,
+        discountPercent: 10,
       });
 
       // Base = 1000, line taxes sum = 90
@@ -161,7 +161,9 @@ describe('SOPricing', () => {
 
   describe('Validation', () => {
     it('should validate max percent > 100', () => {
-         expect(() => SOPricing.create({ totalAmount: 100, discountPercent: 101 })).toThrow();
+      expect(() =>
+        SOPricing.create({ totalAmount: 100, discountPercent: 101 })
+      ).toThrow();
     });
   });
 });

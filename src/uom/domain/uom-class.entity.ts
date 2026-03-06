@@ -90,7 +90,10 @@ export class UomClass {
     this.rowMode = this.rowMode === RowMode.NEW ? RowMode.NEW : RowMode.UPDATED;
   }
 
-  public updateUom(uomCode: string, data: { name?: string; description?: string | null; isActive?: boolean }): void {
+  public updateUom(
+    uomCode: string,
+    data: { name?: string; description?: string | null; isActive?: boolean }
+  ): void {
     const uom = this.uoms.find((u) => u.getCode() === uomCode);
     if (!uom) {
       throw new UomNotFoundException(uomCode);
@@ -129,14 +132,18 @@ export class UomClass {
 
   /**
    * convert quantity
-   * @param fromUomCode 
-   * @param toUomCode 
-   * @param value 
-   * @returns 
+   * @param fromUomCode
+   * @param toUomCode
+   * @param value
+   * @returns
    */
-  public convertQuantity(fromUomCode: string, toUomCode: string, value: number): number {
+  public convertQuantity(
+    fromUomCode: string,
+    toUomCode: string,
+    value: number
+  ): number {
     // case 0: fromUomCode = toUomCode
-    if(fromUomCode === toUomCode) {
+    if (fromUomCode === toUomCode) {
       return value;
     }
 
@@ -150,7 +157,7 @@ export class UomClass {
       throw new UomConversionNotFoundException(fromUomCode, this.code);
     }
     // case 1: toUomCode = baseUomCode
-    if(toUomCode === this.baseUomCode) {
+    if (toUomCode === this.baseUomCode) {
       return value * conversion.getToBaseFactor();
     }
     // case 2: fromUomCode != baseUomCode
@@ -158,8 +165,14 @@ export class UomClass {
     if (!toUomCodeConversion) {
       throw new UomConversionNotFoundException(toUomCode, this.code);
     }
-    return Math.round((value * conversion.getToBaseFactor() / 
-                toUomCodeConversion.getToBaseFactor() + Number.EPSILON) * 100) / 100;
+    return (
+      Math.round(
+        ((value * conversion.getToBaseFactor()) /
+          toUomCodeConversion.getToBaseFactor() +
+          Number.EPSILON) *
+          100
+      ) / 100
+    );
   }
 
   public findUomByCode(uomCode: string): Uom | undefined {

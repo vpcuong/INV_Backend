@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.spec.json",
+  "compilerOptions": {
+    "declaration": false,
+    "declarationMap": false,
+    "rootDir": "..",
+    "ignoreDeprecations": "6.0"
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -13,7 +13,7 @@ export class SOHeaderRepository implements ISOHeaderRepository {
   constructor(private prisma: PrismaService) {}
 
   private getDb(transaction?: PrismaTransaction) {
-    return transaction ||this.prisma.client;
+    return transaction || this.prisma.client;
   }
 
   async create(
@@ -21,14 +21,24 @@ export class SOHeaderRepository implements ISOHeaderRepository {
     transaction?: PrismaTransaction
   ): Promise<SOHeader> {
     const db = this.getDb(transaction);
-    const { id, publicId, createdAt, updatedAt, ...headerData } = soHeader.toPersistence();
+    const { id, publicId, createdAt, updatedAt, ...headerData } =
+      soHeader.toPersistence();
     const lines = soHeader.getLines().map((line) => line.toPersistence());
 
     const created = await db.sOHeader.create({
       data: {
         ...headerData,
         lines: {
-          create: lines.map(({ id, publicId, soHeaderId, createdAt: lCreatedAt, updatedAt: lUpdatedAt, ...lineData }) => lineData),
+          create: lines.map(
+            ({
+              id,
+              publicId,
+              soHeaderId,
+              createdAt: lCreatedAt,
+              updatedAt: lUpdatedAt,
+              ...lineData
+            }) => lineData
+          ),
         },
       },
       include: {
@@ -61,11 +71,14 @@ export class SOHeaderRepository implements ISOHeaderRepository {
 
   /**
    * Find a sales order by ID
-   * @param id 
-   * @param transaction 
-   * @returns 
+   * @param id
+   * @param transaction
+   * @returns
    */
-  async findOne(id: number, transaction?: PrismaTransaction): Promise<SOHeader | null> {
+  async findOne(
+    id: number,
+    transaction?: PrismaTransaction
+  ): Promise<SOHeader | null> {
     const db = this.getDb(transaction);
     const header = await db.sOHeader.findUnique({
       where: { id },
@@ -156,8 +169,12 @@ export class SOHeaderRepository implements ISOHeaderRepository {
     const allLines = soHeader.getAllLinesForPersistence();
 
     const newLines = allLines.filter((l) => l.getRowMode() === RowMode.NEW);
-    const updatedLines = allLines.filter((l) => l.getRowMode() === RowMode.UPDATED);
-    const deletedLines = allLines.filter((l) => l.getRowMode() === RowMode.DELETED);
+    const updatedLines = allLines.filter(
+      (l) => l.getRowMode() === RowMode.UPDATED
+    );
+    const deletedLines = allLines.filter(
+      (l) => l.getRowMode() === RowMode.DELETED
+    );
 
     // Update header and lines
     const {
@@ -182,9 +199,7 @@ export class SOHeaderRepository implements ISOHeaderRepository {
           lines: {
             // Delete lines marked as DELETED
             deleteMany:
-              deletedIds.length > 0
-                ? { id: { in: deletedIds } }
-                : undefined,
+              deletedIds.length > 0 ? { id: { in: deletedIds } } : undefined,
             // Update only lines marked as UPDATED
             updateMany: updatedLines.map((line) => {
               const {

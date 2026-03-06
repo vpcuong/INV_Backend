@@ -56,7 +56,7 @@ export class SOLine {
 
   constructor(data: SOLineConstructorData) {
     this.validateRequiredFields(data);
-    
+
     // Initialize basic fields first to calculate pricing
     this.orderQty = data.orderQty;
     this.shippedQty = data.shippedQty ?? 0;
@@ -89,10 +89,13 @@ export class SOLine {
     this.totalAmount = baseAmount - this.discountAmount + this.taxAmount;
 
     // Validate calculated total vs input total (if provided) mostly for sanity check
-    if (data.totalAmount !== undefined && Math.abs(data.totalAmount - this.totalAmount) > 0.01) {
-       // Optional: Log warning or throw error?
-       // For strictness, we could throw. But data migration/rounding might cause issues.
-       // Let's rely on our calculation being the source of truth.
+    if (
+      data.totalAmount !== undefined &&
+      Math.abs(data.totalAmount - this.totalAmount) > 0.01
+    ) {
+      // Optional: Log warning or throw error?
+      // For strictness, we could throw. But data migration/rounding might cause issues.
+      // Let's rely on our calculation being the source of truth.
     }
 
     this.id = data.id;
@@ -151,13 +154,19 @@ export class SOLine {
       finalAmount = amount;
       finalPercent = base > 0 ? (amount / base) * 100 : 0;
     }
-    
+
     // Sanity checks
     if (finalPercent < 0 || finalPercent > 100) {
-       throw new InvalidAmountException(`${fieldName} percent must be between 0 and 100`, finalPercent);
+      throw new InvalidAmountException(
+        `${fieldName} percent must be between 0 and 100`,
+        finalPercent
+      );
     }
     if (finalAmount < 0) {
-       throw new InvalidAmountException(`${fieldName} amount cannot be negative`, finalAmount);
+      throw new InvalidAmountException(
+        `${fieldName} amount cannot be negative`,
+        finalAmount
+      );
     }
 
     return { percent: finalPercent, amount: finalAmount };
@@ -208,9 +217,17 @@ export class SOLine {
    * Business rule: Update discount
    * Accepts percent, amount, or both (validated for consistency)
    */
-  public updateDiscount(discountPercent?: number, discountAmount?: number): void {
+  public updateDiscount(
+    discountPercent?: number,
+    discountAmount?: number
+  ): void {
     const baseAmount = this.orderQty * this.unitPrice;
-    const res = this.resolvePricingComponent(baseAmount, discountPercent, discountAmount, 'Discount');
+    const res = this.resolvePricingComponent(
+      baseAmount,
+      discountPercent,
+      discountAmount,
+      'Discount'
+    );
     this.discountPercent = res.percent;
     this.discountAmount = res.amount;
     this.recalculateTax();
@@ -226,7 +243,12 @@ export class SOLine {
   public updateTax(taxPercent?: number, taxAmount?: number): void {
     const baseAmount = this.orderQty * this.unitPrice;
     const taxableAmount = baseAmount - this.discountAmount;
-    const res = this.resolvePricingComponent(taxableAmount, taxPercent, taxAmount, 'Tax');
+    const res = this.resolvePricingComponent(
+      taxableAmount,
+      taxPercent,
+      taxAmount,
+      'Tax'
+    );
     this.taxPercent = res.percent;
     this.taxAmount = res.amount;
     this.recalculateTotalAmount();
@@ -274,30 +296,38 @@ export class SOLine {
    * Automatically updates status to CLOSED if fully shipped
    */
   public addShippedQty(delta: number): void {
-
-    if(delta <= 0) {
-      throw new InvalidQuantityException('Shipped quantity must be greater than 0', delta);
+    if (delta <= 0) {
+      throw new InvalidQuantityException(
+        'Shipped quantity must be greater than 0',
+        delta
+      );
     }
 
-    if(this.status === SOLineStatus.CANCELLED) {
+    if (this.status === SOLineStatus.CANCELLED) {
       throw new InvalidSOLineException('Line is cancelled');
     }
 
-    if(this.status === SOLineStatus.CLOSED) {
+    if (this.status === SOLineStatus.CLOSED) {
       throw new InvalidSOLineException('Line is closed');
     }
 
     const newShippedQty = Number(this.shippedQty) + Number(delta);
-  
-    if(newShippedQty > this.orderQty) {
-      throw new InvalidQuantityException('Shipped quantity cannot be greater than order quantity', newShippedQty);
+
+    if (newShippedQty > this.orderQty) {
+      throw new InvalidQuantityException(
+        'Shipped quantity cannot be greater than order quantity',
+        newShippedQty
+      );
     }
-    
+
     this.shippedQty = newShippedQty;
 
     if (this.shippedQty < this.orderQty && this.status === SOLineStatus.OPEN) {
       this.status = SOLineStatus.PARTIAL;
-    } else if (this.shippedQty === this.orderQty && this.status === SOLineStatus.PARTIAL) {
+    } else if (
+      this.shippedQty === this.orderQty &&
+      this.status === SOLineStatus.PARTIAL
+    ) {
       this.status = SOLineStatus.CLOSED;
     }
 

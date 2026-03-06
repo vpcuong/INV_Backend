@@ -63,7 +63,8 @@ export class ModelFilterDto {
   limit?: number;
 
   @ApiPropertyOptional({
-    description: 'Sort conditions - JSON string (e.g., [{"field":"createdAt","order":"desc"}])',
+    description:
+      'Sort conditions - JSON string (e.g., [{"field":"createdAt","order":"desc"}])',
     example: '[{"field":"code","order":"asc"}]',
   })
   @IsOptional()

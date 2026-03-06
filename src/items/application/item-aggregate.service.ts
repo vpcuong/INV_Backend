@@ -13,7 +13,10 @@ import {
   CreateUomData,
   UpdateItemData,
 } from '../domain/aggregates/item.aggregate';
-import { ItemModel, UpdateItemModelData } from '../domain/entities/item-model.entity';
+import {
+  ItemModel,
+  UpdateItemModelData,
+} from '../domain/entities/item-model.entity';
 import { ItemSku, UpdateItemSkuData } from '../domain/entities/item-sku.entity';
 import { ItemUom } from '../domain/entities/item-uom.entity';
 import { IItemRepository } from '../domain/item.repository.interface';
@@ -31,7 +34,6 @@ import { UpdateModelDto } from '../dto/update-model.dto';
 import { CreateSkuDto } from '../dto/create-sku.dto';
 import { UpdateSkuDto } from '../dto/update-sku.dto';
 import { CreateUomDto } from '../dto/create-uom.dto';
-
 
 @Injectable()
 export class ItemAggregateService {
@@ -75,7 +77,7 @@ export class ItemAggregateService {
     const savedItem = await this.repository.save(item);
     await this.publishEvents(savedItem);
 
-    return this.queryService.findById((savedItem.getId()));
+    return this.queryService.findById(savedItem.getId());
   }
 
   async updateItem(id: number, dto: UpdateItemDto): Promise<any> {
@@ -88,7 +90,9 @@ export class ItemAggregateService {
     if (dto.code && dto.code !== item.getCode()) {
       const exists = await this.repository.existsByCode(dto.code, id);
       if (exists) {
-        throw new ConflictException(`Item with code ${dto.code} already exists`);
+        throw new ConflictException(
+          `Item with code ${dto.code} already exists`
+        );
       }
     }
 
@@ -106,7 +110,7 @@ export class ItemAggregateService {
 
     if (!item.canBeDeleted()) {
       throw new ConflictException(
-        'Cannot delete item with existing models, SKUs, or UOMs',
+        'Cannot delete item with existing models, SKUs, or UOMs'
       );
     }
 
@@ -163,7 +167,10 @@ export class ItemAggregateService {
    * @param publicId - ULID public identifier
    * @param dto - Update data
    */
-  async updateItemByPublicId(publicId: string, dto: UpdateItemDto): Promise<any> {
+  async updateItemByPublicId(
+    publicId: string,
+    dto: UpdateItemDto
+  ): Promise<any> {
     const item = await this.repository.findByPublicId(publicId);
     if (!item) {
       throw new NotFoundException(`Item with publicId ${publicId} not found`);
@@ -173,14 +180,16 @@ export class ItemAggregateService {
     if (dto.code && dto.code !== item.getCode()) {
       const exists = await this.repository.existsByCode(dto.code, item.getId());
       if (exists) {
-        throw new ConflictException(`Item with code ${dto.code} already exists`);
+        throw new ConflictException(
+          `Item with code ${dto.code} already exists`
+        );
       }
     }
 
     item.update(dto as UpdateItemData);
     const savedItem = await this.repository.update(item);
     await this.publishEvents(savedItem);
-    return this.queryService.findById((savedItem.getId()));
+    return this.queryService.findById(savedItem.getId());
   }
 
   /**
@@ -195,7 +204,7 @@ export class ItemAggregateService {
 
     if (!item.canBeDeleted()) {
       throw new ConflictException(
-        'Cannot delete item with existing models, SKUs, or UOMs',
+        'Cannot delete item with existing models, SKUs, or UOMs'
       );
     }
 
@@ -207,21 +216,22 @@ export class ItemAggregateService {
    * @param publicId - ULID public identifier
    */
   async activateItemByPublicId(publicId: string): Promise<any> {
-
     const item = await this.repository.findByPublicId(publicId);
     if (!item) {
       throw new NotFoundException(`Item with publicId ${publicId} not found`);
     }
 
-    if(item.isActive()) {
-      throw new ConflictException(`Item with publicId ${publicId} is already active`);
+    if (item.isActive()) {
+      throw new ConflictException(
+        `Item with publicId ${publicId} is already active`
+      );
     }
 
     item.activate();
 
-    return this.repository.updatePartial(item.getId()!, { 
+    return this.repository.updatePartial(item.getId()!, {
       status: item.getStatus(),
-      updatedAt: item.getUpdatedAt()
+      updatedAt: item.getUpdatedAt(),
     });
   }
 
@@ -235,15 +245,17 @@ export class ItemAggregateService {
       throw new NotFoundException(`Item with publicId ${publicId} not found`);
     }
 
-    if(item.isInactive()){
-      throw new ConflictException(`Item with publicId ${publicId} is already inactive`);
+    if (item.isInactive()) {
+      throw new ConflictException(
+        `Item with publicId ${publicId} is already inactive`
+      );
     }
 
     item.deactivate();
 
-    return this.repository.updatePartial(item.getId()!, { 
+    return this.repository.updatePartial(item.getId()!, {
       status: item.getStatus(),
-      updatedAt: item.getUpdatedAt()
+      updatedAt: item.getUpdatedAt(),
     });
   }
 
@@ -257,21 +269,27 @@ export class ItemAggregateService {
       throw new NotFoundException(`Item with publicId ${publicId} not found`);
     }
 
-    if(item.isDraft()){
-      throw new ConflictException(`Item with publicId ${publicId} is already draft`);
+    if (item.isDraft()) {
+      throw new ConflictException(
+        `Item with publicId ${publicId} is already draft`
+      );
     }
 
     item.setDraft();
 
-    return this.repository.updatePartial(item.getId()!, { 
+    return this.repository.updatePartial(item.getId()!, {
       status: item.getStatus(),
-      updatedAt: item.getUpdatedAt()
+      updatedAt: item.getUpdatedAt(),
     });
   }
 
   // ==================== MODEL OPERATIONS ====================
 
-  async addModelToItem(itemId: number, dto: CreateModelDto, createdBy: string): Promise<ItemModel> {
+  async addModelToItem(
+    itemId: number,
+    dto: CreateModelDto,
+    createdBy: string
+  ): Promise<ItemModel> {
     const item = await this.repository.findByIdWithModels(itemId);
     if (!item) {
       throw new ItemNotFoundException(itemId);
@@ -293,7 +311,7 @@ export class ItemAggregateService {
   async updateModel(
     itemId: number,
     modelId: number,
-    dto: UpdateModelDto,
+    dto: UpdateModelDto
   ): Promise<ItemModel> {
     const item = await this.repository.findByIdWithModels(itemId);
     if (!item) {
@@ -304,7 +322,9 @@ export class ItemAggregateService {
     if (dto.code) {
       const exists = await this.repository.existsModelByCode(dto.code, modelId);
       if (exists) {
-        throw new ConflictException(`Model with code ${dto.code} already exists`);
+        throw new ConflictException(
+          `Model with code ${dto.code} already exists`
+        );
       }
     }
 
@@ -365,10 +385,16 @@ export class ItemAggregateService {
    * @param itemPublicId - Item's ULID public identifier
    * @param dto - Model creation data
    */
-  async addModelToItemByPublicId(itemPublicId: string, dto: CreateModelDto, createdBy: string): Promise<ItemModel> {
+  async addModelToItemByPublicId(
+    itemPublicId: string,
+    dto: CreateModelDto,
+    createdBy: string
+  ): Promise<ItemModel> {
     const item = await this.repository.findByPublicIdComplete(itemPublicId);
     if (!item) {
-      throw new NotFoundException(`Item with publicId ${itemPublicId} not found`);
+      throw new NotFoundException(
+        `Item with publicId ${itemPublicId} not found`
+      );
     }
 
     const exists = await this.repository.existsModelByCode(dto.code);
@@ -392,22 +418,31 @@ export class ItemAggregateService {
   async updateModelByPublicId(
     itemPublicId: string,
     modelPublicId: string,
-    dto: UpdateModelDto,
+    dto: UpdateModelDto
   ): Promise<ItemModel> {
     const item = await this.repository.findByPublicIdComplete(itemPublicId);
     if (!item) {
-      throw new NotFoundException(`Item with publicId ${itemPublicId} not found`);
+      throw new NotFoundException(
+        `Item with publicId ${itemPublicId} not found`
+      );
     }
 
     const model = item.findModelByPublicId(modelPublicId);
     if (!model) {
-      throw new NotFoundException(`Model with publicId ${modelPublicId} not found`);
+      throw new NotFoundException(
+        `Model with publicId ${modelPublicId} not found`
+      );
     }
 
     if (dto.code) {
-      const exists = await this.repository.existsModelByCode(dto.code, model.getId());
+      const exists = await this.repository.existsModelByCode(
+        dto.code,
+        model.getId()
+      );
       if (exists) {
-        throw new ConflictException(`Model with code ${dto.code} already exists`);
+        throw new ConflictException(
+          `Model with code ${dto.code} already exists`
+        );
       }
     }
 
@@ -423,15 +458,22 @@ export class ItemAggregateService {
    * @param itemPublicId - Item's ULID public identifier
    * @param modelPublicId - Model's ULID public identifier
    */
-  async removeModelByPublicId(itemPublicId: string, modelPublicId: string): Promise<void> {
+  async removeModelByPublicId(
+    itemPublicId: string,
+    modelPublicId: string
+  ): Promise<void> {
     const item = await this.repository.findByPublicIdComplete(itemPublicId);
     if (!item) {
-      throw new NotFoundException(`Item with publicId ${itemPublicId} not found`);
+      throw new NotFoundException(
+        `Item with publicId ${itemPublicId} not found`
+      );
     }
 
     const model = item.findModelByPublicId(modelPublicId);
     if (!model) {
-      throw new NotFoundException(`Model with publicId ${modelPublicId} not found`);
+      throw new NotFoundException(
+        `Model with publicId ${modelPublicId} not found`
+      );
     }
 
     item.removeModel(model.getId()!);
@@ -444,15 +486,22 @@ export class ItemAggregateService {
    * @param itemPublicId - Item's ULID public identifier
    * @param modelPublicId - Model's ULID public identifier
    */
-  async activateModelByPublicId(itemPublicId: string, modelPublicId: string): Promise<ItemModel> {
+  async activateModelByPublicId(
+    itemPublicId: string,
+    modelPublicId: string
+  ): Promise<ItemModel> {
     const item = await this.repository.findByPublicIdComplete(itemPublicId);
     if (!item) {
-      throw new NotFoundException(`Item with publicId ${itemPublicId} not found`);
+      throw new NotFoundException(
+        `Item with publicId ${itemPublicId} not found`
+      );
     }
 
     const model = item.findModelByPublicId(modelPublicId);
     if (!model) {
-      throw new NotFoundException(`Model with publicId ${modelPublicId} not found`);
+      throw new NotFoundException(
+        `Model with publicId ${modelPublicId} not found`
+      );
     }
 
     model.activate();
@@ -465,15 +514,22 @@ export class ItemAggregateService {
    * @param itemPublicId - Item's ULID public identifier
    * @param modelPublicId - Model's ULID public identifier
    */
-  async deactivateModelByPublicId(itemPublicId: string, modelPublicId: string): Promise<ItemModel> {
+  async deactivateModelByPublicId(
+    itemPublicId: string,
+    modelPublicId: string
+  ): Promise<ItemModel> {
     const item = await this.repository.findByPublicIdComplete(itemPublicId);
     if (!item) {
-      throw new NotFoundException(`Item with publicId ${itemPublicId} not found`);
+      throw new NotFoundException(
+        `Item with publicId ${itemPublicId} not found`
+      );
     }
 
     const model = item.findModelByPublicId(modelPublicId);
     if (!model) {
-      throw new NotFoundException(`Model with publicId ${modelPublicId} not found`);
+      throw new NotFoundException(
+        `Model with publicId ${modelPublicId} not found`
+      );
     }
 
     model.deactivate();
@@ -488,7 +544,10 @@ export class ItemAggregateService {
    * @param modelPublicId - Model's ULID public identifier
    * @param dto - Update data
    */
-  async updateModelDirect(modelPublicId: string, dto: UpdateModelDto): Promise<ItemModel> {
+  async updateModelDirect(
+    modelPublicId: string,
+    dto: UpdateModelDto
+  ): Promise<ItemModel> {
     const result = await this.repository.findModelByPublicId(modelPublicId);
     if (!result) {
       throw new NotFoundException(`Model not found`);
@@ -505,9 +564,14 @@ export class ItemAggregateService {
     }
 
     if (dto.code) {
-      const exists = await this.repository.existsModelByCode(dto.code, model.getId());
+      const exists = await this.repository.existsModelByCode(
+        dto.code,
+        model.getId()
+      );
       if (exists) {
-        throw new ConflictException(`Model with code ${dto.code} already exists`);
+        throw new ConflictException(
+          `Model with code ${dto.code} already exists`
+        );
       }
     }
 
@@ -591,7 +655,7 @@ export class ItemAggregateService {
   // ==================== SKU OPERATIONS ====================
 
   async getItemBySkuPublicId(skuPublicId: string): Promise<Item> {
-    const sku= await this.repository.findSkuByPublicId(skuPublicId);
+    const sku = await this.repository.findSkuByPublicId(skuPublicId);
     if (!sku) {
       throw new NotFoundException(`SKU not found`);
     }
@@ -606,7 +670,7 @@ export class ItemAggregateService {
     itemId: number,
     modelId: number | null,
     dto: CreateSkuDto,
-    createdBy: string,
+    createdBy: string
   ): Promise<ItemSku> {
     const item = await this.repository.findByIdComplete(itemId);
     if (!item) {
@@ -616,7 +680,9 @@ export class ItemAggregateService {
     // Check for duplicate SKU code globally
     const exists = await this.repository.existsSkuByCode(dto.skuCode);
     if (exists) {
-      throw new ConflictException(`SKU with code ${dto.skuCode} already exists`);
+      throw new ConflictException(
+        `SKU with code ${dto.skuCode} already exists`
+      );
     }
 
     const sku = item.addSku(modelId, { ...dto, createdBy } as CreateSkuData);
@@ -629,7 +695,7 @@ export class ItemAggregateService {
   async updateSku(
     itemId: number,
     skuId: number,
-    dto: UpdateSkuDto,
+    dto: UpdateSkuDto
   ): Promise<ItemSku> {
     const item = await this.repository.findByIdComplete(itemId);
     if (!item) {
@@ -665,9 +731,13 @@ export class ItemAggregateService {
       if (dto.fabricSKUId === null || dto.fabricSKUId === '') {
         updateData.fabricSKUId = null;
       } else {
-        const fabricSkuResult = await this.repository.findSkuByPublicId(dto.fabricSKUId);
+        const fabricSkuResult = await this.repository.findSkuByPublicId(
+          dto.fabricSKUId
+        );
         if (!fabricSkuResult) {
-          throw new NotFoundException(`Fabric SKU with publicId ${dto.fabricSKUId} not found`);
+          throw new NotFoundException(
+            `Fabric SKU with publicId ${dto.fabricSKUId} not found`
+          );
         }
         updateData.fabricSKUId = fabricSkuResult.sku.getId();
       }
@@ -734,25 +804,31 @@ export class ItemAggregateService {
     itemPublicId: string,
     modelPublicId: string | null,
     dto: CreateSkuDto,
-    createdBy: string,
+    createdBy: string
   ): Promise<ItemSku> {
     const item = await this.repository.findByPublicIdComplete(itemPublicId);
     if (!item) {
-      throw new NotFoundException(`Item with publicId ${itemPublicId} not found`);
+      throw new NotFoundException(
+        `Item with publicId ${itemPublicId} not found`
+      );
     }
 
     let modelId: number | null = null;
     if (modelPublicId) {
       const model = item.findModelByPublicId(modelPublicId);
       if (!model) {
-        throw new NotFoundException(`Model with publicId ${modelPublicId} not found`);
+        throw new NotFoundException(
+          `Model with publicId ${modelPublicId} not found`
+        );
       }
       modelId = model.getId()!;
     }
 
     const exists = await this.repository.existsSkuByCode(dto.skuCode);
     if (exists) {
-      throw new ConflictException(`SKU with code ${dto.skuCode} already exists`);
+      throw new ConflictException(
+        `SKU with code ${dto.skuCode} already exists`
+      );
     }
 
     const sku = item.addSku(modelId, { ...dto, createdBy } as CreateSkuData);
@@ -771,11 +847,13 @@ export class ItemAggregateService {
   async updateSkuByPublicId(
     itemPublicId: string,
     skuPublicId: string,
-    dto: UpdateSkuDto,
+    dto: UpdateSkuDto
   ): Promise<ItemSku> {
     const item = await this.repository.findByPublicIdComplete(itemPublicId);
     if (!item) {
-      throw new NotFoundException(`Item with publicId ${itemPublicId} not found`);
+      throw new NotFoundException(
+        `Item with publicId ${itemPublicId} not found`
+      );
     }
 
     const sku = item.findSkuByPublicId(skuPublicId);
@@ -807,9 +885,13 @@ export class ItemAggregateService {
       if (dto.fabricSKUId === null || dto.fabricSKUId === '') {
         updateData.fabricSKUId = null;
       } else {
-        const fabricSkuResult = await this.repository.findSkuByPublicId(dto.fabricSKUId);
+        const fabricSkuResult = await this.repository.findSkuByPublicId(
+          dto.fabricSKUId
+        );
         if (!fabricSkuResult) {
-          throw new NotFoundException(`Fabric SKU with publicId ${dto.fabricSKUId} not found`);
+          throw new NotFoundException(
+            `Fabric SKU with publicId ${dto.fabricSKUId} not found`
+          );
         }
         updateData.fabricSKUId = fabricSkuResult.sku.getId();
       }
@@ -827,10 +909,15 @@ export class ItemAggregateService {
    * @param itemPublicId - Item's ULID public identifier
    * @param skuPublicId - SKU's ULID public identifier
    */
-  async removeSkuByPublicId(itemPublicId: string, skuPublicId: string): Promise<void> {
+  async removeSkuByPublicId(
+    itemPublicId: string,
+    skuPublicId: string
+  ): Promise<void> {
     const item = await this.repository.findByPublicIdComplete(itemPublicId);
     if (!item) {
-      throw new NotFoundException(`Item with publicId ${itemPublicId} not found`);
+      throw new NotFoundException(
+        `Item with publicId ${itemPublicId} not found`
+      );
     }
 
     const sku = item.findSkuByPublicId(skuPublicId);
@@ -848,10 +935,15 @@ export class ItemAggregateService {
    * @param itemPublicId - Item's ULID public identifier
    * @param skuPublicId - SKU's ULID public identifier
    */
-  async activateSkuByPublicId(itemPublicId: string, skuPublicId: string): Promise<ItemSku> {
+  async activateSkuByPublicId(
+    itemPublicId: string,
+    skuPublicId: string
+  ): Promise<ItemSku> {
     const item = await this.repository.findByPublicIdComplete(itemPublicId);
     if (!item) {
-      throw new NotFoundException(`Item with publicId ${itemPublicId} not found`);
+      throw new NotFoundException(
+        `Item with publicId ${itemPublicId} not found`
+      );
     }
 
     const sku = item.findSkuByPublicId(skuPublicId);
@@ -869,10 +961,15 @@ export class ItemAggregateService {
    * @param itemPublicId - Item's ULID public identifier
    * @param skuPublicId - SKU's ULID public identifier
    */
-  async deactivateSkuByPublicId(itemPublicId: string, skuPublicId: string): Promise<ItemSku> {
+  async deactivateSkuByPublicId(
+    itemPublicId: string,
+    skuPublicId: string
+  ): Promise<ItemSku> {
     const item = await this.repository.findByPublicIdComplete(itemPublicId);
     if (!item) {
-      throw new NotFoundException(`Item with publicId ${itemPublicId} not found`);
+      throw new NotFoundException(
+        `Item with publicId ${itemPublicId} not found`
+      );
     }
 
     const sku = item.findSkuByPublicId(skuPublicId);
@@ -903,21 +1000,26 @@ export class ItemAggregateService {
 
     // Step 2a: Check SKU status - cannot update inactive SKU
     if (sku.getStatus() === 'inactive') {
-      throw new BadRequestException('Cannot update inactive SKU. Activate it first.');
+      throw new BadRequestException(
+        'Cannot update inactive SKU. Activate it first.'
+      );
     }
 
     // Step 2b: Check if sku is mapped to another skus
     const isFabricItem = await this.repository.isFabricItem(result.itemId);
-    if(isFabricItem) {
-      const isMapped =  await this.repository.isMappedSku(sku.getId());
-      if(isMapped) {
+    if (isFabricItem) {
+      const isMapped = await this.repository.isMappedSku(sku.getId());
+      if (isMapped) {
         throw new BadRequestException('Cannot update mapped SKU');
       }
     }
 
     // Step 3: Validate skuCode uniqueness if being updated
     if (dto.skuCode !== undefined) {
-      const duplicateExists = await this.repository.existsSkuByCode(dto.skuCode, sku.getId());
+      const duplicateExists = await this.repository.existsSkuByCode(
+        dto.skuCode,
+        sku.getId()
+      );
       if (duplicateExists) {
         throw new ConflictException(`SKU code '${dto.skuCode}' already exists`);
       }
@@ -926,9 +1028,13 @@ export class ItemAggregateService {
     // Step 3b: Validate fabricSKUId exists if being updated
     let fabricSkuId: number | null | undefined = null;
     if (dto.fabricSKUId !== undefined && dto.fabricSKUId !== null) {
-      const fabricSku = await this.repository.findSkuByPublicId(dto.fabricSKUId);
+      const fabricSku = await this.repository.findSkuByPublicId(
+        dto.fabricSKUId
+      );
       if (!fabricSku) {
-        throw new BadRequestException(`Fabric SKU with ID ${dto.fabricSKUId} does not exist`);
+        throw new BadRequestException(
+          `Fabric SKU with ID ${dto.fabricSKUId} does not exist`
+        );
       }
 
       fabricSkuId = fabricSku.sku.getId();
@@ -1069,10 +1175,15 @@ export class ItemAggregateService {
    * @param itemPublicId - Item's ULID public identifier
    * @param dto - UOM creation data
    */
-  async addUomToItemByPublicId(itemPublicId: string, dto: CreateUomDto): Promise<ItemUom> {
+  async addUomToItemByPublicId(
+    itemPublicId: string,
+    dto: CreateUomDto
+  ): Promise<ItemUom> {
     const item = await this.repository.findByPublicId(itemPublicId);
     if (!item) {
-      throw new NotFoundException(`Item with publicId ${itemPublicId} not found`);
+      throw new NotFoundException(
+        `Item with publicId ${itemPublicId} not found`
+      );
     }
 
     const uom = item.addUOM(dto as CreateUomData);
@@ -1087,10 +1198,15 @@ export class ItemAggregateService {
    * @param itemPublicId - Item's ULID public identifier
    * @param uomCode - UOM code to remove
    */
-  async removeUomByPublicId(itemPublicId: string, uomCode: string): Promise<void> {
+  async removeUomByPublicId(
+    itemPublicId: string,
+    uomCode: string
+  ): Promise<void> {
     const item = await this.repository.findByPublicId(itemPublicId);
     if (!item) {
-      throw new NotFoundException(`Item with publicId ${itemPublicId} not found`);
+      throw new NotFoundException(
+        `Item with publicId ${itemPublicId} not found`
+      );
     }
 
     item.removeUOM(uomCode);

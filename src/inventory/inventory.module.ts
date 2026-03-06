@@ -16,7 +16,7 @@ import {
   INV_TRANS_NUMBER_GENERATOR,
   STOCK_SERVICE,
   ADJUST_REASON_REPOSITORY,
-  STOCK_REPOSITORY
+  STOCK_REPOSITORY,
 } from './constant/inventory.token';
 import { WarehouseModule } from '../warehouse/warehouse.module';
 import { SoModule } from '../so/so.module';
@@ -25,7 +25,14 @@ import { ItemsModule } from '../items/items.module';
 import { UomModule } from '../uom/uom.module';
 
 @Module({
-  imports: [PrismaModule, WarehouseModule, SoModule, PoModule, ItemsModule, UomModule],
+  imports: [
+    PrismaModule,
+    WarehouseModule,
+    SoModule,
+    PoModule,
+    ItemsModule,
+    UomModule,
+  ],
   providers: [
     InventoryService,
     InventoryQueryService,
@@ -53,7 +60,7 @@ import { UomModule } from '../uom/uom.module';
     {
       provide: STOCK_REPOSITORY,
       useClass: StockRepository,
-    }
+    },
   ],
   controllers: [InventoryController, AdjustReasonController],
   exports: [InventoryService, InventoryQueryService, AdjustReasonService],

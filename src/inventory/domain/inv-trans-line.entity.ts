@@ -47,7 +47,7 @@ export class InvTransLine {
     this.quantity = data.quantity;
     this.uomCode = data.uomCode;
     this.toBaseFactor = data.toBaseFactor ?? 1;
-    this.baseQty = data.baseQty ?? (data.quantity * this.toBaseFactor);
+    this.baseQty = data.baseQty ?? data.quantity * this.toBaseFactor;
     this.baseUomCode = data.baseUomCode;
     this.note = data.note;
     this.createdAt = data.createdAt;

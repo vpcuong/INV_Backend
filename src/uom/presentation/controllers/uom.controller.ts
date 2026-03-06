@@ -1,5 +1,17 @@
-import { Controller, Get, Post, Body, Param, NotFoundException } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { UomService } from '../../application/uom.service';
 import { UomQueryService } from '../../application/uom-query.service';
 import { CreateUomDto } from '../dto/create-uom.dto';
@@ -10,7 +22,7 @@ import { CreateUomDto } from '../dto/create-uom.dto';
 export class UomController {
   constructor(
     private readonly service: UomService,
-    private readonly queryService: UomQueryService,
+    private readonly queryService: UomQueryService
   ) {}
 
   @Post('class/:classCode')

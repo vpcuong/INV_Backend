@@ -1,12 +1,10 @@
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Query,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { ItemAggregateService } from '../application/item-aggregate.service';
 import { ItemQueryService } from '../application/item-query.service';
@@ -29,7 +27,7 @@ import { CreateModelDto } from '../dto/create-model.dto';
 export class ItemModelsController {
   constructor(
     private readonly itemAggregateService: ItemAggregateService,
-    private readonly itemQueryService: ItemQueryService,
+    private readonly itemQueryService: ItemQueryService
   ) {}
 
   @Post()
@@ -38,9 +36,13 @@ export class ItemModelsController {
   create(
     @Param('itemPublicId') itemPublicId: string,
     @Body() dto: CreateModelDto,
-    @CurrentUser() user: { userId: string },
+    @CurrentUser() user: { userId: string }
   ) {
-    return this.itemAggregateService.addModelToItemByPublicId(itemPublicId, dto, user.userId);
+    return this.itemAggregateService.addModelToItemByPublicId(
+      itemPublicId,
+      dto,
+      user.userId
+    );
   }
 
   @Get()
@@ -48,8 +50,11 @@ export class ItemModelsController {
   @ApiParam({ name: 'itemPublicId', description: 'Item Public ID (ULID)' })
   findAll(
     @Param('itemPublicId') itemPublicId: string,
-    @Query() filterDto: ModelFilterDto,
+    @Query() filterDto: ModelFilterDto
   ) {
-    return this.itemQueryService.findModelsByItemPublicId(itemPublicId, filterDto);
+    return this.itemQueryService.findModelsByItemPublicId(
+      itemPublicId,
+      filterDto
+    );
   }
 }

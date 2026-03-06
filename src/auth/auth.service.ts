@@ -15,7 +15,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private configService: ConfigService,
+    private configService: ConfigService
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -73,7 +73,7 @@ export class AuthService {
 
     const isPasswordValid = await bcrypt.compare(
       loginDto.password,
-      user.password,
+      user.password
     );
 
     if (!isPasswordValid) {
@@ -160,7 +160,7 @@ export class AuthService {
 
       const validToken = await this.findMatchingToken(
         refreshToken,
-        storedTokens,
+        storedTokens
       );
 
       if (!validToken) {
@@ -198,7 +198,7 @@ export class AuthService {
 
       const validToken = await this.findMatchingToken(
         refreshToken,
-        storedTokens,
+        storedTokens
       );
 
       if (validToken) {
@@ -219,7 +219,7 @@ export class AuthService {
 
   private async findMatchingToken(
     rawToken: string,
-    storedTokens: { id: number; tokenHash: string }[],
+    storedTokens: { id: number; tokenHash: string }[]
   ) {
     for (const stored of storedTokens) {
       const isMatch = await bcrypt.compare(rawToken, stored.tokenHash);
