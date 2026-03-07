@@ -7,6 +7,7 @@ model Customer {
   taxCode      String?               @db.VarChar(50)
   country      String?               @db.VarChar(100)
   status       CustomerStatus        @default(ACTIVE)
+  customerType CustomerType          @default(WHOLESALE)
   note         String?
   isActive     Boolean               @default(true)
   createdAt    DateTime              @default(now())
@@ -81,6 +82,11 @@ model CustomerPaymentTerm {
 
   @@index([customerId])
   @@index([effectiveFrom, effectiveTo])
+}
+
+enum CustomerType {
+  RETAIL
+  WHOLESALE
 }
 
 enum CustomerStatus {

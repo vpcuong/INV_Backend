@@ -1,4 +1,4 @@
-import { CustomerStatus } from '../enums/customer-status.enum';
+import { CustomerStatus, CustomerType } from '../enums/customer-status.enum';
 import { InvalidCustomerStatusException } from './exceptions/customer-domain.exception';
 
 export class Customer {
@@ -9,6 +9,7 @@ export class Customer {
   private email?: string | null;
   private taxCode?: string | null;
   private country?: string | null;
+  private customerType: CustomerType;
   private status: CustomerStatus;
   private note?: string | null;
   private isActive: boolean;
@@ -25,6 +26,7 @@ export class Customer {
     email?: string | null;
     taxCode?: string | null;
     country?: string | null;
+    customerType?: CustomerType;
     status?: CustomerStatus;
     note?: string | null;
     isActive?: boolean;
@@ -40,6 +42,7 @@ export class Customer {
     this.email = data.email;
     this.taxCode = data.taxCode;
     this.country = data.country;
+    this.customerType = data.customerType ?? CustomerType.RETAIL;
     this.status = data.status ?? CustomerStatus.ACTIVE;
     this.note = data.note;
     this.isActive = data.isActive ?? true;
@@ -169,6 +172,10 @@ export class Customer {
     return this.country;
   }
 
+  public getCustomerType(): CustomerType {
+    return this.customerType;
+  }
+
   public getStatus(): CustomerStatus {
     return this.status;
   }
@@ -209,6 +216,7 @@ export class Customer {
       email: this.email,
       taxCode: this.taxCode,
       country: this.country,
+      customerType: this.customerType,
       status: this.status,
       note: this.note,
       isActive: this.isActive,
@@ -231,6 +239,7 @@ export class Customer {
       email: data.email,
       taxCode: data.taxCode,
       country: data.country,
+      customerType: data.customerType,
       status: data.status,
       note: data.note,
       isActive: data.isActive,
