@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsNumber,
@@ -15,13 +15,30 @@ import { SOAddressesDto, SOMetadataDto } from './composed/so-composed.dto';
 import { CreateSOLineDto } from './composed/create-so-line.dto';
 
 export class CreateSOHeaderDto {
-  @ApiProperty({
-    description: 'Customer ID',
+  @ApiPropertyOptional({
+    description: 'Customer ID (required if customerPhone is not provided)',
     example: 1,
   })
+  @IsOptional()
   @IsNumber()
   @Min(1)
-  customerId!: number;
+  customerId?: number;
+
+  @ApiPropertyOptional({
+    description: 'Tên khách lẻ (dùng khi chưa có customerId)',
+    example: 'Nguyễn Văn A',
+  })
+  @IsOptional()
+  @IsString()
+  customerName?: string;
+
+  @ApiPropertyOptional({
+    description: 'SĐT khách lẻ (dùng khi chưa có customerId)',
+    example: '0901234567',
+  })
+  @IsOptional()
+  @IsString()
+  customerPhone?: string;
 
   @ApiProperty({
     description: 'Sale order type',

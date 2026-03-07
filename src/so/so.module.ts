@@ -18,9 +18,10 @@ import { SONumberGeneratorService } from './domain/services/so-number-generator.
 import { ExchangeRateService } from './domain/services/exchange-rate.service';
 import { ItemRepository } from '../items/infrastructure/item.repository';
 import { ItemsModule } from '../items/items.module';
+import { CustomersModule } from '../customers/customers.module';
 
 @Module({
-  imports: [PrismaModule, ItemsModule],
+  imports: [PrismaModule, ItemsModule, CustomersModule],
   providers: [
     SOService,
     SOQueryService,

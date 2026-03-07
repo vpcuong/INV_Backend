@@ -22,6 +22,11 @@ export interface ICustomerRepository {
   findByCode(customerCode: string): Promise<Customer | null>;
 
   /**
+   * Find customer by phone number
+   */
+  findByPhone(phone: string): Promise<Customer | null>;
+
+  /**
    * Update customer
    */
   update(id: number, customer: Customer): Promise<Customer>;

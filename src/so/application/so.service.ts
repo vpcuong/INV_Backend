@@ -23,6 +23,8 @@ import { IExchangeRateService } from '../domain/services/exchange-rate.service';
 import { IItemRepository } from 'src/items/domain/item.repository.interface';
 import { ItemAggregateService } from '@/items/application/item-aggregate.service';
 import { CreateSOLineDto } from '../dto/composed/create-so-line.dto';
+import { CustomerService } from '../../customers/application/customer.service';
+import { CustomerType } from '../../customers/enums/customer-status.enum';
 
 /**
  * Application Service - Orchestrates SO use cases
@@ -39,13 +41,42 @@ export class SOService {
     @Inject(ITEM_REPOSITORY)
     private readonly itemRepository: IItemRepository,
     private readonly auditLogger: AuditLoggerService,
-    private readonly itemAggregateService: ItemAggregateService
+    private readonly itemAggregateService: ItemAggregateService,
+    private readonly customerService: CustomerService
   ) {}
 
   /**
    * Use Case: Create new Sales Order
    */
   async create(createDto: CreateSOHeaderDto, createdBy: string): Promise<any> {
+    // Resolve customerId: dùng customerId nếu có, ngược lại find-or-create theo phone
+    let resolvedCustomerId = createDto.customerId;
+
+    if (!resolvedCustomerId) {
+      if (!createDto.customerPhone) {
+        throw new BadRequestException(
+          'Phải cung cấp customerId hoặc customerPhone'
+        );
+      }
+      const existingCustomer = await this.customerService.findByPhone(
+        createDto.customerPhone
+      );
+      if (existingCustomer) {
+        resolvedCustomerId = existingCustomer.getId();
+      } else {
+        const newCustomer = await this.customerService.create(
+          {
+            customerCode: `${createDto.customerPhone}`,
+            customerName: createDto.customerName ?? createDto.customerPhone,
+            phone: createDto.customerPhone,
+            customerType: CustomerType.RETAIL,
+          },
+          createdBy
+        );
+        resolvedCustomerId = newCustomer.id;
+      }
+    }
+
     const itemSkus = await Promise.all(
       createDto.lines.map(async (line) => {
         const item = await this.itemAggregateService.getItemBySkuPublicId(
@@ -104,7 +135,7 @@ export class SOService {
     // The SOHeader.create() will internally call SOPricing.recalculate() based on the lines provided.
     const soHeader = SOHeader.create({
       soNum,
-      customerId: createDto.customerId,
+      customerId: resolvedCustomerId,
       orderDate: createDto.orderDate || new Date(),
       requestDate: createDto.requestDate,
       needByDate: createDto.needByDate,
@@ -554,6 +585,10 @@ export class SOService {
 
     if (updateDto.orderStatus) {
       soHeader.updateStatus(updateDto.orderStatus);
+    }
+
+    if (updateDto.soType !== undefined) {
+      soHeader.updateSOType(updateDto.soType);
     }
 
     // Update addresses if provided

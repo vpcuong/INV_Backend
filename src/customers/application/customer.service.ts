@@ -83,6 +83,13 @@ export class CustomerService {
   }
 
   /**
+   * Use Case: Find customer by phone (returns null if not found, no exception)
+   */
+  async findByPhone(phone: string): Promise<Customer | null> {
+    return this.customerRepository.findByPhone(phone);
+  }
+
+  /**
    * Use Case: Get customer by code
    */
   async findByCode(customerCode: string): Promise<any> {

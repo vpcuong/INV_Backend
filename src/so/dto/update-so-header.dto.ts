@@ -10,6 +10,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { SOAddressesDto, SOMetadataDto } from './composed/so-composed.dto';
+import { SOType } from '../enums/so-status.enum';
 
 export class UpdateSOHeaderDto {
   @ApiPropertyOptional({
@@ -54,6 +55,15 @@ export class UpdateSOHeaderDto {
   @Type(() => Date)
   @IsDate()
   needByDate?: Date;
+
+  @ApiPropertyOptional({
+    description: 'Sale order type',
+    enum: SOType,
+    example: SOType.STANDARD,
+  })
+  @IsOptional()
+  @IsEnum(SOType)
+  soType?: SOType;
 
   @ApiPropertyOptional({
     description: 'Order status',

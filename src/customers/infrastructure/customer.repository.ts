@@ -42,6 +42,14 @@ export class CustomerRepository implements ICustomerRepository {
     return customer ? Customer.fromPersistence(customer) : null;
   }
 
+  async findByPhone(phone: string): Promise<Customer | null> {
+    const customer = await this.prisma.client.customer.findFirst({
+      where: { phone },
+    });
+
+    return customer ? Customer.fromPersistence(customer) : null;
+  }
+
   async update(id: number, customer: Customer): Promise<Customer> {
     const data = customer.toPersistence();
 

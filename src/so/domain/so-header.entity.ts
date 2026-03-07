@@ -177,6 +177,11 @@ export class SOHeader {
     return this.soType;
   }
 
+  public updateSOType(soType: SOType): void {
+    this.soType = soType;
+    this.updatedAt = new Date();
+  }
+
   public getCustomerId(): number {
     return this.customerId;
   }
