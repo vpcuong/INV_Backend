@@ -13,13 +13,13 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiQuery,
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { PoService } from './po.service';
 import { CreatePOHeaderDto } from './dto/create-po-header.dto';
 import { UpdatePOHeaderDto } from './dto/update-po-header.dto';
 import { UpdatePOWithLinesDto } from './dto/update-po-with-lines.dto';
+import { FindPOsDto } from './dto/find-pos.dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('Purchase Orders')
@@ -43,23 +43,9 @@ export class PoController {
 
   @Get()
   @ApiOperation({ summary: 'Get all purchase orders' })
-  @ApiQuery({ name: 'skip', required: false, type: Number })
-  @ApiQuery({ name: 'take', required: false, type: Number })
-  @ApiQuery({ name: 'supplierId', required: false, type: Number })
-  @ApiQuery({ name: 'status', required: false, type: String })
   @ApiResponse({ status: 200, description: 'Returns all purchase orders' })
-  findAll(
-    @Query('skip') skip?: string,
-    @Query('take') take?: string,
-    @Query('supplierId') supplierId?: string,
-    @Query('status') status?: string
-  ) {
-    return this.poService.findAll({
-      skip: skip ? parseInt(skip) : undefined,
-      take: take ? parseInt(take) : undefined,
-      supplierId: supplierId ? parseInt(supplierId) : undefined,
-      status,
-    });
+  findAll(@Query() query: FindPOsDto) {
+    return this.poService.findAll(query);
   }
 
   @Get(':id')

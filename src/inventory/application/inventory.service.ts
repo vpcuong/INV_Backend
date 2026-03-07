@@ -212,10 +212,10 @@ export class InventoryService {
         status: InvTransStatus.DRAFT,
         toWarehouseId: dto.toWarehouseId,
         referenceType: 'PO',
-        referenceId: po.id,
-        referenceNum: po.poNum,
+        referenceId: po.getId(),
+        referenceNum: po.getPoNum(),
         transactionDate: dto.transactionDate,
-        note: dto.note || `Goods Receipt from PO ${po.poNum}`,
+        note: dto.note || `Goods Receipt from PO ${po.getPoNum()}`,
         lines: dto.lines.map((l, i) => ({ ...l, lineNum: l.lineNum || i + 1 })),
       } as CreateInvTransHeaderDto,
       createdBy
@@ -514,7 +514,6 @@ export class InventoryService {
             line.getBaseQty()
           );
         }
-        await this.poService.recalculatePOStatus(header.getReferenceId()!);
       } catch (error) {
         console.error('Failed to update PO received quantity', error);
       }

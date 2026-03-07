@@ -1,15 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { POStatus, POLineStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import {
-  IPORepository,
-  POHeaderData,
-  CreatePOData,
-  UpdatePOHeaderData,
-  UpdatePOLineData,
-  CreateNewLineData,
-  FindAllParams,
-} from '../domain/po.repository.interface';
+import { IPORepository, FindAllParams } from '../domain/po.repository.interface';
+import { POHeader, POHeaderPersistenceData } from '../domain/po-header.entity';
+import { RowMode } from '../domain/po-line.entity';
 
 const PO_LINES_INCLUDE = {
   sku: {
@@ -26,46 +19,146 @@ const PO_LINES_INCLUDE = {
 export class PORepository implements IPORepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreatePOData): Promise<POHeaderData> {
-    const { lines, ...headerData } = data;
+  async save(po: POHeader): Promise<POHeader> {
+    if (po.getId() === 0) {
+      return this.createPO(po);
+    }
+    return this.updatePO(po);
+  }
 
-    return this.prisma.client.pOHeader.create({
+  private async createPO(po: POHeader): Promise<POHeader> {
+    const persistence = po.toPersistence();
+    const newLines = po.getLines().filter((l) => l.rowMode === RowMode.NEW);
+
+    const result = await this.prisma.client.pOHeader.create({
       data: {
-        ...headerData,
-        lines: lines
+        poNum: persistence.poNum,
+        supplierId: persistence.supplierId,
+        orderDate: persistence.orderDate,
+        expectedDate: persistence.expectedDate,
+        status: persistence.status as any,
+        currencyCode: persistence.currencyCode,
+        exchangeRate: persistence.exchangeRate,
+        totalAmount: persistence.totalAmount,
+        note: persistence.note,
+        createdBy: persistence.createdBy,
+        lines: newLines.length > 0
           ? {
-              create: lines.map((line) => ({
-                lineNum: line.lineNum,
-                skuId: line.skuId,
-                description: line.description,
-                uomCode: line.uomCode,
-                orderQty: line.orderQty,
-                unitPrice: line.unitPrice,
-                lineAmount: line.lineAmount,
-                receivedQty: line.receivedQty,
-                warehouseCode: line.warehouseCode,
-                status: line.status,
-                note: line.note,
-                createdBy: line.createdBy,
-              })),
+              create: newLines.map((line) => {
+                const lp = line.toPersistence();
+                return {
+                  lineNum: lp.lineNum,
+                  skuId: lp.skuId,
+                  description: lp.description,
+                  uomCode: lp.uomCode,
+                  orderQty: lp.orderQty,
+                  unitPrice: lp.unitPrice,
+                  lineAmount: lp.lineAmount,
+                  receivedQty: lp.receivedQty,
+                  warehouseCode: lp.warehouseCode,
+                  status: lp.status as any,
+                  note: lp.note,
+                  createdBy: lp.createdBy,
+                };
+              }),
             }
           : undefined,
       },
       include: {
-        lines: true,
+        supplier: true,
+        lines: {
+          include: PO_LINES_INCLUDE,
+          orderBy: { lineNum: 'asc' },
+        },
       },
-    }) as unknown as POHeaderData;
+    });
+
+    return POHeader.fromPersistence(result as unknown as POHeaderPersistenceData);
   }
 
-  async findAll(params: FindAllParams): Promise<POHeaderData[]> {
+  private async updatePO(po: POHeader): Promise<POHeader> {
+    const persistence = po.toPersistence();
+    const allLines = po.getAllLinesForPersistence();
+
+    const newLines = allLines.filter((l) => l.rowMode === RowMode.NEW);
+    const updatedLines = allLines.filter((l) => l.rowMode === RowMode.UPDATED);
+    const deletedLines = allLines.filter((l) => l.rowMode === RowMode.DELETED);
+
+    const deletedIds = deletedLines
+      .map((l) => l.getId())
+      .filter((id): id is number => id !== 0);
+
+    const updated = await this.prisma.client.pOHeader.update({
+      where: { id: persistence.id },
+      data: {
+        supplierId: persistence.supplierId,
+        orderDate: persistence.orderDate,
+        expectedDate: persistence.expectedDate,
+        status: persistence.status as any,
+        currencyCode: persistence.currencyCode,
+        exchangeRate: persistence.exchangeRate,
+        totalAmount: persistence.totalAmount,
+        note: persistence.note,
+        lines: {
+          deleteMany: deletedIds.length > 0 ? { id: { in: deletedIds } } : undefined,
+          updateMany: updatedLines.map((line) => {
+            const lp = line.toPersistence();
+            return {
+              where: { id: lp.id },
+              data: {
+                skuId: lp.skuId,
+                description: lp.description,
+                uomCode: lp.uomCode,
+                orderQty: lp.orderQty,
+                unitPrice: lp.unitPrice,
+                lineAmount: lp.lineAmount,
+                receivedQty: lp.receivedQty,
+                warehouseCode: lp.warehouseCode,
+                status: lp.status as any,
+                note: lp.note,
+              },
+            };
+          }),
+          create: newLines.map((line) => {
+            const lp = line.toPersistence();
+            return {
+              lineNum: lp.lineNum,
+              skuId: lp.skuId,
+              description: lp.description,
+              uomCode: lp.uomCode,
+              orderQty: lp.orderQty,
+              unitPrice: lp.unitPrice,
+              lineAmount: lp.lineAmount,
+              receivedQty: lp.receivedQty,
+              warehouseCode: lp.warehouseCode,
+              status: lp.status as any,
+              note: lp.note,
+              createdBy: lp.createdBy,
+            };
+          }),
+        },
+      },
+      include: {
+        supplier: true,
+        lines: {
+          include: PO_LINES_INCLUDE,
+          orderBy: { lineNum: 'asc' },
+        },
+      },
+    });
+
+    return POHeader.fromPersistence(updated as unknown as POHeaderPersistenceData);
+  }
+
+  async findAll(params: FindAllParams): Promise<POHeader[]> {
     const { skip, take, supplierId, status } = params;
 
-    return this.prisma.client.pOHeader.findMany({
+    const results = await this.prisma.client.pOHeader.findMany({
       skip,
       take,
       where: {
         ...(supplierId && { supplierId }),
-        ...(status && { status }),
+        ...(status && { status: status as any }),
       },
       include: {
         supplier: {
@@ -76,158 +169,44 @@ export class PORepository implements IPORepository {
           },
         },
         lines: {
-          orderBy: {
-            lineNum: 'asc',
-          },
+          orderBy: { lineNum: 'asc' },
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    }) as unknown as POHeaderData[];
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return results.map((r) =>
+      POHeader.fromPersistence(r as unknown as POHeaderPersistenceData)
+    );
   }
 
-  async findOne(id: number): Promise<POHeaderData | null> {
-    return this.prisma.client.pOHeader.findUnique({
+  async findById(id: number): Promise<POHeader | null> {
+    const result = await this.prisma.client.pOHeader.findUnique({
       where: { id },
       include: {
         supplier: true,
         lines: {
           include: PO_LINES_INCLUDE,
-          orderBy: {
-            lineNum: 'asc',
-          },
+          orderBy: { lineNum: 'asc' },
         },
       },
-    }) as unknown as POHeaderData | null;
-  }
+    });
 
-  async findOneWithLines(id: number): Promise<POHeaderData | null> {
-    return this.prisma.client.pOHeader.findUnique({
-      where: { id },
-      include: {
-        lines: true,
-      },
-    }) as unknown as POHeaderData | null;
-  }
-
-  async update(id: number, data: UpdatePOHeaderData): Promise<POHeaderData> {
-    return this.prisma.client.pOHeader.update({
-      where: { id },
-      data,
-      include: {
-        supplier: true,
-        lines: {
-          include: PO_LINES_INCLUDE,
-          orderBy: {
-            lineNum: 'asc',
-          },
-        },
-      },
-    }) as unknown as POHeaderData;
-  }
-
-  async updateWithLines(
-    id: number,
-    headerData: UpdatePOHeaderData | undefined,
-    linesToUpdate: { id: number; data: UpdatePOLineData }[],
-    linesToCreate: CreateNewLineData[],
-    linesToDelete: number[]
-  ): Promise<POHeaderData> {
-    return this.prisma.client.$transaction(async (tx) => {
-      // 1. Update header if provided
-      if (headerData) {
-        await tx.pOHeader.update({
-          where: { id },
-          data: headerData,
-        });
-      }
-
-      // 2. Delete lines if specified
-      if (linesToDelete.length > 0) {
-        await tx.pODetail.deleteMany({
-          where: {
-            id: { in: linesToDelete },
-            poId: id,
-          },
-        });
-      }
-
-      // 3. Update existing lines
-      for (const line of linesToUpdate) {
-        await tx.pODetail.update({
-          where: { id: line.id },
-          data: line.data,
-        });
-      }
-
-      // 4. Create new lines
-      for (const line of linesToCreate) {
-        await tx.pODetail.create({
-          data: line,
-        });
-      }
-
-      // 5. Return updated PO
-      return tx.pOHeader.findUnique({
-        where: { id },
-        include: {
-          supplier: true,
-          lines: {
-            include: PO_LINES_INCLUDE,
-            orderBy: { lineNum: 'asc' },
-          },
-        },
-      });
-    }) as unknown as POHeaderData;
+    if (!result) return null;
+    return POHeader.fromPersistence(result as unknown as POHeaderPersistenceData);
   }
 
   async remove(id: number): Promise<void> {
-    await this.prisma.client.pOHeader.delete({
-      where: { id },
-    });
+    await this.prisma.client.pOHeader.delete({ where: { id } });
   }
 
   async findLastPOByPrefix(prefix: string): Promise<string | null> {
     const lastPO = await this.prisma.client.pOHeader.findFirst({
-      where: {
-        poNum: { startsWith: prefix },
-      },
-      orderBy: {
-        poNum: 'desc',
-      },
-      select: {
-        poNum: true,
-      },
+      where: { poNum: { startsWith: prefix } },
+      orderBy: { poNum: 'desc' },
+      select: { poNum: true },
     });
 
     return lastPO?.poNum ?? null;
-  }
-
-  async getMaxLineNum(poId: number): Promise<number> {
-    const result = await this.prisma.client.pODetail.aggregate({
-      where: { poId },
-      _max: { lineNum: true },
-    });
-
-    return result._max.lineNum || 0;
-  }
-
-  async updateLineReceivedQty(
-    lineId: number,
-    receivedQty: number,
-    status: POLineStatus
-  ): Promise<void> {
-    await this.prisma.client.pODetail.update({
-      where: { id: lineId },
-      data: { receivedQty, status },
-    });
-  }
-
-  async updatePOStatus(poId: number, status: POStatus): Promise<void> {
-    await this.prisma.client.pOHeader.update({
-      where: { id: poId },
-      data: { status },
-    });
   }
 }

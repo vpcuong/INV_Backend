@@ -3,7 +3,6 @@ import {
   IsString,
   IsNumber,
   IsOptional,
-  IsEnum,
   IsArray,
   ValidateNested,
   Min,
@@ -48,31 +47,6 @@ export class CreatePOHeaderDto {
   expectedDate?: Date;
 
   @ApiProperty({
-    description: 'PO status',
-    example: 'DRAFT',
-    enum: [
-      'DRAFT',
-      'APPROVED',
-      'PARTIALLY_RECEIVED',
-      'RECEIVED',
-      'CLOSED',
-      'CANCELLED',
-    ],
-    required: false,
-    default: 'DRAFT',
-  })
-  @IsOptional()
-  @IsEnum([
-    'DRAFT',
-    'APPROVED',
-    'PARTIALLY_RECEIVED',
-    'RECEIVED',
-    'CLOSED',
-    'CANCELLED',
-  ])
-  status?: string;
-
-  @ApiProperty({
     description: 'Currency code (ISO 3-letter code)',
     example: 'USD',
     default: 'USD',
@@ -91,15 +65,6 @@ export class CreatePOHeaderDto {
   @Min(0)
   @Type(() => Number)
   exchangeRate?: number;
-
-  @ApiProperty({
-    description: 'Total amount',
-    example: 5000.0,
-  })
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  totalAmount!: number;
 
   @ApiProperty({
     description: 'Note',

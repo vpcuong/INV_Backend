@@ -84,16 +84,6 @@ export class UpdatePOHeaderDto {
   exchangeRate?: number;
 
   @ApiPropertyOptional({
-    description: 'Total amount',
-    example: 5000.0,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  totalAmount?: number;
-
-  @ApiPropertyOptional({
     description: 'Note',
     example: 'Updated delivery instructions',
   })

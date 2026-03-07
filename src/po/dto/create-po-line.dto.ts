@@ -4,13 +4,6 @@ import { Type } from 'class-transformer';
 
 export class CreatePOLineDto {
   @ApiProperty({
-    description: 'Line number',
-    example: 1,
-  })
-  @IsNumber()
-  lineNum!: number;
-
-  @ApiProperty({
     description: 'SKU ID',
     example: 25,
   })
@@ -52,27 +45,6 @@ export class CreatePOLineDto {
   unitPrice!: number;
 
   @ApiProperty({
-    description: 'Line amount (orderQty * unitPrice)',
-    example: 2599.0,
-  })
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  lineAmount!: number;
-
-  @ApiProperty({
-    description: 'Received quantity',
-    example: 0,
-    required: false,
-    default: 0,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  receivedQty?: number;
-
-  @ApiProperty({
     description: 'Warehouse code',
     example: 'WH01',
     required: false,
@@ -80,17 +52,6 @@ export class CreatePOLineDto {
   @IsOptional()
   @IsString()
   warehouseCode?: string;
-
-  @ApiProperty({
-    description: 'Line status',
-    example: 'OPEN',
-    enum: ['OPEN', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CANCELLED'],
-    required: false,
-    default: 'OPEN',
-  })
-  @IsOptional()
-  @IsEnum(['OPEN', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CANCELLED'])
-  status?: string;
 
   @ApiProperty({
     description: 'Line note',
