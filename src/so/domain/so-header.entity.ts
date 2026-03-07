@@ -5,11 +5,13 @@ import { SOMetadata } from './value-objects/so-metadata.vo';
 import { InvalidSOException } from './exceptions/so-domain.exception';
 import { SOLine } from './so-line.entity';
 import { RowMode } from '../../common/enums/row-mode.enum';
+import { SOType } from '../../so/enums/so-status.enum';
 
 export interface SOHeaderConstructorData {
   id?: number;
   publicId?: string;
   soNum: string;
+  soType?: string;
   customerId: number;
   orderDate?: Date;
   requestDate?: Date | null;
@@ -43,6 +45,7 @@ export interface SOHeaderConstructorData {
 export class SOHeader {
   private constructor(
     private readonly soNum: string,
+    private soType: SOType,
     private readonly customerId: number,
     private orderDate: Date,
     private requestDate: Date | null,
@@ -134,8 +137,11 @@ export class SOHeader {
     if (depositAmount < 0)
       throw new InvalidSOException('Deposit amount cannot be negative');
 
+    const soType = (data.soType as SOType) ?? SOType.STANDARD;
+
     return new SOHeader(
       data.soNum,
+      soType,
       data.customerId,
       data.orderDate || new Date(),
       data.requestDate || null,
@@ -165,6 +171,10 @@ export class SOHeader {
 
   public getSONum(): string {
     return this.soNum;
+  }
+
+  public getSOType(): SOType {
+    return this.soType;
   }
 
   public getCustomerId(): number {
@@ -442,6 +452,7 @@ export class SOHeader {
       id: this.id,
       publicId: this.publicId,
       soNum: this.soNum,
+      soType: this.soType,
       customerId: this.customerId,
       orderDate: this.orderDate,
       requestDate: this.requestDate,
@@ -468,6 +479,7 @@ export class SOHeader {
 
     return new SOHeader(
       data.soNum,
+      (data.soType as SOType) ?? SOType.STANDARD,
       data.customerId,
       new Date(data.orderDate),
       data.requestDate ? new Date(data.requestDate) : null,

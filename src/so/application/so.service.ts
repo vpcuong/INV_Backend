@@ -110,6 +110,7 @@ export class SOService {
       needByDate: createDto.needByDate,
       // Calculated fields - not from DTO
       orderStatus: 'OPEN', // Default status for new SO
+      soType: createDto.soType,
       // Pricing - Only need to pass user inputs (percents/fixed amounts)
       discountPercent:
         createDto?.discountType === 'PERCENT'

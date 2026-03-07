@@ -1,3 +1,9 @@
+export enum SOType {
+  STANDARD = 'STANDARD',
+  PROCESSING = 'PROCESSING',
+  RETAIL = 'RETAIL',
+}
+
 export enum SOStatus {
   DRAFT = 'DRAFT',
   OPEN = 'OPEN',

@@ -9,6 +9,7 @@ import {
   IsDate,
   Min,
 } from 'class-validator';
+import { SOType } from '../enums/so-status.enum';
 import { Type } from 'class-transformer';
 import { SOAddressesDto, SOMetadataDto } from './composed/so-composed.dto';
 import { CreateSOLineDto } from './composed/create-so-line.dto';
@@ -21,6 +22,16 @@ export class CreateSOHeaderDto {
   @IsNumber()
   @Min(1)
   customerId!: number;
+
+  @ApiProperty({
+    description: 'Sale order type',
+    enum: SOType,
+    example: SOType.STANDARD,
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(SOType)
+  soType?: SOType;
 
   @ApiProperty({
     description: 'Order date',
