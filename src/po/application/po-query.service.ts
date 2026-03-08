@@ -28,15 +28,24 @@ export class POQueryService {
         ...(status && { status: status as any }),
       },
       include: {
-        supplier: {
-          select: {
-            id: true,
-            code: true,
-            name: true,
-          },
-        },
+        supplier: true,
         lines: {
           orderBy: { lineNum: 'asc' },
+          include: PO_LINES_INCLUDE,
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findBySupplierId(supplierId: number): Promise<any[]> {
+    return this.prisma.client.pOHeader.findMany({
+      where: { supplierId },
+      include: {
+        supplier: true,
+        lines: {
+          orderBy: { lineNum: 'asc' },
+          include: PO_LINES_INCLUDE,
         },
       },
       orderBy: { createdAt: 'desc' },

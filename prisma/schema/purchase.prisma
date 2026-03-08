@@ -1,5 +1,6 @@
 model POHeader {
   id           Int       @id @default(autoincrement())
+  publicId     String    @unique @default(ulid()) @db.Char(26)
   poNum        String    @unique @db.VarChar(50)
   supplierId   Int
   orderDate    DateTime  @default(now())
@@ -25,6 +26,7 @@ model POHeader {
 
 model PODetail {
   id            Int          @id @default(autoincrement())
+  publicId      String       @unique @default(ulid()) @db.Char(26)
   poId          Int
   lineNum       Int
   skuId         Int
@@ -46,6 +48,7 @@ model PODetail {
   uom UOM      @relation(fields: [uomCode], references: [code])
 
   @@unique([poId, lineNum])
+  @@index([publicId])
   @@index([skuId])
   @@index([status])
 }

@@ -166,6 +166,24 @@ export class PORepository implements IPORepository {
     return POHeader.fromPersistence(result as unknown as POHeaderPersistenceData);
   }
 
+  async findByPublicId(publicId: string): Promise<POHeader | null> {
+    const result = await this.prisma.client.pOHeader.findUnique({
+      where: { publicId },
+      // include: {
+      //   supplier: true,
+      //   lines: {
+      //     include: PO_LINES_INCLUDE,
+      //     orderBy: { lineNum: 'asc' },
+      //   },
+      // },
+    });
+
+    console.log(result)
+
+    if (!result) return null;
+    return POHeader.fromPersistence(result as unknown as POHeaderPersistenceData);
+  }
+
   async remove(id: number): Promise<void> {
     await this.prisma.client.pOHeader.delete({ where: { id } });
   }

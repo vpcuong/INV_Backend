@@ -75,6 +75,16 @@ export class PoService {
     return this.findById(id);
   }
 
+  private async findEntityByPublicId(publicId: string): Promise<POHeader> {
+    console.log(publicId)
+    const po = await this.repository.findByPublicId(publicId);
+    console.log(po)
+    if (!po) {
+      throw new NotFoundException(`Purchase Order with publicId ${publicId} not found`);
+    }
+    return po;
+  }
+
   async update(id: number, updateDto: UpdatePOHeaderDto): Promise<POHeader> {
     const po = await this.findEntity(id);
 
@@ -163,6 +173,24 @@ export class PoService {
       }
     }
 
+    return this.repository.save(po);
+  }
+
+  async approve(publicId: string): Promise<POHeader> {
+    const po = await this.findEntityByPublicId(publicId);
+    po.approve();
+    return this.repository.save(po);
+  }
+
+  async cancel(publicId: string): Promise<POHeader> {
+    const po = await this.findEntityByPublicId(publicId);
+    po.cancel();
+    return this.repository.save(po);
+  }
+
+  async close(publicId: string): Promise<POHeader> {
+    const po = await this.findEntityByPublicId(publicId);
+    po.close();
     return this.repository.save(po);
   }
 

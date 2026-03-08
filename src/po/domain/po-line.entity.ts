@@ -17,6 +17,7 @@ export interface POLineCreateData {
 
 export interface POLinePersistenceData {
   id: number;
+  publicId: string;
   poId: number;
   lineNum: number;
   skuId: number;
@@ -38,6 +39,7 @@ export interface POLinePersistenceData {
 
 export class POLine {
   private id: number;
+  private publicId: string;
   private poId: number;
   private lineNum: number;
   private skuId: number;
@@ -60,6 +62,7 @@ export class POLine {
 
   private constructor(data: {
     id: number;
+    publicId: string;
     poId: number;
     lineNum: number;
     skuId: number;
@@ -79,6 +82,7 @@ export class POLine {
     uom?: any;
   }) {
     this.id = data.id;
+    this.publicId = data.publicId;
     this.poId = data.poId;
     this.lineNum = data.lineNum;
     this.skuId = data.skuId;
@@ -114,6 +118,7 @@ export class POLine {
 
     const line = new POLine({
       id: 0,
+      publicId: '',
       poId: 0,
       lineNum,
       skuId: data.skuId,
@@ -138,6 +143,7 @@ export class POLine {
   public static fromPersistence(data: POLinePersistenceData): POLine {
     return new POLine({
       id: data.id,
+      publicId: data.publicId,
       poId: data.poId,
       lineNum: data.lineNum,
       skuId: data.skuId,
@@ -226,6 +232,7 @@ export class POLine {
 
   // Getters
   public getId(): number { return this.id; }
+  public getPublicId(): string { return this.publicId; }
   public getPoId(): number { return this.poId; }
   public getLineNum(): number { return this.lineNum; }
   public getSkuId(): number { return this.skuId; }

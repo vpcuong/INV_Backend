@@ -17,6 +17,7 @@ export interface POHeaderCreateData {
 
 export interface POHeaderPersistenceData {
   id: number;
+  publicId: string;
   poNum: string;
   supplierId: number;
   orderDate: Date;
@@ -35,6 +36,7 @@ export interface POHeaderPersistenceData {
 
 export class POHeader {
   private id: number;
+  private publicId: string;
   private poNum: string;
   private supplierId: number;
   private orderDate: Date;
@@ -52,6 +54,7 @@ export class POHeader {
 
   private constructor(data: {
     id: number;
+    publicId: string;
     poNum: string;
     supplierId: number;
     orderDate: Date;
@@ -67,6 +70,7 @@ export class POHeader {
     supplier?: any;
   }) {
     this.id = data.id;
+    this.publicId = data.publicId;
     this.poNum = data.poNum;
     this.supplierId = data.supplierId;
     this.orderDate = data.orderDate;
@@ -93,6 +97,7 @@ export class POHeader {
 
     return new POHeader({
       id: 0,
+      publicId: '',
       poNum: data.poNum,
       supplierId: data.supplierId,
       orderDate: data.orderDate ?? new Date(),
@@ -113,6 +118,7 @@ export class POHeader {
 
     return new POHeader({
       id: data.id,
+      publicId: data.publicId,
       poNum: data.poNum,
       supplierId: data.supplierId,
       orderDate: data.orderDate,
@@ -239,6 +245,7 @@ export class POHeader {
   // ── Getters ───────────────────────────────────────────────────────────────
 
   public getId(): number { return this.id; }
+  public getPublicId(): string { return this.publicId; }
   public getPoNum(): string { return this.poNum; }
   public getSupplierId(): number { return this.supplierId; }
   public getOrderDate(): Date { return this.orderDate; }
