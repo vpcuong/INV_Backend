@@ -171,17 +171,17 @@ export class SkuUomService {
     return skuUom;
   }
 
-  async findBySkuId(skuId: number) {
+  async findBySkuPublicId(skuPublicId: string) {
     const sku = await this.prisma.client.itemSKU.findUnique({
-      where: { id: skuId },
+      where: { publicId: skuPublicId },
     });
 
     if (!sku) {
-      throw new NotFoundException(`SKU with ID ${skuId} not found`);
+      throw new NotFoundException(`SKU with publicId ${skuPublicId} not found`);
     }
 
     return this.prisma.client.sKUUOM.findMany({
-      where: { skuId },
+      where: { skuId: sku.id },
       include: {
         uom: {
           select: {
@@ -298,10 +298,10 @@ export class SkuUomService {
    * - TH2: If Item.uomCode ≠ SKU.uomCode
    *        => Return only SKUUOMs (Item UOMs don't apply)
    */
-  async getAvailableUomsForSku(skuId: number) {
+  async getAvailableUomsForSku(skuPublicId: string) {
     // Get SKU with its UOM information
     const sku = await this.prisma.client.itemSKU.findUnique({
-      where: { id: skuId },
+      where: { publicId: skuPublicId },
       include: {
         uom: true,
         skuUoms: {
@@ -314,7 +314,7 @@ export class SkuUomService {
     });
 
     if (!sku) {
-      throw new NotFoundException(`SKU with ID ${skuId} not found`);
+      throw new NotFoundException(`SKU with publicId ${skuPublicId} not found`);
     }
 
     // Get Item with its UOMs (use modelId if available, otherwise itemId)
@@ -328,7 +328,7 @@ export class SkuUomService {
       : sku.itemId;
 
     if (!itemId) {
-      throw new NotFoundException(`Item not found for SKU ${skuId}`);
+      throw new NotFoundException(`Item not found for SKU ${skuPublicId}`);
     }
 
     const item = await this.prisma.client.item.findUnique({
@@ -450,7 +450,7 @@ export class SkuUomService {
     availableUoms.sort((a, b) => a.toBaseFactor - b.toBaseFactor);
 
     return {
-      skuId,
+      skuId: sku.id,
       skuCode: sku.skuCode,
       itemId: item.id,
       itemName: item.code,

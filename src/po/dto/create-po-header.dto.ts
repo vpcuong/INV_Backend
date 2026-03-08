@@ -48,11 +48,12 @@ export class CreatePOHeaderDto {
 
   @ApiProperty({
     description: 'Currency code (ISO 3-letter code)',
-    example: 'USD',
-    default: 'USD',
+    example: 'VND',
+    default: 'VND',
   })
   @IsString()
-  currencyCode!: string;
+  @IsOptional()
+  currencyCode: string = 'VND';
 
   @ApiProperty({
     description: 'Exchange rate',

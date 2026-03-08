@@ -15,10 +15,12 @@ import {
   ApiResponse,
   ApiQuery,
   ApiBearerAuth,
+  ApiParam,
 } from '@nestjs/swagger';
 import { SkuUomService } from '../application/sku-uom.service';
 import { CreateSkuUomDto } from '../dto/create-sku-uom.dto';
 import { UpdateSkuUomDto } from '../dto/update-sku-uom.dto';
+import { ULIDValidationPipe } from '../../common/pipes/ulid-validation.pipe';
 @ApiTags('SKU UOM')
 @ApiBearerAuth()
 @Controller('sku-uom')
@@ -77,15 +79,16 @@ export class SkuUomController {
     return this.skuUomService.findOne(id);
   }
 
-  @Get('sku/:skuId')
+  @Get('sku/:skuPublicId')
   @ApiOperation({ summary: 'Get all UOMs for a SKU' })
+  @ApiParam({ name: 'skuPublicId', description: 'SKU public ID (ULID)' })
   @ApiResponse({ status: 200, description: 'Return all UOMs for the SKU' })
   @ApiResponse({ status: 404, description: 'SKU not found' })
-  findBySkuId(@Param('skuId', ParseIntPipe) skuId: number) {
-    return this.skuUomService.findBySkuId(skuId);
+  findBySkuPublicId(@Param('skuPublicId', ULIDValidationPipe) skuPublicId: string) {
+    return this.skuUomService.findBySkuPublicId(skuPublicId);
   }
 
-  @Get('sku/:skuId/available-uoms')
+  @Get('sku/:skuPublicId/available-uoms')
   @ApiOperation({
     summary:
       'Get all available UOMs for a SKU (with Item UOMs inheritance logic)',
@@ -133,9 +136,10 @@ export class SkuUomController {
       },
     },
   })
+  @ApiParam({ name: 'skuPublicId', description: 'SKU public ID (ULID)' })
   @ApiResponse({ status: 404, description: 'SKU not found' })
-  getAvailableUomsForSku(@Param('skuId', ParseIntPipe) skuId: number) {
-    return this.skuUomService.getAvailableUomsForSku(skuId);
+  getAvailableUomsForSku(@Param('skuPublicId', ULIDValidationPipe) skuPublicId: string) {
+    return this.skuUomService.getAvailableUomsForSku(skuPublicId);
   }
 
   @Get('sku/:skuId/uom/:uomCode')

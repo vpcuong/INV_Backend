@@ -3,13 +3,14 @@ import {
   Inject,
   NotFoundException,
 } from '@nestjs/common';
-import { IPORepository, FindAllParams } from './domain/po.repository.interface';
+import { IPORepository } from './domain/po.repository.interface';
 import { POHeader } from './domain/po-header.entity';
 import { PONumberGeneratorService } from './domain/services/po-number-generator.service';
 import { PO_REPOSITORY, PO_NUMBER_GENERATOR } from './constant/po.token';
 import { CreatePOHeaderDto } from './dto/create-po-header.dto';
 import { UpdatePOHeaderDto } from './dto/update-po-header.dto';
 import { UpdatePOWithLinesDto } from './dto/update-po-with-lines.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PoService {
@@ -17,11 +18,35 @@ export class PoService {
     @Inject(PO_REPOSITORY)
     private readonly repository: IPORepository,
     @Inject(PO_NUMBER_GENERATOR)
-    private readonly numberGenerator: PONumberGeneratorService
+    private readonly numberGenerator: PONumberGeneratorService,
+    private readonly prisma: PrismaService
   ) {}
+
+  private async resolveSkuId(skuPublicId: string): Promise<number> {
+    const sku = await this.prisma.client.itemSKU.findUnique({
+      where: { publicId: skuPublicId },
+      select: { id: true },
+    });
+    if (!sku) {
+      throw new NotFoundException(`SKU with publicId ${skuPublicId} not found`);
+    }
+    return sku.id;
+  }
 
   async create(createDto: CreatePOHeaderDto, createdBy: string): Promise<POHeader> {
     const poNum = await this.numberGenerator.generate();
+
+    const resolvedLines = await Promise.all(
+      (createDto.lines ?? []).map(async (line) => ({
+        skuId: await this.resolveSkuId(line.skuPublicId),
+        description: line.description,
+        uomCode: line.uomCode,
+        orderQty: line.orderQty,
+        unitPrice: line.unitPrice,
+        warehouseCode: line.warehouseCode,
+        note: line.note,
+      }))
+    );
 
     const po = POHeader.create({
       poNum,
@@ -32,25 +57,13 @@ export class PoService {
       exchangeRate: createDto.exchangeRate,
       note: createDto.note,
       createdBy,
-      lines: createDto.lines?.map((line) => ({
-        skuId: line.skuId,
-        description: line.description,
-        uomCode: line.uomCode,
-        orderQty: line.orderQty,
-        unitPrice: line.unitPrice,
-        warehouseCode: line.warehouseCode,
-        note: line.note,
-      })),
+      lines: resolvedLines,
     });
 
     return this.repository.save(po);
   }
 
-  async findAll(params?: FindAllParams): Promise<POHeader[]> {
-    return this.repository.findAll(params ?? {});
-  }
-
-  async findOne(id: number): Promise<POHeader> {
+  async findById(id: number): Promise<POHeader> {
     const po = await this.repository.findById(id);
     if (!po) {
       throw new NotFoundException(`Purchase Order with ID ${id} not found`);
@@ -58,8 +71,12 @@ export class PoService {
     return po;
   }
 
+  private findEntity(id: number): Promise<POHeader> {
+    return this.findById(id);
+  }
+
   async update(id: number, updateDto: UpdatePOHeaderDto): Promise<POHeader> {
-    const po = await this.findOne(id);
+    const po = await this.findEntity(id);
 
     if (updateDto.status) {
       const nextStatus = updateDto.status.toUpperCase();
@@ -86,7 +103,7 @@ export class PoService {
     dto: UpdatePOWithLinesDto,
     createdBy?: string
   ): Promise<POHeader> {
-    const po = await this.findOne(id);
+    const po = await this.findEntity(id);
 
     // Update header
     if (dto.header) {
@@ -118,8 +135,11 @@ export class PoService {
       if (lineDto.id) {
         const line = po.getLines().find((l) => l.getId() === lineDto.id);
         if (line) {
+          const skuId = lineDto.skuPublicId
+            ? await this.resolveSkuId(lineDto.skuPublicId)
+            : undefined;
           line.updateFields({
-            skuId: lineDto.skuId,
+            skuId,
             description: lineDto.description,
             uomCode: lineDto.uomCode,
             orderQty: lineDto.orderQty,
@@ -131,7 +151,7 @@ export class PoService {
         }
       } else {
         po.addLine({
-          skuId: lineDto.skuId!,
+          skuId: await this.resolveSkuId(lineDto.skuPublicId!),
           description: lineDto.description,
           uomCode: lineDto.uomCode ?? '',
           orderQty: lineDto.orderQty!,
@@ -147,7 +167,7 @@ export class PoService {
   }
 
   async remove(id: number): Promise<void> {
-    await this.findOne(id);
+    await this.findEntity(id);
     await this.repository.remove(id);
   }
 
@@ -160,7 +180,7 @@ export class PoService {
     skuId: number,
     additionalQty: number
   ): Promise<void> {
-    const po = await this.findOne(poId);
+    const po = await this.findEntity(poId);
     po.updateLineReceivedQty(skuId, additionalQty);
     await this.repository.save(po);
   }

@@ -12,12 +12,12 @@ export class UpdatePOLineDto {
   lineNum?: number;
 
   @ApiPropertyOptional({
-    description: 'SKU ID',
-    example: 25,
+    description: 'SKU public ID (ULID)',
+    example: '01HXK5Z3ABCDEFGHJKLMNPQRST',
   })
   @IsOptional()
-  @IsNumber()
-  skuId?: number;
+  @IsString()
+  skuPublicId?: string;
 
   @ApiPropertyOptional({
     description: 'Item description',

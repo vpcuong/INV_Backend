@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { IPORepository, FindAllParams } from '../domain/po.repository.interface';
+import { IPORepository } from '../domain/po.repository.interface';
 import { POHeader, POHeaderPersistenceData } from '../domain/po-header.entity';
 import { RowMode } from '../domain/po-line.entity';
 
@@ -148,36 +148,6 @@ export class PORepository implements IPORepository {
     });
 
     return POHeader.fromPersistence(updated as unknown as POHeaderPersistenceData);
-  }
-
-  async findAll(params: FindAllParams): Promise<POHeader[]> {
-    const { skip, take, supplierId, status } = params;
-
-    const results = await this.prisma.client.pOHeader.findMany({
-      skip,
-      take,
-      where: {
-        ...(supplierId && { supplierId }),
-        ...(status && { status: status as any }),
-      },
-      include: {
-        supplier: {
-          select: {
-            id: true,
-            code: true,
-            name: true,
-          },
-        },
-        lines: {
-          orderBy: { lineNum: 'asc' },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return results.map((r) =>
-      POHeader.fromPersistence(r as unknown as POHeaderPersistenceData)
-    );
   }
 
   async findById(id: number): Promise<POHeader | null> {

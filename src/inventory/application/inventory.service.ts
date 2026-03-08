@@ -57,29 +57,29 @@ export class InventoryService {
   /**
    * Helper to fetch conversion factor for a line
    */
-  private async getConversionFactor(
-    itemSkuId: number,
-    uomCode: string
-  ): Promise<number> {
-    try {
-      const uoms = await this.skuUomService.getAvailableUomsForSku(itemSkuId);
-      const uom = uoms.availableUoms.find((u) => u.uomCode === uomCode);
+  // private async getConversionFactor(
+  //   itemSkuId: number,
+  //   uomCode: string
+  // ): Promise<number> {
+  //   try {
+  //     const uoms = await this.skuUomService.getAvailableUomsForSku(itemSkuId);
+  //     const uom = uoms.availableUoms.find((u) => u.uomCode === uomCode);
 
-      if (!uom) {
-        // Fallback: If UoM is same as SKU Base, factor is 1
-        if (uoms.skuUomCode === uomCode) return 1;
-        throw new BadRequestException(
-          `UOM ${uomCode} is not valid for SKU ${itemSkuId}`
-        );
-      }
-      return uom.toBaseFactor;
-    } catch (error) {
-      // If service check fails (e.g. SKU not found), propagate or handle
-      throw new BadRequestException(
-        `Failed to validate UOM ${uomCode} for SKU ${itemSkuId}: ${error.message}`
-      );
-    }
-  }
+  //     if (!uom) {
+  //       // Fallback: If UoM is same as SKU Base, factor is 1
+  //       if (uoms.skuUomCode === uomCode) return 1;
+  //       throw new BadRequestException(
+  //         `UOM ${uomCode} is not valid for SKU ${itemSkuId}`
+  //       );
+  //     }
+  //     return uom.toBaseFactor;
+  //   } catch (error) {
+  //     // If service check fails (e.g. SKU not found), propagate or handle
+  //     throw new BadRequestException(
+  //       `Failed to validate UOM ${uomCode} for SKU ${itemSkuId}: ${error.message}`
+  //     );
+  //   }
+  // }
 
   /**
    * Create Generic (Legacy - to be potentially deprecated or kept for internal use)
@@ -201,10 +201,7 @@ export class InventoryService {
     await this.validateWarehouse(dto.toWarehouseId);
 
     // Validate PO exists
-    const po = await this.poService.findOne(dto.poId);
-    if (!po) {
-      throw new NotFoundException(`Purchase Order ${dto.poId} not found`);
-    }
+    const po = await this.poService.findById(dto.poId);
 
     return this.create(
       {

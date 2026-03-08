@@ -16,6 +16,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { PoService } from './po.service';
+import { POQueryService } from './application/po-query.service';
 import { CreatePOHeaderDto } from './dto/create-po-header.dto';
 import { UpdatePOHeaderDto } from './dto/update-po-header.dto';
 import { UpdatePOWithLinesDto } from './dto/update-po-with-lines.dto';
@@ -26,7 +27,10 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 @ApiBearerAuth()
 @Controller('po')
 export class PoController {
-  constructor(private readonly poService: PoService) {}
+  constructor(
+    private readonly poService: PoService,
+    private readonly poQueryService: POQueryService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new purchase order' })
@@ -45,7 +49,7 @@ export class PoController {
   @ApiOperation({ summary: 'Get all purchase orders' })
   @ApiResponse({ status: 200, description: 'Returns all purchase orders' })
   findAll(@Query() query: FindPOsDto) {
-    return this.poService.findAll(query);
+    return this.poQueryService.findAll(query);
   }
 
   @Get(':id')
@@ -53,7 +57,7 @@ export class PoController {
   @ApiResponse({ status: 200, description: 'Returns the purchase order' })
   @ApiResponse({ status: 404, description: 'Purchase order not found' })
   findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.poService.findOne(id);
+    return this.poQueryService.findById(id);
   }
 
   @Patch(':id/with-lines')

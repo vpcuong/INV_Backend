@@ -1,14 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, IsOptional, IsEnum, Min } from 'class-validator';
+import { IsString, IsOptional, IsNumber, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreatePOLineDto {
   @ApiProperty({
-    description: 'SKU ID',
-    example: 25,
+    description: 'SKU public ID (ULID)',
+    example: '01HXK5Z3ABCDEFGHJKLMNPQRST',
   })
-  @IsNumber()
-  skuId!: number;
+  @IsString()
+  skuPublicId!: string;
 
   @ApiProperty({
     description: 'Item description',
