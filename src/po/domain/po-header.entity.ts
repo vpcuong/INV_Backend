@@ -174,21 +174,21 @@ export class POHeader {
     this.recalculatePricing();
   }
 
-  public removeLine(lineId: number): void {
+  public removeLine(linePublicId: string): void {
     if (!this.status.isDraft()) {
       throw new InvalidPOException(
         `Cannot remove line from PO in status ${this.status.getValue()}`
       );
     }
 
-    const line = this.lines.find((l) => l.getId() === lineId);
+    const line = this.lines.find((l) => l.getPublicId() === linePublicId);
     if (!line) {
-      throw new InvalidPOException(`Line with id ${lineId} not found`);
+      throw new InvalidPOException(`Line with publicId ${linePublicId} not found`);
     }
 
     line.markDeleted();
     this._deletedLines.push(line);
-    this.lines = this.lines.filter((l) => l.getId() !== lineId);
+    this.lines = this.lines.filter((l) => l.getPublicId() !== linePublicId);
     this.recalculatePricing();
   }
 
@@ -222,6 +222,8 @@ export class POHeader {
     this.pricing = this.pricing.recalculate(
       this.lines.map((l) => ({ lineAmount: l.getLineAmount() }))
     );
+
+    
   }
 
   public updateHeader(data: {

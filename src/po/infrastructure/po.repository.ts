@@ -84,6 +84,9 @@ export class PORepository implements IPORepository {
     const updatedLines = allLines.filter((l) => l.rowMode === RowMode.UPDATED);
     const deletedLines = allLines.filter((l) => l.rowMode === RowMode.DELETED);
 
+    console.log('updated lines')
+    console.log(updatedLines)
+
     const deletedIds = deletedLines
       .map((l) => l.getId())
       .filter((id): id is number => id !== 0);
@@ -169,16 +172,12 @@ export class PORepository implements IPORepository {
   async findByPublicId(publicId: string): Promise<POHeader | null> {
     const result = await this.prisma.client.pOHeader.findUnique({
       where: { publicId },
-      // include: {
-      //   supplier: true,
-      //   lines: {
-      //     include: PO_LINES_INCLUDE,
-      //     orderBy: { lineNum: 'asc' },
-      //   },
-      // },
+      include: {
+        lines: {
+          orderBy: { lineNum: 'asc' },
+        },
+      },
     });
-
-    console.log(result)
 
     if (!result) return null;
     return POHeader.fromPersistence(result as unknown as POHeaderPersistenceData);

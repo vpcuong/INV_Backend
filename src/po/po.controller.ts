@@ -68,25 +68,25 @@ export class PoController {
     return this.poService.create(createDto, user.userId);
   }
 
-  @Patch(':id/with-lines')
+  @Patch(':publicId/with-lines')
   @ApiOperation({
     summary: 'Update purchase order header and lines together',
     description: `
       Update PO header and lines in a single transaction. Supports:
       - Updating header fields (optional)
-      - Adding new lines (omit id)
-      - Updating existing lines (include id)
-      - Deleting lines (provide linesToDelete array)
+      - Adding new lines (omit publicId in line)
+      - Updating existing lines (include publicId in line)
+      - Deleting lines (provide linesToDelete array of publicIds)
     `,
   })
   @ApiResponse({ status: 200, description: 'Purchase order and lines updated successfully' })
   @ApiResponse({ status: 404, description: 'Purchase order not found' })
   updateWithLines(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('publicId') publicId: string,
     @Body() dto: UpdatePOWithLinesDto,
     @CurrentUser() user: { userId: string }
   ) {
-    return this.poService.updateWithLines(id, dto, user.userId);
+    return this.poService.updateWithLines(publicId, dto, user.userId);
   }
 
   @Patch(':id')

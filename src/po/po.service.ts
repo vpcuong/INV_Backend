@@ -76,9 +76,8 @@ export class PoService {
   }
 
   private async findEntityByPublicId(publicId: string): Promise<POHeader> {
-    console.log(publicId)
+
     const po = await this.repository.findByPublicId(publicId);
-    console.log(po)
     if (!po) {
       throw new NotFoundException(`Purchase Order with publicId ${publicId} not found`);
     }
@@ -87,14 +86,6 @@ export class PoService {
 
   async update(id: number, updateDto: UpdatePOHeaderDto): Promise<POHeader> {
     const po = await this.findEntity(id);
-
-    if (updateDto.status) {
-      const nextStatus = updateDto.status.toUpperCase();
-      if (nextStatus === 'APPROVED') po.approve();
-      else if (nextStatus === 'CANCELLED') po.cancel();
-      else if (nextStatus === 'CLOSED') po.close();
-      else po.transitionStatus(nextStatus);
-    }
 
     po.updateHeader({
       supplierId: updateDto.supplierId,
@@ -109,11 +100,11 @@ export class PoService {
   }
 
   async updateWithLines(
-    id: number,
+    publicId: string,
     dto: UpdatePOWithLinesDto,
     createdBy?: string
   ): Promise<POHeader> {
-    const po = await this.findEntity(id);
+    const po = await this.findEntityByPublicId(publicId);
 
     // Update header
     if (dto.header) {
@@ -125,25 +116,18 @@ export class PoService {
         exchangeRate: dto.header.exchangeRate,
         note: dto.header.note,
       });
-
-      if (dto.header.status) {
-        const nextStatus = dto.header.status.toUpperCase();
-        if (nextStatus === 'APPROVED') po.approve();
-        else if (nextStatus === 'CANCELLED') po.cancel();
-        else if (nextStatus === 'CLOSED') po.close();
-        else po.transitionStatus(nextStatus);
-      }
     }
 
-    // Delete lines
-    for (const lineId of dto.linesToDelete ?? []) {
-      po.removeLine(lineId);
+    // Delete lines by publicId
+    for (const linePublicId of dto.linesToDelete ?? []) {
+      po.removeLine(linePublicId);
     }
 
     // Update or add lines
     for (const lineDto of dto.lines ?? []) {
-      if (lineDto.id) {
-        const line = po.getLines().find((l) => l.getId() === lineDto.id);
+      if (lineDto.publicId) {
+        // UPDATE existing line — find by publicId
+        const line = po.getLines().find((l) => l.getPublicId() === lineDto.publicId);
         if (line) {
           const skuId = lineDto.skuPublicId
             ? await this.resolveSkuId(lineDto.skuPublicId)
@@ -160,6 +144,7 @@ export class PoService {
           po.recalculatePricing();
         }
       } else {
+        // ADD new line
         po.addLine({
           skuId: await this.resolveSkuId(lineDto.skuPublicId!),
           description: lineDto.description,

@@ -3,7 +3,6 @@ import {
   IsOptional,
   IsString,
   IsNumber,
-  IsEnum,
   IsDateString,
   Min,
 } from 'class-validator';
@@ -41,29 +40,6 @@ export class UpdatePOHeaderDto {
   @IsOptional()
   @IsDateString()
   expectedDate?: Date;
-
-  @ApiPropertyOptional({
-    description: 'PO status',
-    example: 'APPROVED',
-    enum: [
-      'DRAFT',
-      'APPROVED',
-      'PARTIALLY_RECEIVED',
-      'RECEIVED',
-      'CLOSED',
-      'CANCELLED',
-    ],
-  })
-  @IsOptional()
-  @IsEnum([
-    'DRAFT',
-    'APPROVED',
-    'PARTIALLY_RECEIVED',
-    'RECEIVED',
-    'CLOSED',
-    'CANCELLED',
-  ])
-  status?: string;
 
   @ApiPropertyOptional({
     description: 'Currency code (ISO 3-letter code)',
