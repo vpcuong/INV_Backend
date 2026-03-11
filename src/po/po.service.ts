@@ -75,7 +75,7 @@ export class PoService {
     return this.findById(id);
   }
 
-  private async findEntityByPublicId(publicId: string): Promise<POHeader> {
+  async findByPublicId(publicId: string): Promise<POHeader> {
 
     const po = await this.repository.findByPublicId(publicId);
     if (!po) {
@@ -104,7 +104,7 @@ export class PoService {
     dto: UpdatePOWithLinesDto,
     createdBy?: string
   ): Promise<POHeader> {
-    const po = await this.findEntityByPublicId(publicId);
+    const po = await this.findByPublicId(publicId);
 
     // Update header
     if (dto.header) {
@@ -162,19 +162,19 @@ export class PoService {
   }
 
   async approve(publicId: string): Promise<POHeader> {
-    const po = await this.findEntityByPublicId(publicId);
+    const po = await this.findByPublicId(publicId);
     po.approve();
     return this.repository.save(po);
   }
 
   async cancel(publicId: string): Promise<POHeader> {
-    const po = await this.findEntityByPublicId(publicId);
+    const po = await this.findByPublicId(publicId);
     po.cancel();
     return this.repository.save(po);
   }
 
   async close(publicId: string): Promise<POHeader> {
-    const po = await this.findEntityByPublicId(publicId);
+    const po = await this.findByPublicId(publicId);
     po.close();
     return this.repository.save(po);
   }

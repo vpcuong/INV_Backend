@@ -201,7 +201,7 @@ export class InventoryService {
     await this.validateWarehouse(dto.toWarehouseId);
 
     // Validate PO exists
-    const po = await this.poService.findById(dto.poId);
+    const po = await this.poService.findByPublicId(dto.poId);
 
     return this.create(
       {

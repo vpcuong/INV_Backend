@@ -76,10 +76,10 @@ export class CreateGoodsReceiptDto {
 }
 
 export class CreateGoodsReceiptFromPoDto {
-  @ApiProperty({ description: 'Purchase Order ID', example: 5001 })
-  @IsNumber()
+  @ApiProperty({ description: 'Purchase Order Public ID (ULID)', example: '01JNXXX...' })
+  @IsString()
   @IsNotEmpty()
-  poId: number; // Required PO reference
+  poId: string;
 
   @ApiProperty({ description: 'Warehouse ID (Destination)', example: 2 })
   @IsNumber()
