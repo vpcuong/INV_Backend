@@ -15,6 +15,7 @@ export class InventoryQueryService {
   ) {}
 
   async findAll(filterDto: InvTransFilterDto) {
+    console.log('filterDto', filterDto);
     const config: FilterConfig = {
       searchableFields: ['transNum', 'referenceNum', 'note'],
       filterableFields: [
@@ -22,6 +23,7 @@ export class InventoryQueryService {
         'status',
         'fromWarehouseId',
         'toWarehouseId',
+        'transactionDate',
         'referenceType',
         'referenceNum',
         'createdBy',
@@ -91,13 +93,13 @@ export class InventoryQueryService {
         referenceNum: { contains: filterDto.referenceNum, mode: 'insensitive' },
       });
     }
-    if (filterDto.transactionDateFrom || filterDto.transactionDateTo) {
+    if (filterDto.fromDate || filterDto.toDate) {
       const dateFilter: any = {};
-      if (filterDto.transactionDateFrom) {
-        dateFilter.gte = new Date(filterDto.transactionDateFrom);
+      if (filterDto.fromDate) {
+        dateFilter.gte = new Date(filterDto.fromDate);
       }
-      if (filterDto.transactionDateTo) {
-        dateFilter.lte = new Date(filterDto.transactionDateTo);
+      if (filterDto.toDate) {
+        dateFilter.lte = new Date(filterDto.toDate);
       }
       query.where.AND.push({ transactionDate: dateFilter });
     }
@@ -110,7 +112,7 @@ export class InventoryQueryService {
     const [data, total] = await Promise.all([
       this.prisma.client.invTransHeader.findMany(query),
       this.prisma.client.invTransHeader.count({ where: query.where }),
-    ]);
+    ]); 
 
     return this.queryBuilder.buildPaginatedResponse(
       data,
@@ -137,12 +139,12 @@ export class InventoryQueryService {
       };
     }
 
-    if (filterDto.transactionDateFrom || filterDto.transactionDateTo) {
+    if (filterDto.fromDate || filterDto.toDate) {
       const dateFilter: any = {};
-      if (filterDto.transactionDateFrom)
-        dateFilter.gte = new Date(filterDto.transactionDateFrom);
-      if (filterDto.transactionDateTo)
-        dateFilter.lte = new Date(filterDto.transactionDateTo);
+      if (filterDto.fromDate)
+        dateFilter.gte = new Date(filterDto.fromDate);
+      if (filterDto.toDate)
+        dateFilter.lte = new Date(filterDto.toDate);
       where.transactionDate = dateFilter;
     }
 

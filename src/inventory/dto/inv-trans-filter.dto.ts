@@ -52,12 +52,12 @@ export class InvTransFilterDto extends FilterDto {
   @ApiPropertyOptional({ description: 'Date From' })
   @IsOptional()
   @IsDateString()
-  transactionDateFrom?: string;
+  fromDate?: string;
 
   @ApiPropertyOptional({ description: 'Date To' })
   @IsOptional()
   @IsDateString()
-  transactionDateTo?: string;
+  toDate?: string;
 }
 
 export class InvTransCursorFilterDto {
@@ -99,12 +99,12 @@ export class InvTransCursorFilterDto {
   @ApiPropertyOptional({ description: 'Date From' })
   @IsOptional()
   @IsDateString()
-  transactionDateFrom?: string;
+  fromDate?: string;
 
   @ApiPropertyOptional({ description: 'Date To' })
   @IsOptional()
   @IsDateString()
-  transactionDateTo?: string;
+  toDate?: string;
 
   @ApiPropertyOptional({
     description: 'Search text (transNum, referenceNum, note)',
