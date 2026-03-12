@@ -18,7 +18,7 @@ export class POQueryService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(params: FindPOsDto): Promise<any[]> {
-    const { skip, take, supplierId, status } = params;
+    const { skip, take, supplierId, status, type } = params;
 
     return this.prisma.client.pOHeader.findMany({
       skip,
@@ -26,6 +26,7 @@ export class POQueryService {
       where: {
         ...(supplierId && { supplierId }),
         ...(status && { status: status as any }),
+        ...(type && { type: type as any }),
       },
       include: {
         supplier: true,

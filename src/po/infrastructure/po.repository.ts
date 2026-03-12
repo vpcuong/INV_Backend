@@ -13,6 +13,7 @@ const PO_LINES_INCLUDE = {
     },
   },
   uom: true,
+  soLine: true,
 };
 
 @Injectable()
@@ -56,6 +57,7 @@ export class PORepository implements IPORepository {
                   lineAmount: lp.lineAmount,
                   receivedQty: lp.receivedQty,
                   warehouseCode: lp.warehouseCode,
+                  soLineId: lp.soLineId,
                   status: lp.status as any,
                   note: lp.note,
                   createdBy: lp.createdBy,
@@ -83,9 +85,6 @@ export class PORepository implements IPORepository {
     const newLines = allLines.filter((l) => l.rowMode === RowMode.NEW);
     const updatedLines = allLines.filter((l) => l.rowMode === RowMode.UPDATED);
     const deletedLines = allLines.filter((l) => l.rowMode === RowMode.DELETED);
-
-    console.log('updated lines')
-    console.log(updatedLines)
 
     const deletedIds = deletedLines
       .map((l) => l.getId())
@@ -117,6 +116,7 @@ export class PORepository implements IPORepository {
                 lineAmount: lp.lineAmount,
                 receivedQty: lp.receivedQty,
                 warehouseCode: lp.warehouseCode,
+                soLineId: lp.soLineId,
                 status: lp.status as any,
                 note: lp.note,
               },
@@ -134,6 +134,7 @@ export class PORepository implements IPORepository {
               lineAmount: lp.lineAmount,
               receivedQty: lp.receivedQty,
               warehouseCode: lp.warehouseCode,
+              soLineId: lp.soLineId,
               status: lp.status as any,
               note: lp.note,
               createdBy: lp.createdBy,
@@ -173,7 +174,9 @@ export class PORepository implements IPORepository {
     const result = await this.prisma.client.pOHeader.findUnique({
       where: { publicId },
       include: {
+        supplier: true,
         lines: {
+          include: PO_LINES_INCLUDE,
           orderBy: { lineNum: 'asc' },
         },
       },

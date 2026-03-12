@@ -31,4 +31,13 @@ export class FindPOsDto {
   @IsOptional()
   @IsEnum(['DRAFT', 'APPROVED', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CLOSED', 'CANCELLED'])
   status?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter by PO type',
+    example: 'SUBCONTRACT',
+    enum: ['STANDARD', 'SUBCONTRACT'],
+  })
+  @IsOptional()
+  @IsEnum(['STANDARD', 'SUBCONTRACT'])
+  type?: string;
 }
