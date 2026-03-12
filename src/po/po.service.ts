@@ -22,6 +22,17 @@ export class PoService {
     private readonly prisma: PrismaService
   ) {}
 
+  private async resolveSoLineId(soLinePublicId: string): Promise<number> {
+    const soLine = await this.prisma.client.sODetail.findUnique({
+      where: { publicId: soLinePublicId },
+      select: { id: true },
+    });
+    if (!soLine) {
+      throw new NotFoundException(`SO Line with publicId ${soLinePublicId} not found`);
+    }
+    return soLine.id;
+  }
+
   private async resolveSkuId(skuPublicId: string): Promise<number> {
     const sku = await this.prisma.client.itemSKU.findUnique({
       where: { publicId: skuPublicId },
@@ -44,6 +55,9 @@ export class PoService {
         orderQty: line.orderQty,
         unitPrice: line.unitPrice,
         warehouseCode: line.warehouseCode,
+        soLineId: line.soLinePublicId
+          ? await this.resolveSoLineId(line.soLinePublicId)
+          : undefined,
         note: line.note,
       }))
     );
@@ -53,6 +67,7 @@ export class PoService {
       supplierId: createDto.supplierId,
       orderDate: createDto.orderDate,
       expectedDate: createDto.expectedDate,
+      type: createDto.type,
       currencyCode: createDto.currencyCode,
       exchangeRate: createDto.exchangeRate,
       note: createDto.note,
@@ -91,6 +106,7 @@ export class PoService {
       supplierId: updateDto.supplierId,
       orderDate: updateDto.orderDate ? new Date(updateDto.orderDate) : undefined,
       expectedDate: updateDto.expectedDate ? new Date(updateDto.expectedDate) : undefined,
+      type: updateDto.type,
       currencyCode: updateDto.currencyCode,
       exchangeRate: updateDto.exchangeRate,
       note: updateDto.note,
@@ -112,6 +128,7 @@ export class PoService {
         supplierId: dto.header.supplierId,
         orderDate: dto.header.orderDate ? new Date(dto.header.orderDate) : undefined,
         expectedDate: dto.header.expectedDate ? new Date(dto.header.expectedDate) : undefined,
+        type: dto.header.type,
         currencyCode: dto.header.currencyCode,
         exchangeRate: dto.header.exchangeRate,
         note: dto.header.note,
@@ -132,6 +149,9 @@ export class PoService {
           const skuId = lineDto.skuPublicId
             ? await this.resolveSkuId(lineDto.skuPublicId)
             : undefined;
+          const soLineId = lineDto.soLinePublicId
+            ? await this.resolveSoLineId(lineDto.soLinePublicId)
+            : undefined;
           line.updateFields({
             skuId,
             description: lineDto.description,
@@ -139,6 +159,7 @@ export class PoService {
             orderQty: lineDto.orderQty,
             unitPrice: lineDto.unitPrice,
             warehouseCode: lineDto.warehouseCode,
+            soLineId,
             note: lineDto.note,
           });
           po.recalculatePricing();
@@ -152,6 +173,9 @@ export class PoService {
           orderQty: lineDto.orderQty!,
           unitPrice: lineDto.unitPrice!,
           warehouseCode: lineDto.warehouseCode,
+          soLineId: lineDto.soLinePublicId
+            ? await this.resolveSoLineId(lineDto.soLinePublicId)
+            : undefined,
           note: lineDto.note,
           createdBy,
         });

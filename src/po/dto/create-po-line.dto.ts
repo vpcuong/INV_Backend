@@ -54,6 +54,14 @@ export class CreatePOLineDto {
   warehouseCode?: string;
 
   @ApiProperty({
+    description: 'SO Line publicId to map (for SUBCONTRACT PO)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  soLinePublicId?: string;
+
+  @ApiProperty({
     description: 'Line note',
     example: 'Quality check required',
     required: false,

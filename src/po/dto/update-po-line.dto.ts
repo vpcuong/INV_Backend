@@ -83,6 +83,13 @@ export class UpdatePOLineDto {
   status?: string;
 
   @ApiPropertyOptional({
+    description: 'SO Line publicId to map (for SUBCONTRACT PO)',
+  })
+  @IsOptional()
+  @IsString()
+  soLinePublicId?: string;
+
+  @ApiPropertyOptional({
     description: 'Line note',
     example: 'Quality check required',
   })

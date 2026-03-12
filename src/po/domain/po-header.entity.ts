@@ -8,6 +8,7 @@ export interface POHeaderCreateData {
   supplierId: number;
   orderDate?: Date;
   expectedDate?: Date;
+  type?: string;
   currencyCode: string;
   exchangeRate?: number;
   note?: string;
@@ -23,6 +24,7 @@ export interface POHeaderPersistenceData {
   orderDate: Date;
   expectedDate: Date | null;
   status: string;
+  type: string;
   currencyCode: string;
   exchangeRate: any;
   totalAmount: any;
@@ -42,6 +44,7 @@ export class POHeader {
   private orderDate: Date;
   private expectedDate: Date | null;
   private status: POStatus;
+  private type: string;
   private currencyCode: string;
   private pricing: POPricing;
   private note: string | null;
@@ -60,6 +63,7 @@ export class POHeader {
     orderDate: Date;
     expectedDate: Date | null;
     status: POStatus;
+    type: string;
     currencyCode: string;
     pricing: POPricing;
     note: string | null;
@@ -76,6 +80,7 @@ export class POHeader {
     this.orderDate = data.orderDate;
     this.expectedDate = data.expectedDate;
     this.status = data.status;
+    this.type = data.type;
     this.currencyCode = data.currencyCode;
     this.pricing = data.pricing;
     this.note = data.note;
@@ -103,6 +108,7 @@ export class POHeader {
       orderDate: data.orderDate ?? new Date(),
       expectedDate: data.expectedDate ?? null,
       status: POStatus.draft(),
+      type: data.type ?? 'STANDARD',
       currencyCode: data.currencyCode,
       pricing,
       note: data.note ?? null,
@@ -124,6 +130,7 @@ export class POHeader {
       orderDate: data.orderDate,
       expectedDate: data.expectedDate,
       status: POStatus.fromPersistence(data.status),
+      type: data.type,
       currencyCode: data.currencyCode,
       pricing: POPricing.fromPersistence({
         totalAmount: data.totalAmount,
@@ -186,6 +193,7 @@ export class POHeader {
       throw new InvalidPOException(`Line with publicId ${linePublicId} not found`);
     }
 
+    line.clearSoLineMapping();
     line.markDeleted();
     this._deletedLines.push(line);
     this.lines = this.lines.filter((l) => l.getPublicId() !== linePublicId);
@@ -230,6 +238,7 @@ export class POHeader {
     supplierId?: number;
     orderDate?: Date;
     expectedDate?: Date;
+    type?: string;
     currencyCode?: string;
     exchangeRate?: number;
     note?: string;
@@ -237,6 +246,7 @@ export class POHeader {
     if (data.supplierId !== undefined) this.supplierId = data.supplierId;
     if (data.orderDate !== undefined) this.orderDate = data.orderDate;
     if (data.expectedDate !== undefined) this.expectedDate = data.expectedDate;
+    if (data.type !== undefined) this.type = data.type;
     if (data.currencyCode !== undefined) this.currencyCode = data.currencyCode;
     if (data.exchangeRate !== undefined) {
       this.pricing = this.pricing.setExchangeRate(data.exchangeRate);
@@ -253,6 +263,7 @@ export class POHeader {
   public getOrderDate(): Date { return this.orderDate; }
   public getExpectedDate(): Date | null { return this.expectedDate; }
   public getStatus(): POStatus { return this.status; }
+  public getType(): string { return this.type; }
   public getCurrencyCode(): string { return this.currencyCode; }
   public getPricing(): POPricing { return this.pricing; }
   public getNote(): string | null { return this.note; }
@@ -271,6 +282,7 @@ export class POHeader {
     orderDate: Date;
     expectedDate: Date | null;
     status: string;
+    type: string;
     currencyCode: string;
     exchangeRate: number;
     totalAmount: number;
@@ -285,6 +297,7 @@ export class POHeader {
       orderDate: this.orderDate,
       expectedDate: this.expectedDate,
       status: this.status.toPersistence(),
+      type: this.type,
       currencyCode: this.currencyCode,
       exchangeRate,
       totalAmount,

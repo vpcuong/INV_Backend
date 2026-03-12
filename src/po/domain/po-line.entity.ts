@@ -11,6 +11,7 @@ export interface POLineCreateData {
   orderQty: number;
   unitPrice: number;
   warehouseCode?: string;
+  soLineId?: number;
   note?: string;
   createdBy?: string;
 }
@@ -28,6 +29,7 @@ export interface POLinePersistenceData {
   lineAmount: any;
   receivedQty: any;
   warehouseCode: string | null;
+  soLineId: number | null;
   status: string;
   note: string | null;
   createdAt: Date;
@@ -50,6 +52,7 @@ export class POLine {
   private lineAmount: number;
   private receivedQty: number;
   private warehouseCode: string | null;
+  private soLineId: number | null;
   private status: POLineStatus;
   private note: string | null;
   private createdAt: Date;
@@ -73,6 +76,7 @@ export class POLine {
     lineAmount: number;
     receivedQty: number;
     warehouseCode: string | null;
+    soLineId: number | null;
     status: POLineStatus;
     note: string | null;
     createdAt: Date;
@@ -93,6 +97,7 @@ export class POLine {
     this.lineAmount = data.lineAmount;
     this.receivedQty = data.receivedQty;
     this.warehouseCode = data.warehouseCode;
+    this.soLineId = data.soLineId;
     this.status = data.status;
     this.note = data.note;
     this.createdAt = data.createdAt;
@@ -129,6 +134,7 @@ export class POLine {
       lineAmount,
       receivedQty: 0,
       warehouseCode: data.warehouseCode ?? null,
+      soLineId: data.soLineId ?? null,
       status: POLineStatus.open(),
       note: data.note ?? null,
       createdAt: new Date(),
@@ -154,6 +160,7 @@ export class POLine {
       lineAmount: Number(data.lineAmount),
       receivedQty: Number(data.receivedQty) || 0,
       warehouseCode: data.warehouseCode,
+      soLineId: data.soLineId,
       status: POLineStatus.fromPersistence(data.status),
       note: data.note,
       createdAt: data.createdAt,
@@ -193,11 +200,16 @@ export class POLine {
 
   public cancel(): void {
     this.status = this.status.transition('CANCELLED');
+    this.soLineId = null;
     this.rowMode = RowMode.UPDATED;
   }
 
   public markDeleted(): void {
     this.rowMode = RowMode.DELETED;
+  }
+
+  public clearSoLineMapping(): void {
+    this.soLineId = null;
   }
 
   public updateFields(data: {
@@ -207,12 +219,14 @@ export class POLine {
     orderQty?: number;
     unitPrice?: number;
     warehouseCode?: string;
+    soLineId?: number | null;
     note?: string;
   }): void {
     if (data.skuId !== undefined) this.skuId = data.skuId;
     if (data.description !== undefined) this.description = data.description;
     if (data.uomCode !== undefined) this.uomCode = data.uomCode;
     if (data.warehouseCode !== undefined) this.warehouseCode = data.warehouseCode;
+    if (data.soLineId !== undefined) this.soLineId = data.soLineId;
     if (data.note !== undefined) this.note = data.note;
 
     if (data.orderQty !== undefined || data.unitPrice !== undefined) {
@@ -243,6 +257,7 @@ export class POLine {
   public getLineAmount(): number { return this.lineAmount; }
   public getReceivedQty(): number { return this.receivedQty; }
   public getWarehouseCode(): string | null { return this.warehouseCode; }
+  public getSoLineId(): number | null { return this.soLineId; }
   public getStatus(): POLineStatus { return this.status; }
   public getNote(): string | null { return this.note; }
   public getCreatedBy(): string | null { return this.createdBy; }
@@ -262,6 +277,7 @@ export class POLine {
     lineAmount: number;
     receivedQty: number;
     warehouseCode: string | null;
+    soLineId: number | null;
     status: string;
     note: string | null;
     createdBy: string | null;
@@ -278,6 +294,7 @@ export class POLine {
       lineAmount: this.lineAmount,
       receivedQty: this.receivedQty,
       warehouseCode: this.warehouseCode,
+      soLineId: this.soLineId,
       status: this.status.toPersistence(),
       note: this.note,
       createdBy: this.createdBy,

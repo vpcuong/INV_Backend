@@ -76,9 +76,10 @@ model SODetail {
   updatedAt     DateTime     @updatedAt
   uomCode       String       @db.VarChar(50)
 
-  itemSku ItemSKU? @relation(fields: [itemSkuId], references: [id])
-  header  SOHeader @relation(fields: [soHeaderId], references: [id], onDelete: Cascade)
-  uom     UOM      @relation(fields: [uomCode], references: [code])
+  itemSku ItemSKU?  @relation(fields: [itemSkuId], references: [id])
+  header  SOHeader  @relation(fields: [soHeaderId], references: [id], onDelete: Cascade)
+  uom     UOM       @relation(fields: [uomCode], references: [code])
+  poLine  PODetail?
 
   @@unique([soHeaderId, lineNum])
   @@index([publicId])

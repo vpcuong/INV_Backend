@@ -4,6 +4,7 @@ import {
   IsString,
   IsNumber,
   IsDateString,
+  IsEnum,
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -40,6 +41,14 @@ export class UpdatePOHeaderDto {
   @IsOptional()
   @IsDateString()
   expectedDate?: Date;
+
+  @ApiPropertyOptional({
+    description: 'PO Type',
+    enum: ['STANDARD', 'SUBCONTRACT'],
+  })
+  @IsOptional()
+  @IsEnum(['STANDARD', 'SUBCONTRACT'])
+  type?: string;
 
   @ApiPropertyOptional({
     description: 'Currency code (ISO 3-letter code)',

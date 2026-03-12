@@ -7,6 +7,7 @@ import {
   ValidateNested,
   Min,
   IsDateString,
+  IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreatePOLineDto } from './create-po-line.dto';
@@ -45,6 +46,16 @@ export class CreatePOHeaderDto {
   @IsOptional()
   @IsDateString()
   expectedDate?: Date;
+
+  @ApiProperty({
+    description: 'PO Type',
+    enum: ['STANDARD', 'SUBCONTRACT'],
+    default: 'STANDARD',
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(['STANDARD', 'SUBCONTRACT'])
+  type?: string;
 
   @ApiProperty({
     description: 'Currency code (ISO 3-letter code)',
