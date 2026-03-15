@@ -150,7 +150,7 @@ export class ItemQuickFiltersDto {
  * DTO for filtering items with pagination, search, sort
  * Extends ItemQuickFiltersDto and adds pagination/sort params
  */
-export class ItemFilterDto extends ItemQuickFiltersDto {
+export class ItemQueryDto extends ItemQuickFiltersDto {
   // Inherited from ItemQuickFiltersDto:
   // - status, categoryId, itemTypeId, materialId, fabricSupId
   // - isManufactured, isPurchasable, isSellable

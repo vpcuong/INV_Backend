@@ -20,7 +20,7 @@ import { ItemAggregateService } from '../application/item-aggregate.service';
 import { ItemQueryService } from '../application/item-query.service';
 import { CreateItemDto } from '../dto/create-item.dto';
 import { UpdateItemDto } from '../dto/update-item.dto';
-import { ItemFilterDto } from '../dto/item-filter.dto';
+import { ItemQueryDto } from '../dto/item-filter.dto';
 
 /**
  * Controller xử lý các endpoints liên quan đến Item
@@ -52,7 +52,7 @@ export class ItemsController {
     summary: 'Get all items with filtering, sorting, and pagination',
   })
   @ApiResponse({ status: 200, description: 'Return all items' })
-  findAll(@Query() filterDto: ItemFilterDto) {
+  findAll(@Query() filterDto: ItemQueryDto) {
     return this.itemQueryService.findAllWithFilters(filterDto);
   }
 

@@ -130,5 +130,19 @@ export class CustomerQueryService {
         },
       });
     }
+
+    // Quick search by phone
+    if (filterDto.phone) {
+      query.where.AND.push({
+        phone: { contains: filterDto.phone, mode: 'insensitive' },
+      });
+    }
+
+    // Quick search by email
+    if (filterDto.email) {
+      query.where.AND.push({
+        email: { contains: filterDto.email, mode: 'insensitive' },
+      });
+    }
   }
 }

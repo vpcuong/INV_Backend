@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { IPORepository } from '../domain/po.repository.interface';
 import { POHeader, POHeaderPersistenceData } from '../domain/po-header.entity';
 import { RowMode } from '../domain/po-line.entity';
+import { POType } from '@prisma/client';
 
 const PO_LINES_INCLUDE = {
   sku: {
@@ -38,6 +39,7 @@ export class PORepository implements IPORepository {
         orderDate: persistence.orderDate,
         expectedDate: persistence.expectedDate,
         status: persistence.status as any,
+        type: POType[persistence.type] ?? persistence.type,
         currencyCode: persistence.currencyCode,
         exchangeRate: persistence.exchangeRate,
         totalAmount: persistence.totalAmount,

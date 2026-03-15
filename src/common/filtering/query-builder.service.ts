@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { FilterDto, FilterOperator, FilterCondition } from './dto/filter.dto';
 import { FilterConfig } from './interfaces/filter-config.interface';
+import { filter } from 'rxjs';
 
 @Injectable()
 export class QueryBuilderService {

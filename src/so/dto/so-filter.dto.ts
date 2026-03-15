@@ -16,6 +16,14 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
  */
 export class SOQuickFiltersDto {
   @ApiPropertyOptional({
+    description: 'Filter by order type',
+    enum: ['STANDARD', 'PROCESSING', 'RETAIL'],
+  })
+  @IsOptional()
+  @IsEnum(['STANDARD', 'PROCESSING', 'RETAIL'])
+  soType?: string;
+
+  @ApiPropertyOptional({
     description: 'Filter by order status',
     enum: ['DRAFT', 'OPEN', 'PARTIAL', 'CLOSED', 'CANCELLED', 'ON_HOLD'],
   })

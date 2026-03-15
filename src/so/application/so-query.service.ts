@@ -29,6 +29,7 @@ export class SOQueryService {
         'customerPoNum',
         'currencyCode',
         'paymentTermCode',
+        'soType',
       ],
       sortableFields: [
         'soNum',
@@ -44,7 +45,7 @@ export class SOQueryService {
       maxLimit: 100,
       relations: this.buildRelations(filterDto),
     };
-
+    
     const query = this.queryBuilder.buildQuery(filterDto, config);
 
     // Apply quick filters
@@ -72,6 +73,7 @@ export class SOQueryService {
     // Build where clause từ quick filters
     const where: any = {};
 
+    if (filterDto.soType) where.soType = filterDto.soType;
     if (filterDto.orderStatus) where.orderStatus = filterDto.orderStatus;
     if (filterDto.customerId) where.customerId = filterDto.customerId;
     if (filterDto.soNum)
@@ -158,6 +160,20 @@ export class SOQueryService {
    */
   private applyQuickFilters(query: any, filterDto: SOFilterDto): void {
     const where = query.where;
+
+    // Enum / exact match fields
+    if (filterDto.soType) where.soType = filterDto.soType;
+    if (filterDto.orderStatus) where.orderStatus = filterDto.orderStatus;
+    if (filterDto.channel) where.channel = filterDto.channel;
+
+    // Numeric exact match
+    if (filterDto.customerId) where.customerId = filterDto.customerId;
+
+    // String partial match
+    if (filterDto.soNum)
+      where.soNum = { contains: filterDto.soNum, mode: 'insensitive' };
+    if (filterDto.customerPoNum)
+      where.customerPoNum = { contains: filterDto.customerPoNum, mode: 'insensitive' };
 
     // Date range filters
     if (filterDto.orderDateFrom || filterDto.orderDateTo) {

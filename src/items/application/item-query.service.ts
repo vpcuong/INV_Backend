@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QueryBuilderService } from '@/common/filtering';
-import { ItemFilterDto } from '../dto/item-filter.dto';
+import { ItemQueryDto } from '../dto/item-filter.dto';
 import { ModelFilterDto } from '../dto/model-filter.dto';
 import { SkuFilterDto } from '../dto/sku-filter.dto';
 import {
@@ -23,7 +23,7 @@ export class ItemQueryService {
   /**
    * Find all items with filtering, sorting, and pagination
    */
-  async findAllWithFilters(filterDto: ItemFilterDto) {
+  async findAllWithFilters(filterDto: ItemQueryDto) {
     // Configure what fields can be searched, filtered, and sorted
     const config = {
       searchableFields: ['code', 'desc'],
@@ -54,7 +54,7 @@ export class ItemQueryService {
     // Build Prisma query from FilterDto
     const query = this.queryBuilder.buildQuery(filterDto, config);
 
-    // Apply quick filters from ItemFilterDto
+    // Apply quick filters from ItemQueryDto
     this.applyQuickFilters(query, filterDto);
 
     // Execute queries in parallel
@@ -72,9 +72,9 @@ export class ItemQueryService {
   }
 
   /**
-   * Apply quick filters from ItemFilterDto
+   * Apply quick filters from ItemQueryDto
    */
-  private applyQuickFilters(query: any, filterDto: ItemFilterDto) {
+  private applyQuickFilters(query: any, filterDto: ItemQueryDto) {
     query.where.AND = query.where.AND || [];
 
     // Filter by status
@@ -343,7 +343,7 @@ export class ItemQueryService {
   /**
    * Build relations to include based on filter options
    */
-  private buildRelations(filterDto: ItemFilterDto): string[] {
+  private buildRelations(filterDto: ItemQueryDto): string[] {
     const relations: string[] = ['category', 'itemType', 'uom', 'material'];
 
     // Include fabricCustomer if filtering by it or if we want full data
@@ -357,7 +357,7 @@ export class ItemQueryService {
   /**
    * Find all purchasable items with filtering
    */
-  async findAllPurchasable(filterDto: ItemFilterDto) {
+  async findAllPurchasable(filterDto: ItemQueryDto) {
     const config = {
       searchableFields: ['code', 'desc'],
       filterableFields: [
@@ -402,7 +402,7 @@ export class ItemQueryService {
   /**
    * Find all sellable items with filtering
    */
-  async findAllSellable(filterDto: ItemFilterDto) {
+  async findAllSellable(filterDto: ItemQueryDto) {
     const config = {
       searchableFields: ['code', 'desc'],
       filterableFields: [
@@ -447,7 +447,7 @@ export class ItemQueryService {
   /**
    * Find items by category with filtering
    */
-  async findByCategory(categoryId: number, filterDto: ItemFilterDto) {
+  async findByCategory(categoryId: number, filterDto: ItemQueryDto) {
     const config = {
       searchableFields: ['code', 'desc'],
       filterableFields: ['status', 'itemTypeId', 'materialId', 'uomCode'],
@@ -486,7 +486,7 @@ export class ItemQueryService {
   /**
    * Find items by item type with filtering
    */
-  async findByItemType(itemTypeId: number, filterDto: ItemFilterDto) {
+  async findByItemType(itemTypeId: number, filterDto: ItemQueryDto) {
     const config = {
       searchableFields: ['code', 'desc'],
       filterableFields: ['status', 'categoryId', 'materialId', 'uomCode'],
