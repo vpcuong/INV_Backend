@@ -57,27 +57,6 @@ export class CreatePOHeaderDto {
   @IsEnum(['STANDARD', 'SUBCONTRACT'])
   type?: string;
 
-  // @ApiProperty({
-  //   description: 'Currency code (ISO 3-letter code)',
-  //   example: 'VND',
-  //   default: 'VND',
-  // })
-  // @IsString()
-  // @IsOptional()
-  // currencyCode: string = 'VND';
-
-  // @ApiProperty({
-  //   description: 'Exchange rate',
-  //   example: 1,
-  //   required: false,
-  //   default: 1,
-  // })
-  // @IsOptional()
-  // @IsNumber()
-  // @Min(0)
-  // @Type(() => Number)
-  // exchangeRate?: number;
-
   @ApiProperty({
     description: 'Note',
     example: 'Urgent order - expedite shipping',

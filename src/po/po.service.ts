@@ -2,6 +2,7 @@ import {
   Injectable,
   Inject,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { IPORepository } from './domain/po.repository.interface';
 import { POHeader } from './domain/po-header.entity';
@@ -11,6 +12,7 @@ import { CreatePOHeaderDto } from './dto/create-po-header.dto';
 import { UpdatePOHeaderDto } from './dto/update-po-header.dto';
 import { UpdatePOWithLinesDto } from './dto/update-po-with-lines.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { POType } from '@prisma/client';
 
 @Injectable()
 export class PoService {
@@ -45,6 +47,18 @@ export class PoService {
   }
 
   async create(createDto: CreatePOHeaderDto, createdBy: string): Promise<POHeader> {
+    /**
+     * SUBCONTRACT PO must have at least one line mapped to an SO line
+     */
+    if (createDto.type === POType.SUBCONTRACT) {
+      const hasMapping = (createDto.lines ?? []).some((l) => l.soLinePublicId);
+      if (!hasMapping) {
+        throw new BadRequestException(
+          'SUBCONTRACT PO must have at least one line mapped to an SO line (soLinePublicId required)'
+        );
+      }
+    }
+
     const poNum = await this.numberGenerator.generate();
 
     const resolvedLines = await Promise.all(
