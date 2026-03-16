@@ -1,13 +1,11 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
   Patch,
   Param,
   Delete,
   ParseIntPipe,
-  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,47 +14,16 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { PoService } from './po.service';
-import { POQueryService } from './application/po-query.service';
 import { CreatePOHeaderDto } from './dto/create-po-header.dto';
 import { UpdatePOHeaderDto } from './dto/update-po-header.dto';
 import { UpdatePOWithLinesDto } from './dto/update-po-with-lines.dto';
-import { FindPOsDto } from './dto/find-pos.dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('Purchase Orders')
 @ApiBearerAuth()
 @Controller('po')
 export class PoController {
-  constructor(
-    private readonly poService: PoService,
-    private readonly poQueryService: POQueryService,
-  ) {}
-
-  // ── Query ─────────────────────────────────────────────────────────────────
-
-  @Get()
-  @ApiOperation({ summary: 'Get all purchase orders' })
-  @ApiResponse({ status: 200, description: 'Returns all purchase orders' })
-  findAll(@Query() query: FindPOsDto) {
-    return this.poQueryService.findAll(query);
-  }
-
-  @Get('supplier/:supplierId')
-  @ApiOperation({ summary: 'Get purchase orders by supplier ID' })
-  @ApiResponse({ status: 200, description: 'Returns purchase orders for the supplier' })
-  findBySupplierId(@Param('supplierId', ParseIntPipe) supplierId: number) {
-    return this.poQueryService.findBySupplierId(supplierId);
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Get purchase order by ID' })
-  @ApiResponse({ status: 200, description: 'Returns the purchase order' })
-  @ApiResponse({ status: 404, description: 'Purchase order not found' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.poQueryService.findById(id);
-  }
-
-  // ── Command ───────────────────────────────────────────────────────────────
+  constructor(private readonly poService: PoService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new purchase order' })

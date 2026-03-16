@@ -3,6 +3,7 @@ import {
   Inject,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { IPORepository } from './domain/po.repository.interface';
 import { POHeader } from './domain/po-header.entity';
@@ -13,6 +14,7 @@ import { UpdatePOHeaderDto } from './dto/update-po-header.dto';
 import { UpdatePOWithLinesDto } from './dto/update-po-with-lines.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { POType } from '@prisma/client';
+import { SOLineStatus } from '@/so/enums/so-status.enum';
 
 @Injectable()
 export class PoService {
@@ -24,14 +26,37 @@ export class PoService {
     private readonly prisma: PrismaService
   ) {}
 
+  private async assertSoLineNotMapped(soLineId: number, excludePoLinePublicId?: string): Promise<void> {
+    const existing = await this.prisma.client.pODetail.findUnique({
+      where: { soLineId },
+      select: { publicId: true, po: { select: { poNum: true } } },
+    });
+    if (existing && existing.publicId !== excludePoLinePublicId) {
+      throw new ConflictException(
+        `SO line is already mapped to PO line in ${existing.po.poNum}`
+      );
+    }
+  }
+
+  private async resolveSoLineIdAndCheck(soLinePublicId: string, excludePoLinePublicId?: string): Promise<number> {
+    const id = await this.resolveSoLineId(soLinePublicId);
+    await this.assertSoLineNotMapped(id, excludePoLinePublicId);
+    return id;
+  }
+
   private async resolveSoLineId(soLinePublicId: string): Promise<number> {
     const soLine = await this.prisma.client.sODetail.findUnique({
       where: { publicId: soLinePublicId },
-      select: { id: true },
+      // select: { id: true },
     });
     if (!soLine) {
       throw new NotFoundException(`SO Line with publicId ${soLinePublicId} not found`);
     }
+
+    if(soLine.status == SOLineStatus.CLOSED || soLine.status == SOLineStatus.CANCELLED || soLine.status == SOLineStatus.PARTIAL) {
+      throw new BadRequestException(`SO Line with publicId ${soLinePublicId} is closed or cancelled or partially received`);
+    }
+
     return soLine.id;
   }
 
@@ -70,7 +95,7 @@ export class PoService {
         unitPrice: line.unitPrice,
         warehouseCode: line.warehouseCode,
         soLineId: line.soLinePublicId
-          ? await this.resolveSoLineId(line.soLinePublicId)
+          ? await this.resolveSoLineIdAndCheck(line.soLinePublicId)
           : undefined,
         note: line.note,
       }))
@@ -164,7 +189,7 @@ export class PoService {
             ? await this.resolveSkuId(lineDto.skuPublicId)
             : undefined;
           const soLineId = lineDto.soLinePublicId
-            ? await this.resolveSoLineId(lineDto.soLinePublicId)
+            ? await this.resolveSoLineIdAndCheck(lineDto.soLinePublicId, lineDto.publicId)
             : undefined;
           line.updateFields({
             skuId,
@@ -188,7 +213,7 @@ export class PoService {
           unitPrice: lineDto.unitPrice!,
           warehouseCode: lineDto.warehouseCode,
           soLineId: lineDto.soLinePublicId
-            ? await this.resolveSoLineId(lineDto.soLinePublicId)
+            ? await this.resolveSoLineIdAndCheck(lineDto.soLinePublicId)
             : undefined,
           note: lineDto.note,
           createdBy,
